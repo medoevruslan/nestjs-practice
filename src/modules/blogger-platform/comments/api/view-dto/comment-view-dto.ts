@@ -1,12 +1,10 @@
 import { LikeStatus } from '../../enum/like-status';
+import { CommentatorInfoDto } from './commentator-info-dto';
 
 export class CommentViewDto {
   id: string;
   content: string;
-  commentatorInfo: {
-    userId: string;
-    userLogin: string;
-  };
+  commentatorInfo: CommentatorInfoDto;
   createdAt: string;
   likesInfo: {
     likesCount: number;

@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { CommentsController } from './comments/comments.controller';
-import { CommentsQueryRepository } from './comments/commentsQuery.repository';
+import { BloggerPlatformModule } from './modules/blogger-platform/blogger-platform.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController, CommentsController],
-  providers: [AppService, CommentsQueryRepository],
+  imports: [BloggerPlatformModule],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

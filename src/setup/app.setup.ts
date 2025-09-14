@@ -7,4 +7,5 @@ export function appSetup(app: INestApplication) {
   globalPipesSetup(app);
   globalPrefixSetup(app);
   swaggerSetup(app);
+  app.enableCors();
 }

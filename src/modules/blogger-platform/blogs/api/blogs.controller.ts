@@ -3,15 +3,22 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Inject,
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { BlogsService } from '../application/blogs.service';
 import { BlogsQueryRepository } from '../infrastructure/query/blogs.query-repository';
 import { ApiParam } from '@nestjs/swagger';
-import { CreateBlogInputDto } from './input-dto/blog.input-dto';
+import {
+  CreateBlogInputDto,
+  UpdateBlogInputDto,
+} from './input-dto/blog.input-dto';
+import { GetBlogsQueryParams } from './input-dto/get-blogs-query-params-input.dto';
 
 @Controller('blogs')
 export class BlogsController {
@@ -22,21 +29,33 @@ export class BlogsController {
   ) {}
 
   @Get()
-  async getAll() {
-    return this.blogsQueryRepository.getAll();
+  async getAll(@Query() query: GetBlogsQueryParams) {
+    return this.blogsQueryRepository.getAll(query);
   }
 
   @Post()
-  async createBlog(@Body() body: CreateBlogInputDto) {}
+  async createBlog(@Body() body: CreateBlogInputDto) {
+    const blogId = await this.blogsService.createBlog(body);
+    return this.blogsQueryRepository.getByIdOrNotFoundFail(blogId);
+  }
 
   @ApiParam({ name: 'id' }) // for swagger
   @Get(':id')
-  async getBlogById(@Param('id') id: string) {}
+  async getBlogById(@Param('id') id: string) {
+    return this.blogsQueryRepository.getByIdOrNotFoundFail(id);
+  }
 
   @Put(':id')
-  async updateBlog(@Param('id') id: string) {}
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async updateBlog(@Param('id') id: string, @Body() dto: UpdateBlogInputDto) {
+    const blogId = await this.blogsService.updateBlog(id, dto);
+    return this.blogsQueryRepository.getByIdOrNotFoundFail(blogId);
+  }
 
   @ApiParam({ name: 'id' }) // for swagger
   @Delete(':id')
-  async deleteBlog(@Param('id') id: string) {}
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteBlog(@Param('id') id: string) {
+    return this.blogsService.deleteById(id);
+  }
 }

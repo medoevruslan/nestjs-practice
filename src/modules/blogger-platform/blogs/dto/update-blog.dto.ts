@@ -1,3 +1,5 @@
 export class UpdateBlogDto {
-  email: string;
+  name: string;
+  description: string;
+  websiteUrl: string;
 }

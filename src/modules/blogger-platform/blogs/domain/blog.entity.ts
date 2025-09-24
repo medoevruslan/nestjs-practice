@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Model, Types } from 'mongoose';
 import { CreateBlogDomainDto } from './dto/create-blog.domain.dto';
+import { UpdateBlogDto } from '../dto/update-blog.dto';
 
 @Schema({ timestamps: true })
 export class Blog {
@@ -31,6 +32,11 @@ export class Blog {
   createdAt: Date;
   updatedAt: Date;
 
+  /**
+   * Deletion timestamp, nullable, if date exist, means entity soft deleted
+   * @type {Date | null}
+   */
+  @Prop({ type: Date, nullable: true })
   deletedAt: Date | null;
 
   @Prop({ type: Boolean, default: false })
@@ -51,10 +57,21 @@ export class Blog {
     blog.name = dto.name;
     blog.description = dto.description;
     blog.websiteUrl = dto.websiteUrl;
-
+    blog.deletedAt = null;
     blog.isMembership = false;
 
     return blog as BlogDocument;
+  }
+
+  /**
+   * Updates the blog instance with new data
+   * @param {UpdateBlogDto} dto - The data transfer object for blog updates
+   * DDD сontinue: инкапсуляция (вызываем методы, которые меняют состояние\св-ва) объектов согласно правилам этого объекта
+   */
+  public update(dto: UpdateBlogDto) {
+    this.name = dto.name;
+    this.description = dto.description;
+    this.websiteUrl = dto.websiteUrl;
   }
 
   /**

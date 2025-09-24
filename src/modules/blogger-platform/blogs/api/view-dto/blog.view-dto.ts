@@ -8,7 +8,7 @@ export class BlogViewDto {
   createdAt: string;
   isMembership: boolean;
 
-  public static mapToView(blog: BlogDocument) {
+  public static mapToView(blog: BlogDocument): BlogViewDto {
     const dto = new BlogViewDto();
 
     dto.id = blog.id;

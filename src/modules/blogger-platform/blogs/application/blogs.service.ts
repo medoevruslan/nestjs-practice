@@ -29,6 +29,7 @@ export class BlogsService {
 
   async updateBlog(id: string, dto: UpdateBlogDto) {
     const blog = await this.blogsRepository.getByIdOrNotFoundFail(id);
+
     blog.update(dto);
 
     await this.blogsRepository.save(blog);

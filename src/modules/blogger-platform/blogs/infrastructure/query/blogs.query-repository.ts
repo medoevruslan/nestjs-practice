@@ -3,7 +3,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Blog, BlogDocument, BlogModelType } from '../../domain/blog.entity';
 import { BlogViewDto } from '../../api/view-dto/blog.view-dto';
 import { GetBlogsQueryParams } from '../../api/input-dto/get-blogs-query-params-input.dto';
-import { PaginatedViewDto } from '../../../../../core/dto/base.paginated.view-dto';
+import {
+  MappedPaginatedViewType,
+  PaginatedViewDto,
+} from '../../../../../core/dto/base.paginated.view-dto';
+import { FilterQuery } from 'mongoose';
 
 @Injectable()
 export class BlogsQueryRepository {
@@ -16,9 +20,11 @@ export class BlogsQueryRepository {
 
     const skip = query.calculateSkip();
 
-    const filter = searchNameTerm
-      ? { name: { $regex: searchNameTerm, $options: 'i' } }
-      : {};
+    const filter: FilterQuery<Blog> = { deletedAt: null };
+
+    if (searchNameTerm) {
+      filter['name'] = { $regex: searchNameTerm, $options: 'i' };
+    }
 
     const [totalCount, blogs]: [number, BlogDocument[]] = await Promise.all([
       this.BlogModel.countDocuments(filter), // Fetch total count
@@ -33,7 +39,7 @@ export class BlogsQueryRepository {
       items: blogs.map(BlogViewDto.mapToView),
       page: pageNumber,
       size: pageSize,
-    } satisfies Parameters<typeof PaginatedViewDto.mapToView<BlogViewDto[]>>[0];
+    } satisfies MappedPaginatedViewType<BlogViewDto[]>;
 
     return PaginatedViewDto.mapToView<BlogViewDto[]>(data);
   }

@@ -45,6 +45,7 @@ export class BlogsController {
     return this.blogsQueryRepository.getByIdOrNotFoundFail(id);
   }
 
+  @ApiParam({ name: 'id' })
   @Put(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateBlog(@Param('id') id: string, @Body() dto: UpdateBlogInputDto) {

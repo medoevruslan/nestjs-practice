@@ -13,7 +13,9 @@ export class PostsService {
     @Inject() private postsRepository: PostsRepository,
   ) {}
 
-  getAll(query: GetPostsQueryParams) {}
+  getAll(query: GetPostsQueryParams) {
+    return this.postsRepository.getAll(query);
+  }
   getPostById(id: string) {
     return this.postsRepository.getByIdOrFail(id);
   }

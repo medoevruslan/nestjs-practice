@@ -29,13 +29,13 @@ export class PostsController {
 
   @Get()
   getAll(@Query() query: GetPostsQueryParams) {
-    return this.postsQueryRepository.getAll(query);
+    return this.postsQueryRepository.getAll(query, 'dummyId');
   }
 
   @ApiParam({ name: 'id' })
-  @Get()
+  @Get(':id')
   getPostById(@Param('id') id: string) {
-    return this.postsQueryRepository.getPostByIdOrFail(id);
+    return this.postsQueryRepository.getPostByIdOrFail(id, 'dummyId');
   }
 
   @Post()

@@ -15,6 +15,7 @@ export class PostsQueryRepository {
 
   async getAll(
     query: GetPostsQueryParams,
+    userId: string,
   ): Promise<PaginatedViewDto<PostViewDto[]>> {
     const { sortBy, sortDirection, pageNumber, pageSize } = query;
 
@@ -25,7 +26,14 @@ export class PostsQueryRepository {
       this.PostModel.find(filter)
         .sort({ [sortBy]: sortDirection })
         .skip(query.calculateSkip())
-        .limit(pageSize),
+        .limit(pageSize)
+        .populate([
+          { path: 'likesCount' },
+          { path: 'dislikesCount' },
+          { path: 'newestLikes' },
+          { path: 'userLikeStatus', match: { userId } },
+        ])
+        .exec(),
     ]);
 
     const data = {
@@ -38,8 +46,17 @@ export class PostsQueryRepository {
     return PaginatedViewDto.mapToView(data);
   }
 
-  async getPostByIdOrFail(id: string) {
-    const found = await this.PostModel.findOne({ _id: id }).lean();
+  async getPostByIdOrFail(id: string, userId: string) {
+    const found = await this.PostModel.findOne({
+      _id: id,
+    })
+      .populate([
+        { path: 'likesCount' },
+        { path: 'dislikesCount' },
+        { path: 'newestLikes' },
+        { path: 'userLikeStatus', match: { userId } },
+      ])
+      .exec();
     if (!found) {
       throw new NotFoundException();
     }

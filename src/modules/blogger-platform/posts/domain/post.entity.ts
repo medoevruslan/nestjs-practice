@@ -2,8 +2,14 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Model, Types } from 'mongoose';
 import { CreatePostDomainDto } from './dto/create-post.domain-dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
+import { Blog } from '../../blogs/domain/blog.entity';
+import { LikeDocument, LikeStatus } from '../../likes/domain/like.entity';
 
-@Schema({ timestamps: true })
+@Schema({
+  timestamps: true,
+  toObject: { virtuals: true },
+  toJSON: { virtuals: true },
+})
 export class Post {
   _id: Types.ObjectId;
 
@@ -16,7 +22,7 @@ export class Post {
   @Prop({ type: String, max: 1000 })
   content: string;
 
-  @Prop({ type: Types.ObjectId })
+  @Prop({ type: Types.ObjectId, ref: Blog.name })
   blogId: string;
 
   @Prop({ type: Date, nullable: true })
@@ -26,8 +32,8 @@ export class Post {
     return this._id.toString();
   }
 
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 
   markDeleted() {
     if (this.deletedAt !== null) {
@@ -57,6 +63,46 @@ export const PostSchema = SchemaFactory.createForClass(Post);
 
 PostSchema.loadClass(Post);
 
+PostSchema.virtual('likesCount', {
+  ref: 'Like',
+  count: true,
+  localField: '_id',
+  foreignField: 'parentId',
+  match: { parentType: 'Post', status: LikeStatus.Like },
+});
+
+PostSchema.virtual('dislikesCount', {
+  ref: 'Like',
+  count: true,
+  localField: '_id',
+  foreignField: 'parentId',
+  match: { parentType: 'Post', status: LikeStatus.Dislike },
+});
+
+PostSchema.virtual('newestLikes', {
+  ref: 'Like',
+  localField: '_id',
+  foreignField: 'parentId',
+  justOne: false,
+  match: { parentType: 'Post', status: LikeStatus.Like },
+  options: { sort: { createdAt: -1 }, limit: 3 },
+});
+
+PostSchema.virtual('userLikeStatus', {
+  ref: 'Like',
+  localField: '_id',
+  foreignField: 'parentId',
+  justOne: true,
+  match: { parentType: 'Post' },
+});
+
 export type PostDocument = HydratedDocument<Post>;
+
+export type PostWithLikesInfoDocument = PostDocument & {
+  likesCount?: number;
+  dislikesCount?: number;
+  myStatus?: LikeStatus;
+  newestLikes?: LikeDocument[];
+};
 
 export type PostModelType = Model<PostDocument> & typeof Post;

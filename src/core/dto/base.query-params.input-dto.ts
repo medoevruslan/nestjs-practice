@@ -1,6 +1,6 @@
 import { Type } from 'class-transformer';
 
-export class BaseQueryParamsInputDto {
+export class BaseQueryParams {
   @Type(() => Number)
   pageNumber = 1;
 

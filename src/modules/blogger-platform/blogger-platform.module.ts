@@ -10,12 +10,14 @@ import { PostsQueryRepository } from './posts/infrastructure/query/posts.query-r
 import { Post, PostSchema } from './posts/domain/post.entity';
 import { PostsRepository } from './posts/infrastructure/posts.repository';
 import { PostsService } from './posts/application/posts.service';
+import { Like, LikeSchema } from './likes/domain/like.entity';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Blog.name, schema: BlogSchema },
       { name: Post.name, schema: PostSchema },
+      { name: Like.name, schema: LikeSchema },
     ]),
   ],
   controllers: [BlogsController, PostsController],

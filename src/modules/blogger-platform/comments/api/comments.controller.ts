@@ -1,5 +1,5 @@
 import { Controller, Get, Param } from '@nestjs/common';
-import { CommentsQueryRepository } from './commentsQuery.repository';
+import { CommentsQueryRepository } from '../infrastructure/query/comments-query.repository';
 
 @Controller('comments')
 export class CommentsController {

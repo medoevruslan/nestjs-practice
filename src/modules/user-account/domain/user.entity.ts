@@ -1,0 +1,75 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { HydratedDocument, Model, Types } from 'mongoose';
+import { CreateUserDto } from '../dto/create-user.dto';
+import { UpdateUserDto } from '../dto/update-user.dto';
+
+@Schema({ timestamps: true })
+export class User {
+  _id: Types.ObjectId;
+
+  get id() {
+    return this._id.toString();
+  }
+
+  @Prop({ type: String, required: true })
+  email: string;
+
+  @Prop({ type: String, required: true })
+  login: string;
+
+  @Prop({ type: String, default: null })
+  firstName: string | null;
+
+  @Prop({
+    type: String,
+    default: null,
+  })
+  lastName: string | null;
+
+  get fullName() {
+    return `${this.firstName ?? ''} ${this.lastName ?? ''}`;
+  }
+
+  @Prop({ type: String, required: true })
+  password: string;
+
+  @Prop({ type: Boolean, default: false })
+  isEmailConfirmed: boolean;
+
+  createdAt: Date;
+  updatedAt: Date;
+
+  @Prop({ type: Date, nullable: true })
+  deletedAt: Date | null;
+
+  markDeleted() {
+    if (this.deletedAt !== null) {
+      throw Error('Entity is already deleted');
+    }
+    this.deletedAt = new Date();
+  }
+
+  update(dto: UpdateUserDto) {
+    if (!this.isEmailConfirmed) {
+      throw Error('Update not allowed: email is not confirmed');
+    }
+    this.email = dto.email;
+    this.isEmailConfirmed = false;
+  }
+
+  static createInstance(dto: CreateUserDto) {
+    const user = new this();
+    user.password = dto.password;
+    user.login = dto.login;
+    user.email = dto.email;
+    user.isEmailConfirmed = false;
+    return user as UserDocument;
+  }
+}
+
+export const UserSchema = SchemaFactory.createForClass(User);
+
+UserSchema.loadClass(User);
+
+export type UserDocument = HydratedDocument<User>;
+export type UserModel = Model<UserDocument> & typeof User;

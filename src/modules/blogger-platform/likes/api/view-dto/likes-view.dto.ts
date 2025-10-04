@@ -4,6 +4,9 @@ export class LikesViewDto {
   likesCount: number;
   dislikesCount: number;
   myStatus: LikeStatus;
+}
+
+export class ExtendedLikesViewDto extends LikesViewDto {
   newestLikes: LikesDetailsView[];
 }
 

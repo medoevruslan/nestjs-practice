@@ -7,6 +7,6 @@ export class CommentsController {
 
   @Get(':id')
   getCommentById(@Param('id') id: string) {
-    return this.commentsQueryRepository.findById(id, 'unknown');
+    return this.commentsQueryRepository.getCommentByIdOrFail(id, 'unknown');
   }
 }

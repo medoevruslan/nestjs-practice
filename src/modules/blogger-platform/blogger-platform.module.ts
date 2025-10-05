@@ -11,6 +11,9 @@ import { Post, PostSchema } from './posts/domain/post.entity';
 import { PostsRepository } from './posts/infrastructure/posts.repository';
 import { PostsService } from './posts/application/posts.service';
 import { Like, LikeSchema } from './likes/domain/like.entity';
+import { CommentsController } from './comments/api/comments.controller';
+import { CommentsQueryRepository } from './comments/infrastructure/query/comments-query.repository';
+import { Comment, CommentSchema } from './comments/domain/comment.entity';
 
 @Module({
   imports: [
@@ -18,9 +21,10 @@ import { Like, LikeSchema } from './likes/domain/like.entity';
       { name: Blog.name, schema: BlogSchema },
       { name: Post.name, schema: PostSchema },
       { name: Like.name, schema: LikeSchema },
+      { name: Comment.name, schema: CommentSchema },
     ]),
   ],
-  controllers: [BlogsController, PostsController],
+  controllers: [BlogsController, PostsController, CommentsController],
   providers: [
     BlogsService,
     BlogsRepository,
@@ -28,6 +32,7 @@ import { Like, LikeSchema } from './likes/domain/like.entity';
     PostsQueryRepository,
     PostsRepository,
     PostsService,
+    CommentsQueryRepository,
   ],
 })
 export class BloggerPlatformModule {}

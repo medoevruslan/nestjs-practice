@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Inject,
   Param,
   Post,
@@ -48,6 +50,7 @@ export class PostsController {
     return this.postsService.updatePost(id, dto);
   }
 
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   deletePost(@Param('id') id: string) {
     return this.postsService.deletePost(id);

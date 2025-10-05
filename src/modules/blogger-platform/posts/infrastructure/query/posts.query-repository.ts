@@ -49,6 +49,7 @@ export class PostsQueryRepository {
   async getPostByIdOrFail(id: string, userId: string) {
     const found = await this.PostModel.findOne({
       _id: id,
+      deletedAt: null,
     })
       .populate([
         { path: 'likesCount' },

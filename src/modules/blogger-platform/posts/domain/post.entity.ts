@@ -2,7 +2,6 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Model, Types } from 'mongoose';
 import { CreatePostDomainDto } from './dto/create-post.domain-dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
-import { Blog } from '../../blogs/domain/blog.entity';
 import { LikeDocument, LikeStatus } from '../../likes/domain/like.entity';
 
 @Schema({
@@ -22,8 +21,8 @@ export class Post {
   @Prop({ type: String, max: 1000 })
   content: string;
 
-  @Prop({ type: Types.ObjectId, ref: Blog.name })
-  blogId: string;
+  @Prop({ type: Types.ObjectId, ref: 'Blog' })
+  blogId: Types.ObjectId;
 
   @Prop({ type: Date, nullable: true })
   deletedAt: Date | null;
@@ -46,12 +45,12 @@ export class Post {
     this.title = dto.title;
     this.content = dto.content;
     this.shortDescription = dto.shortDescription;
-    this.blogId = dto.blogId;
+    this.blogId = new Types.ObjectId(dto.blogId);
   }
 
   static createInstance(dto: CreatePostDomainDto) {
     const post = new this();
-    post.blogId = dto.blogId;
+    post.blogId = new Types.ObjectId(dto.blogId);
     post.content = dto.content;
     post.title = dto.title;
     post.shortDescription = dto.shortDescription;

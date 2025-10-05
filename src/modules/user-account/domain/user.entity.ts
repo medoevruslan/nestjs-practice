@@ -39,7 +39,7 @@ export class User {
   createdAt: Date;
   updatedAt: Date;
 
-  @Prop({ type: Date, nullable: true })
+  @Prop({ type: Date, default: null })
   deletedAt: Date | null;
 
   markDeleted() {
@@ -72,4 +72,4 @@ export const UserSchema = SchemaFactory.createForClass(User);
 UserSchema.loadClass(User);
 
 export type UserDocument = HydratedDocument<User>;
-export type UserModel = Model<UserDocument> & typeof User;
+export type UserModelType = Model<UserDocument> & typeof User;

@@ -2,8 +2,8 @@ import { BaseQueryParams } from '../../../../core/dto/base.query-params.input-dt
 
 export class GetUsersQueryParams extends BaseQueryParams {
   sortBy = UsersSortBy.CreatedAt;
-  searchLoginTerm: string;
-  searchEmailTerm: string;
+  searchLoginTerm: string | null = null;
+  searchEmailTerm: string | null = null;
 }
 
 export enum UsersSortBy {

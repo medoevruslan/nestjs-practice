@@ -24,24 +24,39 @@ export class UsersQueryRepository {
       searchEmailTerm,
       searchLoginTerm,
     } = query;
+
     const filter: FilterQuery<User> = { deletedAt: null };
+
+    if (searchLoginTerm) {
+      filter.$or = filter.$or ?? [];
+      filter.$or.push({ login: { $regex: searchLoginTerm, $options: 'i' } });
+    }
+
+    if (searchEmailTerm) {
+      filter.$or = filter.$or ?? [];
+      filter.$or.push({ email: { $regex: searchEmailTerm, $options: 'i' } });
+    }
 
     const [totalCount, users] = await Promise.all([
       this.UserModel.countDocuments(filter),
-      this.UserModel.find(filter).lean(),
+      this.UserModel.find(filter)
+        .sort({ [sortBy]: sortDirection })
+        .skip(query.calculateSkip())
+        .limit(pageSize)
+        .lean(),
     ]);
 
     const data = {
       totalCount,
-      page: 0,
+      page: pageNumber,
+      size: pageSize,
       items: users.map(UserViewDto.mapToView),
-      size: 0,
     } satisfies MappedPaginatedViewType<UserViewDto[]>;
 
     return PaginatedViewDto.mapToView<UserViewDto[]>(data);
   }
   async getByIdOrFail(id: string): Promise<UserViewDto> {
-    const found = await this.UserModel.findOne({ _id: id });
+    const found = await this.UserModel.findOne({ _id: id, deletedAt: null });
 
     if (!found) {
       throw new NotFoundException();

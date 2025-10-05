@@ -4,12 +4,14 @@ import { AppService } from './app.service';
 import { BloggerPlatformModule } from './modules/blogger-platform/blogger-platform.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserAccountModule } from './modules/user-account/user-account.module';
+import { TestingModule } from './modules/testing/testing.module';
 
 @Module({
   imports: [
     MongooseModule.forRoot('mongodb://localhost/nest-bloggers-platform'),
     BloggerPlatformModule,
     UserAccountModule,
+    TestingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

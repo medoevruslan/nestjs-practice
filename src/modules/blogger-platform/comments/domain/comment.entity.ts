@@ -21,7 +21,7 @@ export class Comment {
   userLogin: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Post', required: true })
-  postId: string;
+  postId: Types.ObjectId;
 
   createdAt: Date;
   updatedAt: Date;
@@ -33,7 +33,7 @@ export class Comment {
   static createInstance(dto: CreateCommentDomainDto) {
     const comment = new this();
     comment.content = dto.content;
-    comment.postId = dto.postId;
+    comment.postId = new Types.ObjectId(dto.postId);
     comment.userLogin = dto.userLogin;
     comment.userId = new Types.ObjectId(dto.userId);
     return comment as CommentDocument;

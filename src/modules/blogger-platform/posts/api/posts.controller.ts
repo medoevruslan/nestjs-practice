@@ -20,12 +20,15 @@ import { PostsQueryRepository } from '../infrastructure/query/posts.query-reposi
 import { PostsService } from '../application/posts.service';
 import { ApiParam } from '@nestjs/swagger';
 import { ParseObjectIdOrBadRequestPipe } from '../../../../core/pipes/ParseObjectIdOrBadRequestPipe';
+import { CommentsQueryRepository } from '../../comments/infrastructure/query/comments-query.repository';
 
 @Controller('posts')
 export class PostsController {
   constructor(
     @Inject(PostsQueryRepository)
     private postsQueryRepository: PostsQueryRepository,
+    @Inject(CommentsQueryRepository)
+    private commentsQueryRepository: CommentsQueryRepository,
     @Inject(PostsService)
     private postsService: PostsService,
   ) {}
@@ -39,6 +42,17 @@ export class PostsController {
   @Get(':id')
   getPostById(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
     return this.postsQueryRepository.getPostByIdOrFail(id, 'dummyId');
+  }
+
+  @ApiParam({ name: 'postId' })
+  @Get(':postId/comments')
+  getPostComments(
+    @Param('postId', ParseObjectIdOrBadRequestPipe) postId: string,
+  ) {
+    return this.commentsQueryRepository.getCommentsByPostIdOrFail(
+      postId,
+      'dummyId',
+    );
   }
 
   @Post()

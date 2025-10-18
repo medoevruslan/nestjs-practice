@@ -27,4 +27,23 @@ export class CommentsQueryRepository {
 
     return CommentViewDto.mapToView(found);
   }
+
+  async getCommentsByPostIdOrFail(postId: string, userId: string) {
+    const found = await this.CommentModel.find({
+      postId,
+      deletedAt: null,
+    })
+      .populate([
+        { path: 'likesCount' },
+        { path: 'dislikesCount' },
+        { path: 'userLikeStatus', match: { userId } },
+      ])
+      .exec();
+
+    if (!found.length) {
+      throw new NotFoundException();
+    }
+
+    return found.map(CommentViewDto.mapToView);
+  }
 }

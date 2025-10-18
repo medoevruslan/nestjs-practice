@@ -19,6 +19,7 @@ import { GetPostsQueryParams } from './input-dto/get-posts.query-params.input-dt
 import { PostsQueryRepository } from '../infrastructure/query/posts.query-repository';
 import { PostsService } from '../application/posts.service';
 import { ApiParam } from '@nestjs/swagger';
+import { ParseObjectIdOrBadRequestPipe } from '../../../../core/pipes/ParseObjectIdOrBadRequestPipe';
 
 @Controller('posts')
 export class PostsController {
@@ -36,7 +37,7 @@ export class PostsController {
 
   @ApiParam({ name: 'id' })
   @Get(':id')
-  getPostById(@Param('id') id: string) {
+  getPostById(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
     return this.postsQueryRepository.getPostByIdOrFail(id, 'dummyId');
   }
 
@@ -46,13 +47,16 @@ export class PostsController {
   }
 
   @Put(':id')
-  updatePost(@Param('id') id: string, @Body() dto: UpdatePostInputDto) {
+  updatePost(
+    @Param('id', ParseObjectIdOrBadRequestPipe) id: string,
+    @Body() dto: UpdatePostInputDto,
+  ) {
     return this.postsService.updatePost(id, dto);
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
-  deletePost(@Param('id') id: string) {
+  deletePost(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
     return this.postsService.deletePost(id);
   }
 }

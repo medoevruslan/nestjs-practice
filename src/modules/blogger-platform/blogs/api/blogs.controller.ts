@@ -19,6 +19,7 @@ import {
   UpdateBlogInputDto,
 } from './input-dto/blog.input-dto';
 import { GetBlogsQueryParams } from './input-dto/get-blogs-query-params-input.dto';
+import { ParseObjectIdOrBadRequestPipe } from '../../../../core/pipes/ParseObjectIdOrBadRequestPipe';
 
 @Controller('blogs')
 export class BlogsController {
@@ -41,14 +42,17 @@ export class BlogsController {
 
   @ApiParam({ name: 'id' }) // for swagger
   @Get(':id')
-  async getBlogById(@Param('id') id: string) {
+  async getBlogById(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
     return this.blogsQueryRepository.getByIdOrNotFoundFail(id);
   }
 
   @ApiParam({ name: 'id' })
   @Put(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async updateBlog(@Param('id') id: string, @Body() dto: UpdateBlogInputDto) {
+  async updateBlog(
+    @Param('id', ParseObjectIdOrBadRequestPipe) id: string,
+    @Body() dto: UpdateBlogInputDto,
+  ) {
     const blogId = await this.blogsService.updateBlog(id, dto);
     return this.blogsQueryRepository.getByIdOrNotFoundFail(blogId);
   }
@@ -56,7 +60,7 @@ export class BlogsController {
   @ApiParam({ name: 'id' }) // for swagger
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteBlog(@Param('id') id: string) {
+  async deleteBlog(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
     return this.blogsService.deleteById(id);
   }
 }

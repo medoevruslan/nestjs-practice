@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsString, IsUrl, MaxLength } from 'class-validator';
+import {
+  IsMongoId,
+  IsNotEmpty,
+  IsString,
+  IsUrl,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateBlogInputDto {
   @IsNotEmpty()
@@ -15,6 +21,23 @@ export class CreateBlogInputDto {
   @IsUrl()
   @MaxLength(100)
   websiteUrl: string;
+}
+
+export class CreatePostByBlogIdInputDto {
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(30)
+  title: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(100)
+  shortDescription: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(1000)
+  content: string;
 }
 
 export class UpdateBlogInputDto {

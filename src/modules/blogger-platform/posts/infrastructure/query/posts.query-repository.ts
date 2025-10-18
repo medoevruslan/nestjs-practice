@@ -64,4 +64,24 @@ export class PostsQueryRepository {
 
     return PostViewDto.mapToView(found);
   }
+
+  async getPostByBlogIdOrFail(blogId: string, userId: string) {
+    const found = await this.PostModel.find({
+      blogId,
+      deletedAt: null,
+    })
+      .populate([
+        { path: 'likesCount' },
+        { path: 'dislikesCount' },
+        { path: 'newestLikes' },
+        { path: 'userLikeStatus', match: { userId } },
+      ])
+      .exec();
+
+    if (!found.length) {
+      throw new NotFoundException();
+    }
+
+    return found.map(PostViewDto.mapToView);
+  }
 }

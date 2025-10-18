@@ -5,12 +5,14 @@ import { PostsRepository } from '../infrastructure/posts.repository';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Post, PostModelType } from '../domain/post.entity';
+import { BlogsRepository } from '../../blogs/infrastructure/blogs.repository';
 
 @Injectable()
 export class PostsService {
   constructor(
     @InjectModel(Post.name) private PostModel: PostModelType,
     @Inject() private postsRepository: PostsRepository,
+    @Inject() private blogsRepository: BlogsRepository,
   ) {}
 
   getAll(query: GetPostsQueryParams) {
@@ -20,7 +22,9 @@ export class PostsService {
     return this.postsRepository.getByIdOrFail(id);
   }
 
-  async createPosts(dto: CreatePostDto) {
+  async createPost(dto: CreatePostDto) {
+    await this.blogsRepository.getByIdOrNotFoundFail(dto.blogId);
+
     const post = this.PostModel.createInstance({
       title: dto.title,
       blogId: dto.blogId,

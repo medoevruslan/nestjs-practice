@@ -60,6 +60,9 @@ export class Post {
 
 export const PostSchema = SchemaFactory.createForClass(Post);
 
+PostSchema.index({ blogId: 1, deletedAt: 1 });
+PostSchema.index({ blogId: 1, createdAt: -1 });
+
 PostSchema.loadClass(Post);
 
 PostSchema.virtual('likesCount', {

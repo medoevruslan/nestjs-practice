@@ -43,7 +43,7 @@ export class PostsController {
 
   @Post()
   createPost(@Body() dto: CreatePostInputDto) {
-    return this.postsService.createPosts(dto);
+    return this.postsService.createPost(dto);
   }
 
   @Put(':id')

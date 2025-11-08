@@ -43,7 +43,7 @@ export class UsersQueryRepository {
         .sort({ [sortBy]: sortDirection })
         .skip(query.calculateSkip())
         .limit(pageSize)
-        .lean(),
+        .lean({ virtuals: true }),
     ]);
 
     const data = {

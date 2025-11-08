@@ -14,12 +14,12 @@ export class PostViewDto {
 
   public static mapToView(post: PostWithLikesInfoDocument): PostViewDto {
     return {
-      id: post.id,
+      id: post.id ?? post._id.toString(),
       title: post.title,
       shortDescription: post.shortDescription,
       content: post.content,
       blogId: post.blogId.toString(),
-      blogName: '',
+      blogName: post.blogName,
       createdAt: post.createdAt.toISOString(),
       extendedLikesInfo: {
         likesCount: post.likesCount ?? 0,

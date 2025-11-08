@@ -43,7 +43,7 @@ export class PostsRepository {
   }
 
   async getByIdOrFail(id: string) {
-    const found = await this.PostModel.findOne({ _id: id });
+    const found = await this.PostModel.findOne({ _id: id, deletedAt: null });
 
     if (!found) {
       throw new NotFoundException();

@@ -34,19 +34,19 @@ export class PostsController {
   ) {}
 
   @Get()
-  getAll(@Query() query: GetPostsQueryParams) {
+  async getAll(@Query() query: GetPostsQueryParams) {
     return this.postsQueryRepository.getAll(query, 'dummyId');
   }
 
   @ApiParam({ name: 'id' })
   @Get(':id')
-  getPostById(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
+  async getPostById(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
     return this.postsQueryRepository.getPostByIdOrFail(id, 'dummyId');
   }
 
   @ApiParam({ name: 'postId' })
   @Get(':postId/comments')
-  getPostComments(
+  async getPostComments(
     @Param('postId', ParseObjectIdOrBadRequestPipe) postId: string,
   ) {
     return this.commentsQueryRepository.getCommentsByPostIdOrFail(
@@ -56,12 +56,14 @@ export class PostsController {
   }
 
   @Post()
-  createPost(@Body() dto: CreatePostInputDto) {
-    return this.postsService.createPost(dto);
+  async createPost(@Body() dto: CreatePostInputDto) {
+    const postId = await this.postsService.createPost(dto);
+    return this.postsQueryRepository.getPostByIdOrFail(postId, 'dummyId');
   }
 
+  @HttpCode(HttpStatus.NO_CONTENT)
   @Put(':id')
-  updatePost(
+  async updatePost(
     @Param('id', ParseObjectIdOrBadRequestPipe) id: string,
     @Body() dto: UpdatePostInputDto,
   ) {
@@ -70,7 +72,7 @@ export class PostsController {
 
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
-  deletePost(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
+  async deletePost(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
     return this.postsService.deletePost(id);
   }
 }

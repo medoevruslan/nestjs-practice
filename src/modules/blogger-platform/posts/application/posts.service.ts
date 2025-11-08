@@ -22,14 +22,15 @@ export class PostsService {
     return this.postsRepository.getByIdOrFail(id);
   }
 
-  async createPost(dto: CreatePostDto) {
-    await this.blogsRepository.getByIdOrNotFoundFail(dto.blogId);
+  async createPost(dto: CreatePostDto): Promise<string> {
+    const blog = await this.blogsRepository.getByIdOrNotFoundFail(dto.blogId);
 
     const post = this.PostModel.createInstance({
       title: dto.title,
       blogId: dto.blogId,
       content: dto.content,
       shortDescription: dto.shortDescription,
+      blogName: blog.name,
     });
 
     await this.postsRepository.save(post);

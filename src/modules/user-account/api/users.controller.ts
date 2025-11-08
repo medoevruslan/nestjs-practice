@@ -36,7 +36,7 @@ export class UsersController {
   }
 
   @ApiParam({ name: 'id' })
-  @Delete('id')
+  @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteUser(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
     return this.usersService.deleteUser(id);

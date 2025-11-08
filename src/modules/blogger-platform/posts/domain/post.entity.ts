@@ -3,11 +3,10 @@ import { HydratedDocument, Model, Types } from 'mongoose';
 import { CreatePostDomainDto } from './dto/create-post.domain-dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { LikeDocument, LikeStatus } from '../../likes/domain/like.entity';
+import * as stream from 'node:stream';
 
 @Schema({
   timestamps: true,
-  toObject: { virtuals: true },
-  toJSON: { virtuals: true },
 })
 export class Post {
   _id: Types.ObjectId;
@@ -23,6 +22,9 @@ export class Post {
 
   @Prop({ type: Types.ObjectId, ref: 'Blog' })
   blogId: Types.ObjectId;
+
+  @Prop({ type: String })
+  blogName: string;
 
   @Prop({ type: Date, nullable: true })
   deletedAt: Date | null;
@@ -51,9 +53,11 @@ export class Post {
   static createInstance(dto: CreatePostDomainDto) {
     const post = new this();
     post.blogId = new Types.ObjectId(dto.blogId);
+    post.blogName = dto.blogName;
     post.content = dto.content;
     post.title = dto.title;
     post.shortDescription = dto.shortDescription;
+    post.deletedAt = null;
     return post as PostDocument;
   }
 }
@@ -64,6 +68,13 @@ PostSchema.index({ blogId: 1, deletedAt: 1 });
 PostSchema.index({ blogId: 1, createdAt: -1 });
 
 PostSchema.loadClass(Post);
+
+PostSchema.virtual('blogInfo', {
+  ref: 'Blog',
+  justOne: true,
+  localField: 'blogId',
+  foreignField: '_id',
+});
 
 PostSchema.virtual('likesCount', {
   ref: 'Like',

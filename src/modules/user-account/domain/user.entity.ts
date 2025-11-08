@@ -3,7 +3,11 @@ import { HydratedDocument, Model, Types } from 'mongoose';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 
-@Schema({ timestamps: true })
+@Schema({
+  timestamps: true,
+  toObject: { virtuals: true },
+  toJSON: { virtuals: true },
+})
 export class User {
   _id: Types.ObjectId;
 
@@ -44,7 +48,7 @@ export class User {
 
   markDeleted() {
     if (this.deletedAt !== null) {
-      throw Error('Entity is already deleted');
+      throw new Error('Entity already deleted');
     }
     this.deletedAt = new Date();
   }
@@ -63,6 +67,7 @@ export class User {
     user.login = dto.login;
     user.email = dto.email;
     user.isEmailConfirmed = false;
+    user.deletedAt = null;
     return user as UserDocument;
   }
 }

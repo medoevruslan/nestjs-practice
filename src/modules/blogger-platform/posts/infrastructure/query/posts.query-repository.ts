@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { GetPostsQueryParams } from '../../api/input-dto/get-posts.query-params.input-dto';
-import { FilterQuery } from 'mongoose';
+import { FilterQuery, Types } from 'mongoose';
 import { Post, PostModelType } from '../../domain/post.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import {
@@ -58,6 +58,7 @@ export class PostsQueryRepository {
         { path: 'userLikeStatus', match: { userId } },
       ])
       .exec();
+
     if (!found) {
       throw new NotFoundException();
     }
@@ -65,23 +66,44 @@ export class PostsQueryRepository {
     return PostViewDto.mapToView(found);
   }
 
-  async getPostByBlogIdOrFail(blogId: string, userId: string) {
-    const found = await this.PostModel.find({
-      blogId,
-      deletedAt: null,
-    })
-      .populate([
-        { path: 'likesCount' },
-        { path: 'dislikesCount' },
-        { path: 'newestLikes' },
-        { path: 'userLikeStatus', match: { userId } },
-      ])
-      .exec();
+  async getPostByBlogIdOrFail(
+    blogId: string,
+    userId: string,
+    query: GetPostsQueryParams,
+  ) {
+    const { sortBy, sortDirection, pageNumber, pageSize } = query;
 
-    if (!found.length) {
+    const filter: FilterQuery<Post> = {
+      deletedAt: null,
+      blogId: new Types.ObjectId(blogId),
+    };
+
+    const [totalCount, posts] = await Promise.all([
+      this.PostModel.countDocuments(filter),
+      this.PostModel.find(filter)
+        .sort({ [sortBy]: sortDirection })
+        .skip(query.calculateSkip())
+        .limit(pageSize)
+        .populate([
+          { path: 'likesCount' },
+          { path: 'dislikesCount' },
+          { path: 'newestLikes' },
+          { path: 'userLikeStatus', match: { userId } },
+        ])
+        .exec(),
+    ]);
+
+    if (!posts.length) {
       throw new NotFoundException();
     }
 
-    return found.map(PostViewDto.mapToView);
+    const data = {
+      size: pageSize,
+      page: pageNumber,
+      totalCount,
+      items: posts.map(PostViewDto.mapToView),
+    } satisfies MappedPaginatedViewType<PostViewDto[]>;
+
+    return PaginatedViewDto.mapToView(data);
   }
 }

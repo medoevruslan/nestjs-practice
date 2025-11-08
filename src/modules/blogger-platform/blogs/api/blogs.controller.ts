@@ -23,6 +23,7 @@ import { GetBlogsQueryParams } from './input-dto/get-blogs-query-params-input.dt
 import { ParseObjectIdOrBadRequestPipe } from '../../../../core/pipes/ParseObjectIdOrBadRequestPipe';
 import { PostsQueryRepository } from '../../posts/infrastructure/query/posts.query-repository';
 import { PostsService } from '../../posts/application/posts.service';
+import { GetPostsQueryParams } from '../../posts/api/input-dto/get-posts.query-params.input-dto';
 
 @Controller('blogs')
 export class BlogsController {
@@ -57,8 +58,13 @@ export class BlogsController {
   @Get(':blogId/posts')
   async getPostByBlogId(
     @Param('blogId', ParseObjectIdOrBadRequestPipe) blogId: string,
+    @Query() query: GetPostsQueryParams,
   ) {
-    return this.postsQueryRepository.getPostByBlogIdOrFail(blogId, 'dummyId');
+    return this.postsQueryRepository.getPostByBlogIdOrFail(
+      blogId,
+      'dummyId',
+      query,
+    );
   }
 
   @ApiParam({ name: 'blogId' }) // for swagger
@@ -67,7 +73,8 @@ export class BlogsController {
     @Param('blogId', ParseObjectIdOrBadRequestPipe) blogId: string,
     @Body() dto: CreatePostByBlogIdInputDto,
   ) {
-    return this.postsService.createPost({ ...dto, blogId });
+    const postId = await this.postsService.createPost({ ...dto, blogId });
+    return this.postsQueryRepository.getPostByIdOrFail(postId, 'dummyId');
   }
 
   @ApiParam({ name: 'id' })

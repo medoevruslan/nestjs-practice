@@ -41,7 +41,7 @@ export class Comment {
 
   markDeleted(comment: CommentDocument) {
     if (this.deletedAt !== null) {
-      throw Error('Entity is already deleted');
+      throw new Error('Entity already deleted');
     }
     comment.deletedAt = new Date();
   }

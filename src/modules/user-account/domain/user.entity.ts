@@ -5,8 +5,8 @@ import { UpdateUserDto } from '../dto/update-user.dto';
 
 @Schema({
   timestamps: true,
-  toObject: { virtuals: true },
-  toJSON: { virtuals: true },
+  // toObject: { virtuals: true },
+  // toJSON: { virtuals: true },
 })
 export class User {
   _id: Types.ObjectId;

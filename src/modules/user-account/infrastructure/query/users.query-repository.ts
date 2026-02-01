@@ -42,8 +42,7 @@ export class UsersQueryRepository {
       this.UserModel.find(filter)
         .sort({ [sortBy]: sortDirection })
         .skip(query.calculateSkip())
-        .limit(pageSize)
-        .lean({ virtuals: true }),
+        .limit(pageSize),
     ]);
 
     const data = {

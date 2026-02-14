@@ -24,14 +24,14 @@ describe('users test', () => {
 
     if (!connection.db) throw new NotFoundException('Db is not available');
 
-    await request(app.getHttpServer()).delete('/all-data');
+    await request(app.getHttpServer()).delete('/api/testing/all-data');
 
     const response = await request(app.getHttpServer())
       .post('/api/users')
       .send({
         login: 'test-user',
         email: 'test-user@email.com',
-        password: '12345',
+        password: '123456',
       });
 
     expect(response.status).toBe(201);

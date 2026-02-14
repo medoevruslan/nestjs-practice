@@ -10,13 +10,18 @@ import { AuthConfig } from './auth.config';
 
 @Module({
   imports: [
-    JwtModule.register({
-      secret: process.env.JWT_SECRET ?? 'undefined',
-      signOptions: { expiresIn: '15m' },
+    JwtModule.registerAsync({
+      imports: [AuthModule],
+      inject: [AuthConfig],
+      useFactory: (authConfig: AuthConfig) => ({
+        secret: authConfig.jwtSecret,
+        signOptions: { expiresIn: authConfig.expiresIn },
+      }),
     }),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
   controllers: [AuthController],
   providers: [AuthService, UsersRepository, CryptoService, AuthConfig],
+  exports: [AuthConfig],
 })
 export class AuthModule {}

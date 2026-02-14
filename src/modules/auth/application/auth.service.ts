@@ -14,8 +14,8 @@ export class AuthService {
     @Inject() private readonly authConfig: AuthConfig,
   ) {
     this.jswService = new JwtService({
-      secret: 'secretKey',
-      signOptions: { expiresIn: '15m' },
+      secret: this.authConfig.jwtSecret,
+      signOptions: { expiresIn: this.authConfig.expiresIn },
     });
   }
 

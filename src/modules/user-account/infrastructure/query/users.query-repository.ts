@@ -63,4 +63,14 @@ export class UsersQueryRepository {
 
     return UserViewDto.mapToView(found);
   }
+
+  async getByLoginOrFail(login: string): Promise<UserViewDto> {
+    const found = await this.UserModel.findOne({ login, deletedAt: null });
+
+    if (!found) {
+      throw new NotFoundException();
+    }
+
+    return UserViewDto.mapToView(found);
+  }
 }

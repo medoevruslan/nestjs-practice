@@ -15,10 +15,10 @@ export class User {
     return this._id.toString();
   }
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, unique: true })
   email: string;
 
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, unique: true })
   login: string;
 
   @Prop({ type: String, default: null })

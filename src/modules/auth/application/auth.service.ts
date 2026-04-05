@@ -19,8 +19,8 @@ export class AuthService {
     });
   }
 
-  async login(login: string, password: string) {
-    const user = await this.usersRepository.findByLoginOrFail(login);
+  async login(email: string, password: string) {
+    const user = await this.usersRepository.findByEmailOrFail(email);
 
     if (!this.authConfig.skipPasswordCheck) {
       const isPass = await this.cryptoService.checkPassword(
@@ -33,7 +33,7 @@ export class AuthService {
       }
     }
 
-    const payload = { login, id: user.id };
+    const payload = { email, id: user.id };
 
     const accessToken = this.jswService.sign(payload);
     const refreshToken = this.jswService.sign(payload, { expiresIn: '7d' });

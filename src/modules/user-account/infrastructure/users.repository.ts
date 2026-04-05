@@ -20,8 +20,8 @@ export class UsersRepository {
     return found;
   }
 
-  async findByLoginOrFail(login: string): Promise<UserDocument> {
-    const found = await this.UserModel.findOne({ login, deletedAt: null });
+  async findByEmailOrFail(email: string): Promise<UserDocument> {
+    const found = await this.UserModel.findOne({ email, deletedAt: null });
 
     if (!found) {
       throw new NotFoundException();

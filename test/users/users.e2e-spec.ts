@@ -8,8 +8,13 @@ import { appSetup } from '../../src/setup/app.setup';
 
 describe('users test', () => {
   let app: INestApplication;
-  let connection: Connection;
   let createdUserId: string;
+
+  const testUser = {
+    login: 'test-user',
+    email: 'test-user@email.com',
+    password: '123456',
+  };
 
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
@@ -20,7 +25,7 @@ describe('users test', () => {
     appSetup(app);
     await app.init();
 
-    connection = moduleFixture.get<Connection>(getConnectionToken());
+    const connection = moduleFixture.get<Connection>(getConnectionToken());
 
     if (!connection.db) throw new NotFoundException('Db is not available');
 
@@ -28,13 +33,8 @@ describe('users test', () => {
 
     const response = await request(app.getHttpServer())
       .post('/api/users')
-      .send({
-        login: 'test-user',
-        email: 'test-user@email.com',
-        password: '123456',
-      });
-
-    expect(response.status).toBe(201);
+      .send(testUser)
+      .expect(201);
 
     expect(response.body.login).toBe('test-user');
     expect(response.body.email).toBe('test-user@email.com');
@@ -44,6 +44,21 @@ describe('users test', () => {
 
   afterAll(async () => {
     await app.close();
+  });
+
+  it('should not create user because password too short, throw 400', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/users')
+      .send({
+        login: 'test-user',
+        email: 'test-user@email.com',
+        password: '12345',
+      })
+      .expect(400);
+
+    expect(response.body.message[0]).toBe(
+      'password must be longer than or equal to 6 characters',
+    );
   });
 
   it('should get user', async () => {
@@ -57,5 +72,14 @@ describe('users test', () => {
     expect(response.body.pageSize).toBe(10);
     expect(response.body.items.length).toBe(1);
     expect(response.body.items[0].id).toBe(createdUserId);
+  });
+
+  it('should auth successfully', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ email: testUser.email, password: testUser.password })
+      .expect(200);
+
+    expect(response.body.accessToken).toBeDefined();
   });
 });

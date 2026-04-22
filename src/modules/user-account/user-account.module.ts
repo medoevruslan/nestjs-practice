@@ -18,5 +18,6 @@ import { CryptoService } from './application/crypto-service';
     UsersService,
     CryptoService,
   ],
+  exports: [UsersService],
 })
 export class UserAccountModule {}

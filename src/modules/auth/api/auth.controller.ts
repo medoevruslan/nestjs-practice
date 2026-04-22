@@ -13,6 +13,8 @@ import { Response } from 'express';
 import { RegisterUserInputDto } from './input-dto/register-user.input-dto';
 import { NewPasswordInputDto } from './input-dto/new-password.input-dto';
 import { LoginInputDto } from './input-dto/login.input-dto';
+import { EmailConfirmationInputDto } from './input-dto/email.confirmation.input-dto';
+import { EmailRecoveryInputDto } from './input-dto/email.recovery.input-dto';
 
 @Controller('auth')
 export class AuthController {
@@ -48,8 +50,8 @@ export class AuthController {
 
   @Post('password-recovery')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async passwordRecovery(@Body() email: string) {
-    return this.authService.recoveryPassword(email);
+  async passwordRecovery(@Body() body: EmailRecoveryInputDto) {
+    return this.authService.recoveryPassword(body);
   }
 
   @Post('new-password')
@@ -60,13 +62,13 @@ export class AuthController {
 
   @Post('registration-confirmation')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async registrationConfirmation(@Body() code: string) {
-    return this.authService.confirmRegistration(code);
+  async registrationConfirmation(@Body() body: EmailConfirmationInputDto) {
+    return this.authService.confirmRegistration(body);
   }
 
-  @Post('registration-email-sending')
+  @Post('registration-email-resending')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async registrationEmailSending(@Body() email: string) {
-    return this.authService.sendRegistrationEmail(email);
+  async registrationEmailSending(@Body() body: EmailConfirmationInputDto) {
+    return this.authService.confirmRegistration(body);
   }
 }

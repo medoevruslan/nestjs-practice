@@ -5,21 +5,26 @@ import { AuthService } from './application/auth.service';
 import { CryptoService } from '../user-account/application/crypto-service';
 import { AuthConfig } from './auth.config';
 import { UserAccountModule } from '../user-account/user-account.module';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { MailerConfig } from './mailer.config';
+import { AbstractEmailSender } from './application/port/abstract-email-sender';
+import { MailerEmailSender } from './infrastructure/mailer-email-sender';
 
 @Module({
   imports: [
-    JwtModule.registerAsync({
-      imports: [AuthModule],
-      inject: [AuthConfig],
-      useFactory: (authConfig: AuthConfig) => ({
-        secret: authConfig.jwtSecret,
-        signOptions: { expiresIn: authConfig.expiresIn },
-      }),
-    }),
+    JwtModule.registerAsync({ useClass: AuthConfig }),
+    MailerModule.forRootAsync({ useClass: MailerConfig }),
     UserAccountModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, CryptoService, AuthConfig],
-  exports: [AuthConfig],
+  providers: [
+    AuthService,
+    CryptoService,
+    AuthConfig,
+    MailerConfig,
+    MailerEmailSender,
+    { provide: AbstractEmailSender, useClass: MailerEmailSender },
+  ],
+  exports: [AuthConfig, MailerConfig],
 })
 export class AuthModule {}

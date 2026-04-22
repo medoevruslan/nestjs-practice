@@ -10,6 +10,12 @@ import { getConnectionToken } from '@nestjs/mongoose';
 import request from 'supertest';
 import { appSetup } from '../../src/setup/app.setup';
 import { RegisterUserInputDto } from '../../src/modules/auth/api/input-dto/register-user.input-dto';
+import { AbstractEmailSender } from '../../src/modules/auth/application/port/abstract-email-sender';
+
+const emailSenderMock = {
+  sendEmailConfirmation: jest.fn().mockResolvedValue(undefined),
+  sendPasswordRecovery: jest.fn().mockResolvedValue(undefined),
+};
 
 describe('users test', () => {
   let app: INestApplication;
@@ -24,7 +30,10 @@ describe('users test', () => {
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(AbstractEmailSender)
+      .useValue(emailSenderMock)
+      .compile();
 
     app = moduleFixture.createNestApplication();
     appSetup(app);
@@ -100,11 +109,15 @@ describe('users test', () => {
       .send(newUser)
       .expect(HttpStatus.OK);
 
+    const emailSender = app.get(AbstractEmailSender);
+
     const usersResponse = await request(app.getHttpServer()).get('/api/users');
     expect(usersResponse.body.totalCount).toBe(2);
     expect(usersResponse.body.page).toBe(1);
     expect(usersResponse.body.pagesCount).toBe(1);
     expect(usersResponse.body.pageSize).toBe(10);
     expect(usersResponse.body.items.length).toBe(2);
+
+    expect(emailSender.sendEmailConfirmation).toHaveBeenCalledTimes(1);
   });
 });

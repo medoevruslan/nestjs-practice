@@ -13,6 +13,14 @@ export class UsersService {
     @Inject() private cryptoService: CryptoService,
   ) {}
 
+  async getById(id: string) {
+    return this.usersRepository.findByIdOrFail(id);
+  }
+
+  async getByEmail(email: string) {
+    return this.usersRepository.findByEmailOrFail(email);
+  }
+
   async createUser(dto: CreateUserDto): Promise<string> {
     const hashedPassword = await this.cryptoService.hashPassword(dto.password);
 

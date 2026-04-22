@@ -1,10 +1,15 @@
-import { INestApplication, NotFoundException } from '@nestjs/common';
+import {
+  HttpStatus,
+  INestApplication,
+  NotFoundException,
+} from '@nestjs/common';
 import { Connection } from 'mongoose';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
 import { getConnectionToken } from '@nestjs/mongoose';
 import request from 'supertest';
 import { appSetup } from '../../src/setup/app.setup';
+import { RegisterUserInputDto } from '../../src/modules/auth/api/input-dto/register-user.input-dto';
 
 describe('users test', () => {
   let app: INestApplication;
@@ -34,7 +39,7 @@ describe('users test', () => {
     const response = await request(app.getHttpServer())
       .post('/api/users')
       .send(testUser)
-      .expect(201);
+      .expect(HttpStatus.CREATED);
 
     expect(response.body.login).toBe('test-user');
     expect(response.body.email).toBe('test-user@email.com');
@@ -54,7 +59,7 @@ describe('users test', () => {
         email: 'test-user@email.com',
         password: '12345',
       })
-      .expect(400);
+      .expect(HttpStatus.BAD_REQUEST);
 
     expect(response.body.message[0]).toBe(
       'password must be longer than or equal to 6 characters',
@@ -64,7 +69,7 @@ describe('users test', () => {
   it('should get user', async () => {
     const response = await request(app.getHttpServer())
       .get('/api/users')
-      .expect(200);
+      .expect(HttpStatus.OK);
 
     expect(response.body.totalCount).toBe(1);
     expect(response.body.page).toBe(1);
@@ -78,8 +83,28 @@ describe('users test', () => {
     const response = await request(app.getHttpServer())
       .post('/api/auth/login')
       .send({ email: testUser.email, password: testUser.password })
-      .expect(200);
+      .expect(HttpStatus.OK);
 
     expect(response.body.accessToken).toBeDefined();
+  });
+
+  it('should register user', async () => {
+    const newUser: RegisterUserInputDto = {
+      login: 'new-user',
+      password: '1112223',
+      email: 'fake@email.com',
+    };
+
+    await request(app.getHttpServer())
+      .post('/api/auth/registration')
+      .send(newUser)
+      .expect(HttpStatus.OK);
+
+    const usersResponse = await request(app.getHttpServer()).get('/api/users');
+    expect(usersResponse.body.totalCount).toBe(2);
+    expect(usersResponse.body.page).toBe(1);
+    expect(usersResponse.body.pagesCount).toBe(1);
+    expect(usersResponse.body.pageSize).toBe(10);
+    expect(usersResponse.body.items.length).toBe(2);
   });
 });

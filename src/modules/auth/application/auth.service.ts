@@ -6,6 +6,9 @@ import { UsersService } from '../../user-account/application/users.service';
 import { RegisterUserDto } from '../dto/register-user.dto';
 import { NewPasswordDto } from '../dto/new-password.dto';
 import { LoginDto } from '../dto/login.dto';
+import { EmailConfirmationInputDto } from '../api/input-dto/email.confirmation.input-dto';
+import { EmailRecoveryInputDto } from '../api/input-dto/email.recovery.input-dto';
+import { AbstractEmailSender } from './port/abstract-email-sender';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +18,7 @@ export class AuthService {
     @Inject() private readonly cryptoService: CryptoService,
     @Inject() private readonly authConfig: AuthConfig,
     @Inject() private readonly usersService: UsersService,
+    @Inject() private readonly emailSender: AbstractEmailSender,
   ) {
     this.jswService = new JwtService({
       secret: this.authConfig.jwtSecret,
@@ -46,15 +50,21 @@ export class AuthService {
 
   async register(dto: RegisterUserDto) {
     await this.usersService.createUser(dto);
+
+    await this.emailSender.sendEmailConfirmation(dto.email, '123456');
   }
 
-  async confirmRegistration(code: string) {
-    // confirm registration with code
+  async confirmRegistration(dto: EmailConfirmationInputDto) {
+    await this.emailSender.sendEmailConfirmation(dto.email, dto.code);
+
+    return 'mail was sent';
   }
 
-  async sendRegistrationEmail(email: string) {}
+  async recoveryPassword(dto: EmailRecoveryInputDto) {
+    await this.emailSender.sendPasswordRecovery(dto.email, dto.code);
+
+    return 'mail was sent';
+  }
 
   async newPassword(dto: NewPasswordDto) {}
-
-  async recoveryPassword(email: string) {}
 }

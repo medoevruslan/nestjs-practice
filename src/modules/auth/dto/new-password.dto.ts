@@ -1,4 +1,4 @@
-import { IsEmail, Length } from 'class-validator';
+import { Length } from 'class-validator';
 
 export class NewPasswordDto {
   @Length(6, 20)

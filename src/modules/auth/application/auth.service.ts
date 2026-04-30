@@ -1,4 +1,9 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { CryptoService } from '../../user-account/application/crypto-service';
 import { AuthConfig } from '../auth.config';
@@ -49,22 +54,40 @@ export class AuthService {
   }
 
   async register(dto: RegisterUserDto) {
+    const found = await this.usersService.getByEmail(dto.email);
+    if (found) {
+      throw new BadRequestException('User already exists');
+    }
+
     await this.usersService.createUser(dto);
 
     await this.emailSender.sendEmailConfirmation(dto.email, '123456');
   }
 
   async confirmRegistration(dto: EmailConfirmationInputDto) {
+    // TODO: implement full workflow
     await this.emailSender.sendEmailConfirmation(dto.email, dto.code);
-
-    return 'mail was sent';
   }
 
   async recoveryPassword(dto: EmailRecoveryInputDto) {
-    await this.emailSender.sendPasswordRecovery(dto.email, dto.code);
-
-    return 'mail was sent';
+    try {
+      const found = await this.usersService.getByEmail(dto.email);
+      await this.emailSender.sendPasswordRecovery(found.email, dto.code);
+    } catch (e: unknown) {}
   }
 
-  async newPassword(dto: NewPasswordDto) {}
+  async newPassword(dto: NewPasswordDto) {
+    const found = await this.usersService.getByPasswordRecoveryCode(dto.code);
+
+    if (
+      found.confirmationCodeExpiration &&
+      Date.now() > found.confirmationCodeExpiration?.getTime()
+    ) {
+      throw new BadRequestException('Code expired');
+    }
+
+    const hashedPassword = await this.cryptoService.hashPassword(dto.password);
+
+    found.updatePassword({ password: hashedPassword });
+  }
 }

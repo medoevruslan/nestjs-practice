@@ -14,7 +14,7 @@ import { RegisterUserInputDto } from './input-dto/register-user.input-dto';
 import { NewPasswordInputDto } from './input-dto/new-password.input-dto';
 import { LoginInputDto } from './input-dto/login.input-dto';
 import { EmailConfirmationInputDto } from './input-dto/email.confirmation.input-dto';
-import { EmailRecoveryInputDto } from './input-dto/email.recovery.input-dto';
+import { PasswordRecoveryInputDto } from './input-dto/password-recovery-input.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -50,7 +50,7 @@ export class AuthController {
 
   @Post('password-recovery')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async passwordRecovery(@Body() body: EmailRecoveryInputDto) {
+  async passwordRecovery(@Body() body: PasswordRecoveryInputDto) {
     return this.authService.recoveryPassword(body);
   }
 

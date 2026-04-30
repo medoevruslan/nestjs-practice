@@ -21,6 +21,14 @@ export class UsersService {
     return this.usersRepository.findByEmailOrFail(email);
   }
 
+  async getByPasswordRecoveryCode(code: string) {
+    return this.usersRepository.findByPasswordRecoveryCodeOrFail(code);
+  }
+
+  async getByEmailConfirmationCode(code: string) {
+    return this.usersRepository.findByEmailConfirmationCodeOrFail(code);
+  }
+
   async createUser(dto: CreateUserDto): Promise<string> {
     const hashedPassword = await this.cryptoService.hashPassword(dto.password);
 

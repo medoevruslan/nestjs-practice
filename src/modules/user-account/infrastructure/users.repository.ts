@@ -29,4 +29,30 @@ export class UsersRepository {
 
     return found;
   }
+
+  async findByEmailConfirmationCodeOrFail(code: string): Promise<UserDocument> {
+    const found = await this.UserModel.findOne({
+      emailConfirmationCode: code,
+      deletedAt: null,
+    });
+
+    if (!found) {
+      throw new NotFoundException();
+    }
+
+    return found;
+  }
+
+  async findByPasswordRecoveryCodeOrFail(code: string): Promise<UserDocument> {
+    const found = await this.UserModel.findOne({
+      passwordRecoveryCode: code,
+      deletedAt: null,
+    });
+
+    if (!found) {
+      throw new NotFoundException();
+    }
+
+    return found;
+  }
 }

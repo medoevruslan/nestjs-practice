@@ -11,6 +11,7 @@ import request from 'supertest';
 import { appSetup } from '../../src/setup/app.setup';
 import { RegisterUserInputDto } from '../../src/modules/auth/api/input-dto/register-user.input-dto';
 import { AbstractEmailSender } from '../../src/modules/auth/application/port/abstract-email-sender';
+import { PasswordRecoveryInputDto } from '../../src/modules/auth/api/input-dto/password-recovery-input.dto';
 
 const emailSenderMock = {
   sendEmailConfirmation: jest.fn().mockResolvedValue(undefined),
@@ -50,8 +51,8 @@ describe('users test', () => {
       .send(testUser)
       .expect(HttpStatus.CREATED);
 
-    expect(response.body.login).toBe('test-user');
-    expect(response.body.email).toBe('test-user@email.com');
+    expect(response.body.login).toBe(testUser.login);
+    expect(response.body.email).toBe(testUser.email);
 
     createdUserId = response.body.id;
   });
@@ -64,8 +65,7 @@ describe('users test', () => {
     const response = await request(app.getHttpServer())
       .post('/api/users')
       .send({
-        login: 'test-user',
-        email: 'test-user@email.com',
+        ...testUser,
         password: '12345',
       })
       .expect(HttpStatus.BAD_REQUEST);
@@ -97,6 +97,19 @@ describe('users test', () => {
     expect(response.body.accessToken).toBeDefined();
   });
 
+  // order of tests is important, because of emailSenderMock
+  it('should not register user because email already exists, throw 400', async () => {
+    const newUser: RegisterUserInputDto = testUser;
+
+    const response = await request(app.getHttpServer())
+      .post('/api/auth/registration')
+      .send(newUser)
+      .expect(HttpStatus.BAD_REQUEST);
+
+    expect(response.body.message).toBe('User already exists');
+    expect(emailSenderMock.sendEmailConfirmation).toHaveBeenCalledTimes(0);
+  });
+
   it('should register user', async () => {
     const newUser: RegisterUserInputDto = {
       login: 'new-user',
@@ -121,18 +134,6 @@ describe('users test', () => {
     expect(emailSender.sendEmailConfirmation).toHaveBeenCalledTimes(1);
   });
 
-  it('should not register user because email already exists, throw 400', async () => {
-    const newUser: RegisterUserInputDto = testUser;
-
-    const response = await request(app.getHttpServer())
-      .post('/api/auth/registration')
-      .send(newUser)
-      .expect(HttpStatus.BAD_REQUEST);
-
-    expect(response.body.message).toBe('User already exists');
-    expect(emailSenderMock.sendEmailConfirmation).toHaveBeenCalledTimes(0);
-  });
-
   it('should not login user because is not registered, throw 400', async () => {
     const newUser: RegisterUserInputDto = {
       login: 'unknown',
@@ -143,8 +144,29 @@ describe('users test', () => {
     const res = await request(app.getHttpServer())
       .post('/api/auth/login')
       .send(newUser)
-      .expect(HttpStatus.NOT_FOUND);
+      .expect(HttpStatus.UNAUTHORIZED);
 
-    expect(res.body.message).toBe('Not Found');
+    expect(res.body.message).toBe('Invalid credentials');
+  });
+
+  it('should not recover password because user not unauthorized', async () => {
+    const user: PasswordRecoveryInputDto = { email: 'fake@fake.com' };
+
+    await request(app.getHttpServer())
+      .post('/api/auth/password-recovery')
+      .send(user)
+      .expect(HttpStatus.NO_CONTENT);
+
+    expect(emailSenderMock.sendPasswordRecovery).toHaveBeenCalledTimes(0);
+  });
+
+  it('should recover password', async () => {
+    const user: PasswordRecoveryInputDto = { email: testUser.email };
+    await request(app.getHttpServer())
+      .post('/api/auth/password-recovery')
+      .send(user)
+      .expect(HttpStatus.NO_CONTENT);
+
+    expect(emailSenderMock.sendPasswordRecovery).toHaveBeenCalledTimes(1);
   });
 });

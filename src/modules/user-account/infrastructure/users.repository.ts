@@ -30,6 +30,10 @@ export class UsersRepository {
     return found;
   }
 
+  async findByEmailOrNull(email: string): Promise<UserDocument | null> {
+    return this.UserModel.findOne({ email, deletedAt: null });
+  }
+
   async findByEmailConfirmationCodeOrFail(code: string): Promise<UserDocument> {
     const found = await this.UserModel.findOne({
       emailConfirmationCode: code,
@@ -54,5 +58,14 @@ export class UsersRepository {
     }
 
     return found;
+  }
+
+  async findByPasswordRecoveryCodeOrNull(
+    code: string,
+  ): Promise<UserDocument | null> {
+    return this.UserModel.findOne({
+      passwordRecoveryCode: code,
+      deletedAt: null,
+    });
   }
 }

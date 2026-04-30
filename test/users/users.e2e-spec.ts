@@ -6,12 +6,18 @@ import {
 import { Connection } from 'mongoose';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
-import { getConnectionToken } from '@nestjs/mongoose';
+import { getConnectionToken, getModelToken } from '@nestjs/mongoose';
 import request from 'supertest';
 import { appSetup } from '../../src/setup/app.setup';
 import { RegisterUserInputDto } from '../../src/modules/auth/api/input-dto/register-user.input-dto';
 import { AbstractEmailSender } from '../../src/modules/auth/application/port/abstract-email-sender';
 import { PasswordRecoveryInputDto } from '../../src/modules/auth/api/input-dto/password-recovery-input.dto';
+import { NewPasswordDto } from '../../src/modules/auth/dto/new-password.dto';
+import {
+  User,
+  UserModelType,
+} from '../../src/modules/user-account/domain/user.entity';
+import bcrypt from 'bcrypt';
 
 const emailSenderMock = {
   sendEmailConfirmation: jest.fn().mockResolvedValue(undefined),
@@ -20,7 +26,8 @@ const emailSenderMock = {
 
 describe('users test', () => {
   let app: INestApplication;
-  let createdUserId: string;
+  let testUserId: string;
+  let userModel: UserModelType;
 
   const testUser = {
     login: 'test-user',
@@ -41,6 +48,7 @@ describe('users test', () => {
     await app.init();
 
     const connection = moduleFixture.get<Connection>(getConnectionToken());
+    userModel = moduleFixture.get<UserModelType>(getModelToken(User.name));
 
     if (!connection.db) throw new NotFoundException('Db is not available');
 
@@ -54,7 +62,7 @@ describe('users test', () => {
     expect(response.body.login).toBe(testUser.login);
     expect(response.body.email).toBe(testUser.email);
 
-    createdUserId = response.body.id;
+    testUserId = response.body.id;
   });
 
   afterAll(async () => {
@@ -85,7 +93,7 @@ describe('users test', () => {
     expect(response.body.pagesCount).toBe(1);
     expect(response.body.pageSize).toBe(10);
     expect(response.body.items.length).toBe(1);
-    expect(response.body.items[0].id).toBe(createdUserId);
+    expect(response.body.items[0].id).toBe(testUserId);
   });
 
   it('should auth successfully', async () => {
@@ -168,5 +176,72 @@ describe('users test', () => {
       .expect(HttpStatus.NO_CONTENT);
 
     expect(emailSenderMock.sendPasswordRecovery).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not set new password, because fake user', async () => {
+    const body: NewPasswordDto = {
+      password: '123456',
+      code: 'fake-code',
+    };
+
+    const res = await request(app.getHttpServer())
+      .post('/api/auth/new-password')
+      .send(body)
+      .expect(HttpStatus.BAD_REQUEST);
+
+    expect(res.body.message).toBe('Recovery code is invalid or expired');
+  });
+
+  it('should not set new password, because of expiration date', async () => {
+    const user: PasswordRecoveryInputDto = { email: testUser.email };
+    await request(app.getHttpServer())
+      .post('/api/auth/password-recovery')
+      .send(user)
+      .expect(HttpStatus.NO_CONTENT);
+
+    const newPass = '12345678';
+
+    const code = emailSenderMock.sendPasswordRecovery.mock.lastCall[1];
+    const body: NewPasswordDto = {
+      password: newPass,
+      code,
+    };
+
+    await userModel.updateOne(
+      { _id: testUserId },
+      { $set: { confirmationCodeExpiration: new Date(Date.now() - 1000) } },
+    );
+
+    const res = await request(app.getHttpServer())
+      .post('/api/auth/new-password')
+      .send(body)
+      .expect(HttpStatus.BAD_REQUEST);
+
+    expect(res.body.message).toBe('Recovery code is invalid or expired');
+  });
+
+  it('should set new password', async () => {
+    const user: PasswordRecoveryInputDto = { email: testUser.email };
+    await request(app.getHttpServer())
+      .post('/api/auth/password-recovery')
+      .send(user)
+      .expect(HttpStatus.NO_CONTENT);
+
+    const newPass = '12345678';
+
+    const code = emailSenderMock.sendPasswordRecovery.mock.lastCall[1];
+    const body: NewPasswordDto = {
+      password: newPass,
+      code,
+    };
+
+    await request(app.getHttpServer())
+      .post('/api/auth/new-password')
+      .send(body)
+      .expect(HttpStatus.NO_CONTENT);
+
+    const storedUser = await userModel.findOne({ _id: testUserId });
+    const res = await bcrypt.compare(newPass, storedUser!.password);
+    expect(res).toBe(true);
   });
 });

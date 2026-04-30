@@ -1,7 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Model, Types } from 'mongoose';
 import { CreateUserDto } from '../dto/create-user.dto';
-import { UpdateUserDto } from '../dto/update-user.dto';
+import { UpdateUserEmailDto } from '../dto/update-user-email.dto';
+import { UpdateUserPasswordDto } from '../dto/update-user-password.dto';
 
 @Schema({
   timestamps: true,
@@ -40,6 +41,15 @@ export class User {
   @Prop({ type: Boolean, default: false })
   isEmailConfirmed: boolean;
 
+  @Prop({ type: String, default: null })
+  emailConfirmationCode: string | null;
+
+  @Prop({ type: String, default: null })
+  passwordRecoveryCode: string | null;
+
+  @Prop({ type: Date, default: null })
+  confirmationCodeExpiration: Date | null;
+
   createdAt: Date;
   updatedAt: Date;
 
@@ -53,12 +63,16 @@ export class User {
     this.deletedAt = new Date();
   }
 
-  update(dto: UpdateUserDto) {
+  updateEmail(dto: UpdateUserEmailDto) {
     if (!this.isEmailConfirmed) {
       throw Error('Update not allowed: email is not confirmed');
     }
     this.email = dto.email;
     this.isEmailConfirmed = false;
+  }
+
+  updatePassword(dto: UpdateUserPasswordDto) {
+    this.password = dto.password;
   }
 
   static createInstance(dto: CreateUserDto) {

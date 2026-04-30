@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -12,12 +13,13 @@ import { RegisterUserDto } from '../dto/register-user.dto';
 import { NewPasswordDto } from '../dto/new-password.dto';
 import { LoginDto } from '../dto/login.dto';
 import { EmailConfirmationInputDto } from '../api/input-dto/email.confirmation.input-dto';
-import { EmailRecoveryInputDto } from '../api/input-dto/email.recovery.input-dto';
+import { PasswordRecoveryInputDto } from '../api/input-dto/password-recovery-input.dto';
 import { AbstractEmailSender } from './port/abstract-email-sender';
 
 @Injectable()
 export class AuthService {
   private readonly jswService: JwtService;
+  private readonly logger = new Logger(AuthService.name);
 
   constructor(
     @Inject() private readonly cryptoService: CryptoService,
@@ -32,7 +34,11 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-    const user = await this.usersService.getByEmail(dto.email);
+    const user = await this.usersService.getByEmailNullable(dto.email);
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
 
     if (!this.authConfig.skipPasswordCheck) {
       const isPass = await this.cryptoService.checkPassword(
@@ -54,7 +60,8 @@ export class AuthService {
   }
 
   async register(dto: RegisterUserDto) {
-    const found = await this.usersService.getByEmail(dto.email);
+    const found = await this.usersService.getByEmailNullable(dto.email);
+
     if (found) {
       throw new BadRequestException('User already exists');
     }
@@ -69,25 +76,38 @@ export class AuthService {
     await this.emailSender.sendEmailConfirmation(dto.email, dto.code);
   }
 
-  async recoveryPassword(dto: EmailRecoveryInputDto) {
-    try {
-      const found = await this.usersService.getByEmail(dto.email);
-      await this.emailSender.sendPasswordRecovery(found.email, dto.code);
-    } catch (e: unknown) {}
+  async recoveryPassword(dto: PasswordRecoveryInputDto) {
+    const code = await this.usersService.createPasswordRecoveryCode(dto.email);
+    if (code) {
+      try {
+        await this.emailSender.sendPasswordRecovery(dto.email, code);
+      } catch (error: unknown) {
+        this.logger.error(
+          `Failed to send password recovery email for ${dto.email}`,
+          error instanceof Error ? error.stack : undefined,
+        );
+      }
+    }
   }
 
   async newPassword(dto: NewPasswordDto) {
-    const found = await this.usersService.getByPasswordRecoveryCode(dto.code);
+    const found = await this.usersService.getByPasswordRecoveryCodeNullable(
+      dto.code,
+    );
 
     if (
-      found.confirmationCodeExpiration &&
-      Date.now() > found.confirmationCodeExpiration?.getTime()
+      !found ||
+      !found.confirmationCodeExpiration ||
+      Date.now() > found.confirmationCodeExpiration.getTime()
     ) {
-      throw new BadRequestException('Code expired');
+      throw new BadRequestException('Recovery code is invalid or expired');
     }
 
     const hashedPassword = await this.cryptoService.hashPassword(dto.password);
 
     found.updatePassword({ password: hashedPassword });
+    found.confirmationCodeExpiration = null;
+    found.passwordRecoveryCode = null;
+    await this.usersService.save(found);
   }
 }

@@ -71,10 +71,6 @@ export class User {
     this.isEmailConfirmed = false;
   }
 
-  updatePassword(dto: UpdateUserPasswordDto) {
-    this.password = dto.password;
-  }
-
   static createInstance(dto: CreateUserDto) {
     const user = new this();
     user.password = dto.password;

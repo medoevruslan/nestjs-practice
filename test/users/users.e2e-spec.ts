@@ -120,4 +120,31 @@ describe('users test', () => {
 
     expect(emailSender.sendEmailConfirmation).toHaveBeenCalledTimes(1);
   });
+
+  it('should not register user because email already exists, throw 400', async () => {
+    const newUser: RegisterUserInputDto = testUser;
+
+    const response = await request(app.getHttpServer())
+      .post('/api/auth/registration')
+      .send(newUser)
+      .expect(HttpStatus.BAD_REQUEST);
+
+    expect(response.body.message).toBe('User already exists');
+    expect(emailSenderMock.sendEmailConfirmation).toHaveBeenCalledTimes(0);
+  });
+
+  it('should not login user because is not registered, throw 400', async () => {
+    const newUser: RegisterUserInputDto = {
+      login: 'unknown',
+      email: 'unknown@unknown.com',
+      password: 'unknown',
+    };
+
+    const res = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send(newUser)
+      .expect(HttpStatus.NOT_FOUND);
+
+    expect(res.body.message).toBe('Not Found');
+  });
 });

@@ -105,7 +105,7 @@ export class AuthService {
 
     const hashedPassword = await this.cryptoService.hashPassword(dto.password);
 
-    found.updatePassword({ password: hashedPassword });
+    found.password = hashedPassword;
     found.confirmationCodeExpiration = null;
     found.passwordRecoveryCode = null;
     await this.usersService.save(found);

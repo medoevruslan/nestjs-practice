@@ -60,6 +60,15 @@ export class UsersRepository {
     return found;
   }
 
+  async findByEmailConfirmationCodeOrNull(
+    code: string,
+  ): Promise<UserDocument | null> {
+    return this.UserModel.findOne({
+      emailConfirmationCode: code,
+      deletedAt: null,
+    });
+  }
+
   async findByPasswordRecoveryCodeOrNull(
     code: string,
   ): Promise<UserDocument | null> {

@@ -273,6 +273,6 @@ describe('users test', () => {
 
     await request(app.getHttpServer())
       .get('/api/auth/me')
-      .expect(HttpStatus.FORBIDDEN);
+      .expect(HttpStatus.UNAUTHORIZED);
   });
 });

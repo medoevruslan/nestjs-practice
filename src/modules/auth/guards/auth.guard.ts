@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   Inject,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
@@ -15,25 +16,28 @@ export class AuthGuard implements CanActivate {
     const accessToken = request.headers['authorization'];
 
     if (!accessToken) {
-      return false;
+      throw new UnauthorizedException('No access token provided');
     }
 
     const [bearer, token] = accessToken.split(' ');
 
     if (bearer !== 'Bearer' || !token) {
-      return false;
+      throw new UnauthorizedException('Invalid access token provided');
     }
 
-    const payload = this.jwtService.verify<{ email: string; id: string }>(
-      token,
-    );
+    try {
+      const payload = this.jwtService.verify<{ email: string; id: string }>(
+        token,
+      );
 
-    if (!payload) {
-      return false;
+      if (!payload) {
+        return false;
+      }
+
+      request.user = { id: payload.id };
+      return true;
+    } catch (error) {
+      throw new UnauthorizedException('Invalid access token provided');
     }
-
-    request.user = { id: payload.id };
-
-    return true;
   }
 }

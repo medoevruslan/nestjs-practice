@@ -275,4 +275,57 @@ describe('users test', () => {
       .get('/api/auth/me')
       .expect(HttpStatus.UNAUTHORIZED);
   });
+
+  it('should not confirm user because of bad code', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/api/auth/registration-confirmation')
+      .send({ email: testUser.email, code: 'fake-code' })
+      .expect(HttpStatus.BAD_REQUEST);
+
+    expect(res.body.message).toBe('Confirmation code is invalid or expired');
+  });
+
+  it('should not confirm user because of expiration date', async () => {
+    const confirmationCode = 'code';
+
+    await userModel.updateOne(
+      { _id: testUserId },
+      {
+        $set: {
+          emailConfirmationCode: confirmationCode,
+          confirmationCodeExpiration: new Date(Date.now() - 1000),
+        },
+      },
+    );
+
+    const res = await request(app.getHttpServer())
+      .post('/api/auth/registration-confirmation')
+      .send({ email: testUser.email, code: confirmationCode })
+      .expect(HttpStatus.BAD_REQUEST);
+
+    expect(res.body.message).toBe('Confirmation code is invalid or expired');
+  });
+
+  it('should confirm user', async () => {
+    const confirmationCode = 'code';
+    await userModel.updateOne(
+      { _id: testUserId },
+      {
+        $set: {
+          emailConfirmationCode: confirmationCode,
+          confirmationCodeExpiration: new Date(Date.now() + 10000),
+        },
+      },
+    );
+
+    await request(app.getHttpServer())
+      .post('/api/auth/registration-confirmation')
+      .send({ email: testUser.email, code: confirmationCode })
+      .expect(HttpStatus.NO_CONTENT);
+
+    const confirmedUser = await userModel.findOne({ _id: testUserId });
+
+    expect(confirmedUser!.isEmailConfirmed).toBe(true);
+    expect(confirmedUser!.confirmationCodeExpiration).toBe(null);
+  });
 });

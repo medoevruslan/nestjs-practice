@@ -96,7 +96,7 @@ describe('users test', () => {
     expect(response.body.items[0].id).toBe(testUserId);
   });
 
-  it('should auth successfully', async () => {
+  it('should login successfully', async () => {
     const response = await request(app.getHttpServer())
       .post('/api/auth/login')
       .send({ email: testUser.email, password: testUser.password })
@@ -243,5 +243,36 @@ describe('users test', () => {
     const storedUser = await userModel.findOne({ _id: testUserId });
     const res = await bcrypt.compare(newPass, storedUser!.password);
     expect(res).toBe(true);
+  });
+
+  it('should get me if user is authorized', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ email: testUser.email, password: testUser.password })
+      .expect(HttpStatus.OK);
+
+    expect(response.body.accessToken).toBeDefined();
+
+    const res = await request(app.getHttpServer())
+      .get('/api/auth/me')
+      .set('Authorization', `Bearer ${response.body.accessToken}`)
+      .expect(HttpStatus.OK);
+
+    expect(res.body.userId).toBe(testUserId);
+    expect(res.body.login).toBe(testUser.login);
+    expect(res.body.email).toBe(testUser.email);
+  });
+
+  it('should not get me if user is not authorized', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ email: testUser.email, password: testUser.password })
+      .expect(HttpStatus.OK);
+
+    expect(response.body.accessToken).toBeDefined();
+
+    await request(app.getHttpServer())
+      .get('/api/auth/me')
+      .expect(HttpStatus.FORBIDDEN);
   });
 });

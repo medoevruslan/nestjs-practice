@@ -67,13 +67,13 @@ export class AuthController {
 
   @Post('registration-confirmation')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async registrationConfirmation(@Body() body: EmailConfirmationInputDto) {
+  async registrationConfirmation(@Body() body: { code: string }) {
     return this.authService.confirmRegistration(body);
   }
 
   @Post('registration-email-resending')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async registrationEmailSending(@Body() body: EmailConfirmationInputDto) {
-    return this.authService.confirmRegistration(body);
+  async registrationEmailResending(@Body() body: EmailConfirmationInputDto) {
+    return this.authService.resendEmailConfirmation(body.email);
   }
 }

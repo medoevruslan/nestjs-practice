@@ -74,12 +74,38 @@ export class AuthService {
 
     await this.usersService.createUser(dto);
 
-    await this.emailSender.sendEmailConfirmation(dto.email, '123456');
+    const code = await this.usersService.createRegistrationConfirmationCode(
+      dto.email,
+    );
+
+    if (code) {
+      try {
+        await this.emailSender.sendEmailConfirmation(dto.email, code);
+      } catch (error: unknown) {
+        this.logger.error(
+          `Failed to send email confirmation to ${dto.email}`,
+          error instanceof Error ? error.stack : undefined,
+        );
+      }
+    }
   }
 
   async confirmRegistration(dto: EmailConfirmationInputDto) {
-    // TODO: implement full workflow
-    await this.emailSender.sendEmailConfirmation(dto.email, dto.code);
+    const found = await this.usersService.getByEmailConfirmationCodeNullable(
+      dto.code,
+    );
+
+    if (
+      !found ||
+      !found.confirmationCodeExpiration ||
+      Date.now() > found.confirmationCodeExpiration.getTime()
+    ) {
+      throw new BadRequestException('Confirmation code is invalid or expired');
+    }
+
+    found.isEmailConfirmed = true;
+    found.confirmationCodeExpiration = null;
+    await this.usersService.save(found);
   }
 
   async recoveryPassword(dto: PasswordRecoveryInputDto) {

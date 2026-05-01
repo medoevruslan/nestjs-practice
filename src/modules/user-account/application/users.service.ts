@@ -37,8 +37,8 @@ export class UsersService {
     return this.usersRepository.findByPasswordRecoveryCodeOrNull(code);
   }
 
-  async getByEmailConfirmationCode(code: string) {
-    return this.usersRepository.findByEmailConfirmationCodeOrFail(code);
+  async getByEmailConfirmationCodeNullable(code: string) {
+    return this.usersRepository.findByEmailConfirmationCodeOrNull(code);
   }
 
   async createUser(dto: CreateUserDto): Promise<string> {
@@ -61,11 +61,35 @@ export class UsersService {
     return user.id;
   }
 
+  async confirmUser(code: string) {
+    const found =
+      await this.usersRepository.findByEmailConfirmationCodeOrNull(code);
+    if (found) {
+      found.isEmailConfirmed = true;
+      await this.usersRepository.save(found);
+    }
+  }
+
   async createPasswordRecoveryCode(email: string): Promise<string | null> {
     const found = await this.usersRepository.findByEmailOrNull(email);
     if (found) {
       const code = crypto.randomUUID();
       found.passwordRecoveryCode = code;
+      found.confirmationCodeExpiration = new Date(Date.now() + 1000 * 60 * 5);
+      await this.usersRepository.save(found);
+      return code;
+    }
+
+    return null;
+  }
+
+  async createRegistrationConfirmationCode(
+    email: string,
+  ): Promise<string | null> {
+    const found = await this.usersRepository.findByEmailOrNull(email);
+    if (found) {
+      const code = crypto.randomUUID();
+      found.emailConfirmationCode = code;
       found.confirmationCodeExpiration = new Date(Date.now() + 1000 * 60 * 5);
       await this.usersRepository.save(found);
       return code;

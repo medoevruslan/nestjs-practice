@@ -69,32 +69,4 @@ export class UsersService {
       await this.usersRepository.save(found);
     }
   }
-
-  async createPasswordRecoveryCode(email: string): Promise<string | null> {
-    const found = await this.usersRepository.findByEmailOrNull(email);
-    if (found) {
-      const code = crypto.randomUUID();
-      found.passwordRecoveryCode = code;
-      found.confirmationCodeExpiration = new Date(Date.now() + 1000 * 60 * 5);
-      await this.usersRepository.save(found);
-      return code;
-    }
-
-    return null;
-  }
-
-  async createRegistrationConfirmationCode(
-    email: string,
-  ): Promise<string | null> {
-    const found = await this.usersRepository.findByEmailOrNull(email);
-    if (found) {
-      const code = crypto.randomUUID();
-      found.emailConfirmationCode = code;
-      found.confirmationCodeExpiration = new Date(Date.now() + 1000 * 60 * 5);
-      await this.usersRepository.save(found);
-      return code;
-    }
-
-    return null;
-  }
 }

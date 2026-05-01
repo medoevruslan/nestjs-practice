@@ -17,7 +17,7 @@ export class MailerEmailSender extends AbstractEmailSender {
       subject: 'Welcome to Nice App! Confirm your Email',
       html: `<h1>Thank for your registration</h1>
               <p>To finish registration please follow the link below:
-              <a href='https://somesite.com/confirm-email?code=${verificationCode}'>complete registration</a>
+              <a href='https://somesite.com/registration-confirmation?code=${verificationCode}'>complete registration</a>
               </p>`,
     });
   }

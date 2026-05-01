@@ -15,6 +15,7 @@ import { LoginDto } from '../dto/login.dto';
 import { EmailConfirmationInputDto } from '../api/input-dto/email.confirmation.input-dto';
 import { PasswordRecoveryInputDto } from '../api/input-dto/password-recovery-input.dto';
 import { AbstractEmailSender } from './port/abstract-email-sender';
+import { UserViewDto } from '../api/view-dto/user-view.dto';
 
 @Injectable()
 export class AuthService {
@@ -31,6 +32,11 @@ export class AuthService {
       secret: this.authConfig.jwtSecret,
       signOptions: { expiresIn: this.authConfig.expiresIn },
     });
+  }
+
+  async me(userId: string) {
+    const user = await this.usersService.getById(userId);
+    return UserViewDto.mapToView(user);
   }
 
   async login(dto: LoginDto) {

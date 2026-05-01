@@ -73,24 +73,10 @@ export class AuthService {
     }
 
     await this.usersService.createUser(dto);
-
-    const code = await this.usersService.createRegistrationConfirmationCode(
-      dto.email,
-    );
-
-    if (code) {
-      try {
-        await this.emailSender.sendEmailConfirmation(dto.email, code);
-      } catch (error: unknown) {
-        this.logger.error(
-          `Failed to send email confirmation to ${dto.email}`,
-          error instanceof Error ? error.stack : undefined,
-        );
-      }
-    }
+    await this.handleRegistrationConfirmation(dto.email);
   }
 
-  async confirmRegistration(dto: EmailConfirmationInputDto) {
+  async confirmRegistration(dto: { code: string }) {
     const found = await this.usersService.getByEmailConfirmationCodeNullable(
       dto.code,
     );
@@ -109,7 +95,7 @@ export class AuthService {
   }
 
   async recoveryPassword(dto: PasswordRecoveryInputDto) {
-    const code = await this.usersService.createPasswordRecoveryCode(dto.email);
+    const code = await this.createPasswordRecoveryCode(dto.email);
     if (code) {
       try {
         await this.emailSender.sendPasswordRecovery(dto.email, code);
@@ -141,5 +127,52 @@ export class AuthService {
     found.confirmationCodeExpiration = null;
     found.passwordRecoveryCode = null;
     await this.usersService.save(found);
+  }
+
+  async resendEmailConfirmation(email: string) {
+    await this.handleRegistrationConfirmation(email);
+  }
+
+  async handleRegistrationConfirmation(email: string) {
+    const code = await this.createRegistrationConfirmationCode(email);
+
+    if (code) {
+      try {
+        await this.emailSender.sendEmailConfirmation(email, code);
+      } catch (error: unknown) {
+        this.logger.error(
+          `Failed to send email confirmation to ${email}`,
+          error instanceof Error ? error.stack : undefined,
+        );
+      }
+    }
+  }
+
+  async createPasswordRecoveryCode(email: string): Promise<string | null> {
+    const found = await this.usersService.getByEmailNullable(email);
+    if (found) {
+      const code = crypto.randomUUID();
+      found.passwordRecoveryCode = code;
+      found.confirmationCodeExpiration = new Date(Date.now() + 1000 * 60 * 5);
+      await this.usersService.save(found);
+      return code;
+    }
+
+    return null;
+  }
+
+  async createRegistrationConfirmationCode(
+    email: string,
+  ): Promise<string | null> {
+    const found = await this.usersService.getByEmailNullable(email);
+    if (found) {
+      const code = crypto.randomUUID();
+      found.emailConfirmationCode = code;
+      found.confirmationCodeExpiration = new Date(Date.now() + 1000 * 60 * 5);
+      await this.usersService.save(found);
+      return code;
+    }
+
+    return null;
   }
 }

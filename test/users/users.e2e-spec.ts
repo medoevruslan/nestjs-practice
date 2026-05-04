@@ -99,8 +99,9 @@ describe('users test', () => {
   it('should login successfully', async () => {
     const response = await request(app.getHttpServer())
       .post('/api/auth/login')
-      .send({ email: testUser.email, password: testUser.password })
-      .expect(HttpStatus.OK);
+      .send({ loginOrEmail: testUser.email, password: testUser.password });
+
+    expect(response.status).toBe(HttpStatus.OK);
 
     expect(response.body.accessToken).toBeDefined();
   });
@@ -151,7 +152,7 @@ describe('users test', () => {
 
     const res = await request(app.getHttpServer())
       .post('/api/auth/login')
-      .send(newUser)
+      .send({ loginOrEmail: newUser.email, password: newUser.password })
       .expect(HttpStatus.UNAUTHORIZED);
 
     expect(res.body.message).toBe('Invalid credentials');
@@ -248,7 +249,7 @@ describe('users test', () => {
   it('should get me if user is authorized', async () => {
     const response = await request(app.getHttpServer())
       .post('/api/auth/login')
-      .send({ email: testUser.email, password: testUser.password })
+      .send({ loginOrEmail: testUser.email, password: testUser.password })
       .expect(HttpStatus.OK);
 
     expect(response.body.accessToken).toBeDefined();
@@ -266,7 +267,7 @@ describe('users test', () => {
   it('should not get me if user is not authorized', async () => {
     const response = await request(app.getHttpServer())
       .post('/api/auth/login')
-      .send({ email: testUser.email, password: testUser.password })
+      .send({ loginOrEmail: testUser.email, password: testUser.password })
       .expect(HttpStatus.OK);
 
     expect(response.body.accessToken).toBeDefined();

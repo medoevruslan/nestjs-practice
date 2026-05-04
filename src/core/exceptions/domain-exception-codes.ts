@@ -1,4 +1,4 @@
-export enum ExceptionCodes {
+export enum DomainExceptionCode {
   BadRequest,
   ValidationError,
   ConfirmationCodeExpired,
@@ -6,4 +6,7 @@ export enum ExceptionCodes {
   PasswordRecoveryCodeExpired,
   Forbidden,
   NotFound,
+  Unauthorized,
+  INTERNAL_SERVER_ERROR,
+  InternalServerError,
 }

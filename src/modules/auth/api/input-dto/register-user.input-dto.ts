@@ -1,5 +1,5 @@
 import { IsEmail, Length, Matches } from 'class-validator';
-import { Trim } from '../../../../core/decorators/transform';
+import { Trim } from '../../../../core/decorators/transform/trim';
 
 export class RegisterUserInputDto {
   @Matches(/^[a-zA-Z0-9_-]*$/)

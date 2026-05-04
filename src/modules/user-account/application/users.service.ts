@@ -25,6 +25,10 @@ export class UsersService {
     return this.usersRepository.findByEmailOrFail(email);
   }
 
+  async getByLoginOrEmailNullable(loginOrEmail: string) {
+    return this.usersRepository.findByEmailOrEmailOrNull(loginOrEmail);
+  }
+
   async getByEmailNullable(email: string) {
     return this.usersRepository.findByEmailOrNull(email);
   }

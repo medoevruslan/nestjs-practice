@@ -30,6 +30,17 @@ export class UsersRepository {
     return found;
   }
 
+  async findByEmailOrEmailOrNull(
+    loginOrEmail: string,
+  ): Promise<UserDocument | null> {
+    return this.UserModel.findOne({
+      $or: [
+        { email: loginOrEmail, deletedAt: null },
+        { login: loginOrEmail, deletedAt: null },
+      ],
+    });
+  }
+
   async findByEmailOrNull(email: string): Promise<UserDocument | null> {
     return this.UserModel.findOne({ email, deletedAt: null });
   }

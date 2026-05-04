@@ -12,7 +12,6 @@ import { UsersService } from '../../user-account/application/users.service';
 import { RegisterUserDto } from '../dto/register-user.dto';
 import { NewPasswordDto } from '../dto/new-password.dto';
 import { LoginDto } from '../dto/login.dto';
-import { EmailConfirmationInputDto } from '../api/input-dto/email.confirmation.input-dto';
 import { PasswordRecoveryInputDto } from '../api/input-dto/password-recovery-input.dto';
 import { AbstractEmailSender } from './port/abstract-email-sender';
 import { UserViewDto } from '../api/view-dto/user-view.dto';
@@ -40,7 +39,9 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-    const user = await this.usersService.getByEmailNullable(dto.email);
+    const user = await this.usersService.getByLoginOrEmailNullable(
+      dto.loginOrEmail,
+    );
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -57,7 +58,7 @@ export class AuthService {
       }
     }
 
-    const payload = { email: dto.email, id: user.id };
+    const payload = { email: dto.loginOrEmail, id: user.id };
 
     const accessToken = this.jswService.sign(payload);
     const refreshToken = this.jswService.sign(payload, { expiresIn: '7d' });

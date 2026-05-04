@@ -1,10 +1,8 @@
-import { IsString, Length, MinLength } from 'class-validator';
-import { Trim } from '../../../../core/decorators/transform';
+import { Length } from 'class-validator';
+import { IsStringWithTrim } from '../../../../core/decorators/validation/is-string-with-trim';
 
 export class LoginInputDto {
-  @IsString()
-  @Trim()
-  @MinLength(3)
+  @IsStringWithTrim(3)
   loginOrEmail: string;
 
   @Length(6, 20)

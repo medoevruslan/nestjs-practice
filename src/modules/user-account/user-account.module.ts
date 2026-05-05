@@ -8,6 +8,7 @@ import { UsersService } from './application/users.service';
 import { CryptoService } from './application/crypto-service';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthConfig } from '../auth/auth.config';
+import { BasicAuthGuard } from '../auth/guards/basic-auth.guard';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AuthConfig } from '../auth/auth.config';
     UsersRepository,
     UsersService,
     CryptoService,
+    BasicAuthGuard,
   ],
   exports: [UsersService],
 })

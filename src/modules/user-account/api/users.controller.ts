@@ -17,7 +17,7 @@ import { ApiParam } from '@nestjs/swagger';
 import { UsersQueryRepository } from '../infrastructure/query/users.query-repository';
 import { UsersService } from '../application/users.service';
 import { ParseObjectIdOrBadRequestPipe } from '../../../core/pipes/ParseObjectIdOrBadRequestPipe';
-import { AuthGuard } from '../../auth/guards/auth.guard';
+import { BasicAuthGuard } from '../../auth/guards/basic-auth.guard';
 
 @Controller('users')
 export class UsersController {
@@ -31,16 +31,16 @@ export class UsersController {
     return this.usersQueryRepository.getAll(query);
   }
 
-  @UseGuards(AuthGuard)
   @Post()
+  @UseGuards(BasicAuthGuard)
   async createUser(@Body() dto: CreateUserInputDto) {
     const userId = await this.usersService.createUser(dto);
     return this.usersQueryRepository.getByIdOrFail(userId);
   }
 
-  @UseGuards(AuthGuard)
   @ApiParam({ name: 'id' })
   @Delete(':id')
+  @UseGuards(BasicAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteUser(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
     return this.usersService.deleteUser(id);

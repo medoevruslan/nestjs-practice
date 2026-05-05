@@ -5,11 +5,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Response } from 'express';
-import {
-  DomainException,
-  ErrorResponseBody,
-  Extensions,
-} from './domain-exceptions';
+import { DomainException, ErrorResponseBody } from './domain-exceptions';
 import { DomainExceptionCode } from './domain-exception-codes';
 
 @Catch(DomainException)
@@ -17,11 +13,12 @@ export class DomainExceptionFilter implements ExceptionFilter {
   catch(exception: DomainException, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
 
     const status = this.mapToHttpStatus(exception.code);
-    const responseBody = this.buildResponseBodyExtensions(exception);
+    const responseBody = this.buildResponseBody(exception, request.url);
 
-    response.status(status).json(responseBody);
+    response.status(status).json({ errorMessages: responseBody.extensions });
   }
 
   private mapToHttpStatus(code: DomainExceptionCode): number {
@@ -45,12 +42,6 @@ export class DomainExceptionFilter implements ExceptionFilter {
     }
   }
 
-  private buildResponseBodyExtensions(exception: DomainException): {
-    errorMessages: Extensions[];
-  } {
-    return { errorMessages: exception.extensions };
-  }
-
   private buildResponseBody(
     exception: DomainException,
     requestUrl: string,
@@ -60,7 +51,9 @@ export class DomainExceptionFilter implements ExceptionFilter {
       path: requestUrl,
       message: exception.message,
       code: exception.code,
-      extensions: exception.extensions,
+      extensions: !exception.extensions.length
+        ? [{ field: requestUrl, message: exception.message }]
+        : exception.extensions,
     };
   }
 }

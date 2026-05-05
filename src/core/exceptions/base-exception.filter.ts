@@ -9,7 +9,7 @@ import { Request, Response } from 'express';
 import { DomainExceptionCode } from './domain-exception-codes';
 
 @Catch()
-export class BaseExceptionFilter implements ExceptionFilter {
+export class AllHttpExceptionsFilter implements ExceptionFilter {
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();

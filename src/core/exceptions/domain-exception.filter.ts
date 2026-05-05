@@ -18,7 +18,7 @@ export class DomainExceptionFilter implements ExceptionFilter {
     const status = this.mapToHttpStatus(exception.code);
     const responseBody = this.buildResponseBody(exception, request.url);
 
-    response.status(status).json({ errorMessages: responseBody.extensions });
+    response.status(status).json({ errorsMessages: responseBody.extensions });
   }
 
   private mapToHttpStatus(code: DomainExceptionCode): number {

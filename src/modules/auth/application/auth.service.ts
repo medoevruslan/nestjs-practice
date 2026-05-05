@@ -15,6 +15,8 @@ import { LoginDto } from '../dto/login.dto';
 import { PasswordRecoveryInputDto } from '../api/input-dto/password-recovery-input.dto';
 import { AbstractEmailSender } from './port/abstract-email-sender';
 import { UserViewDto } from '../api/view-dto/user-view.dto';
+import { DomainException } from '../../../core/exceptions/domain-exceptions';
+import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
 
 @Injectable()
 export class AuthService {
@@ -44,7 +46,10 @@ export class AuthService {
     );
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new DomainException({
+        code: DomainExceptionCode.Unauthorized,
+        message: 'Invalid credentials',
+      });
     }
 
     if (!this.authConfig.skipPasswordCheck) {
@@ -54,7 +59,10 @@ export class AuthService {
       );
 
       if (!isPass) {
-        throw new UnauthorizedException('Invalid credentials');
+        throw new DomainException({
+          code: DomainExceptionCode.Unauthorized,
+          message: 'Invalid credentials',
+        });
       }
     }
 
@@ -70,7 +78,10 @@ export class AuthService {
     const found = await this.usersService.getByEmailNullable(dto.email);
 
     if (found) {
-      throw new BadRequestException('User already exists');
+      throw new DomainException({
+        code: DomainExceptionCode.BadRequest,
+        message: 'User already exists',
+      });
     }
 
     await this.usersService.createUser(dto);
@@ -87,7 +98,10 @@ export class AuthService {
       !found.confirmationCodeExpiration ||
       Date.now() > found.confirmationCodeExpiration.getTime()
     ) {
-      throw new BadRequestException('Confirmation code is invalid or expired');
+      throw new DomainException({
+        code: DomainExceptionCode.ConfirmationCodeExpired,
+        message: 'Confirmation code is invalid or expired',
+      });
     }
 
     found.isEmailConfirmed = true;
@@ -119,7 +133,10 @@ export class AuthService {
       !found.confirmationCodeExpiration ||
       Date.now() > found.confirmationCodeExpiration.getTime()
     ) {
-      throw new BadRequestException('Recovery code is invalid or expired');
+      throw new DomainException({
+        code: DomainExceptionCode.PasswordRecoveryCodeExpired,
+        message: 'Recovery code is invalid or expired',
+      });
     }
 
     const hashedPassword = await this.cryptoService.hashPassword(dto.password);

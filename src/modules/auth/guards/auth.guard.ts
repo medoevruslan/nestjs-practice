@@ -3,9 +3,10 @@ import {
   ExecutionContext,
   Inject,
   Injectable,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { DomainException } from '../../../core/exceptions/domain-exceptions';
+import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -16,13 +17,19 @@ export class AuthGuard implements CanActivate {
     const accessToken = request.headers['authorization'];
 
     if (!accessToken) {
-      throw new UnauthorizedException('No access token provided');
+      throw new DomainException({
+        code: DomainExceptionCode.Unauthorized,
+        message: 'No access token provided',
+      });
     }
 
     const [bearer, token] = accessToken.split(' ');
 
     if (bearer !== 'Bearer' || !token) {
-      throw new UnauthorizedException('Invalid access token provided');
+      throw new DomainException({
+        code: DomainExceptionCode.Unauthorized,
+        message: 'Invalid access token provided',
+      });
     }
 
     try {
@@ -37,7 +44,10 @@ export class AuthGuard implements CanActivate {
       request.user = { id: payload.id };
       return true;
     } catch (error) {
-      throw new UnauthorizedException('Invalid access token provided');
+      throw new DomainException({
+        code: DomainExceptionCode.Unauthorized,
+        message: 'Invalid access token provided',
+      });
     }
   }
 }

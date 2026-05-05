@@ -78,7 +78,10 @@ describe('users test', () => {
       })
       .expect(HttpStatus.BAD_REQUEST);
 
-    expect(response.body.message[0]).toBe(
+    expect(response.body.errorMessages.length).toBeGreaterThan(0);
+
+    expect(response.body.errorMessages[0].field).toBe('password');
+    expect(response.body.errorMessages[0].message).toBe(
       'password must be longer than or equal to 6 characters',
     );
   });
@@ -115,7 +118,8 @@ describe('users test', () => {
       .send(newUser)
       .expect(HttpStatus.BAD_REQUEST);
 
-    expect(response.body.message).toBe('User already exists');
+    expect(response.body.errorMessages.length).toBeGreaterThan(0);
+    expect(response.body.errorMessages[0].message).toBe('User already exists');
     expect(emailSenderMock.sendEmailConfirmation).toHaveBeenCalledTimes(0);
   });
 
@@ -155,7 +159,8 @@ describe('users test', () => {
       .send({ loginOrEmail: newUser.email, password: newUser.password })
       .expect(HttpStatus.UNAUTHORIZED);
 
-    expect(res.body.message).toBe('Invalid credentials');
+    expect(res.body.errorMessages.length).toBeGreaterThan(0);
+    expect(res.body.errorMessages[0].message).toBe('Invalid credentials');
   });
 
   it('should not recover password because user not unauthorized', async () => {
@@ -190,7 +195,10 @@ describe('users test', () => {
       .send(body)
       .expect(HttpStatus.BAD_REQUEST);
 
-    expect(res.body.message).toBe('Recovery code is invalid or expired');
+    expect(res.body.errorMessages.length).toBeGreaterThan(0);
+    expect(res.body.errorMessages[0].message).toBe(
+      'Recovery code is invalid or expired',
+    );
   });
 
   it('should not set new password, because of expiration date', async () => {
@@ -218,7 +226,10 @@ describe('users test', () => {
       .send(body)
       .expect(HttpStatus.BAD_REQUEST);
 
-    expect(res.body.message).toBe('Recovery code is invalid or expired');
+    expect(res.body.errorMessages.length).toBeGreaterThan(0);
+    expect(res.body.errorMessages[0].message).toBe(
+      'Recovery code is invalid or expired',
+    );
   });
 
   it('should set new password', async () => {
@@ -283,7 +294,10 @@ describe('users test', () => {
       .send({ email: testUser.email, code: 'fake-code' })
       .expect(HttpStatus.BAD_REQUEST);
 
-    expect(res.body.message).toBe('Confirmation code is invalid or expired');
+    expect(res.body.errorMessages.length).toBeGreaterThan(0);
+    expect(res.body.errorMessages[0].message).toBe(
+      'Confirmation code is invalid or expired',
+    );
   });
 
   it('should not confirm user because of expiration date', async () => {
@@ -304,7 +318,10 @@ describe('users test', () => {
       .send({ email: testUser.email, code: confirmationCode })
       .expect(HttpStatus.BAD_REQUEST);
 
-    expect(res.body.message).toBe('Confirmation code is invalid or expired');
+    expect(res.body.errorMessages.length).toBeGreaterThan(0);
+    expect(res.body.errorMessages[0].message).toBe(
+      'Confirmation code is invalid or expired',
+    );
   });
 
   it('should confirm user', async () => {

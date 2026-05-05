@@ -48,7 +48,7 @@ export class AuthController {
   }
 
   @Post('registration')
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.NO_CONTENT)
   async register(@Body() body: RegisterUserInputDto) {
     return this.authService.register(body);
   }

@@ -17,19 +17,13 @@ export class AuthGuard implements CanActivate {
     const accessToken = request.headers['authorization'];
 
     if (!accessToken) {
-      throw new DomainException({
-        code: DomainExceptionCode.Unauthorized,
-        message: 'No access token provided',
-      });
+      this.throwUnauthorized();
     }
 
     const [bearer, token] = accessToken.split(' ');
 
     if (bearer !== 'Bearer' || !token) {
-      throw new DomainException({
-        code: DomainExceptionCode.Unauthorized,
-        message: 'Invalid access token provided',
-      });
+      this.throwUnauthorized();
     }
 
     try {
@@ -44,10 +38,14 @@ export class AuthGuard implements CanActivate {
       request.user = { id: payload.id };
       return true;
     } catch (error) {
-      throw new DomainException({
-        code: DomainExceptionCode.Unauthorized,
-        message: 'Invalid access token provided',
-      });
+      this.throwUnauthorized();
     }
+  }
+
+  private throwUnauthorized(): never {
+    throw new DomainException({
+      code: DomainExceptionCode.Unauthorized,
+      message: 'Invalid credentials',
+    });
   }
 }

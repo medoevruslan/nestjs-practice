@@ -1,9 +1,7 @@
 import {
-  BadRequestException,
   Inject,
   Injectable,
   Logger,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { CryptoService } from '../../user-account/application/crypto-service';
@@ -75,15 +73,6 @@ export class AuthService {
   }
 
   async register(dto: RegisterUserDto) {
-    const found = await this.usersService.getByEmailNullable(dto.email);
-
-    if (found) {
-      throw new DomainException({
-        code: DomainExceptionCode.BadRequest,
-        message: 'User already exists',
-      });
-    }
-
     await this.usersService.createUser(dto);
     await this.handleRegistrationConfirmation(dto.email);
   }
@@ -101,6 +90,19 @@ export class AuthService {
       throw new DomainException({
         code: DomainExceptionCode.ConfirmationCodeExpired,
         message: 'Confirmation code is invalid or expired',
+        extensions: [
+          { field: 'code', message: 'Confirmation code is invalid or expired' },
+        ],
+      });
+    }
+
+    if (found.isEmailConfirmed) {
+      throw new DomainException({
+        code: DomainExceptionCode.BadRequest,
+        message: 'Confirmation code is invalid or expired',
+        extensions: [
+          { field: 'code', message: 'Confirmation code is invalid or expired' },
+        ],
       });
     }
 
@@ -148,6 +150,21 @@ export class AuthService {
   }
 
   async resendEmailConfirmation(email: string) {
+    const found = await this.usersService.getByEmailNullable(email);
+
+    if (!found || found.isEmailConfirmed) {
+      throw new DomainException({
+        code: DomainExceptionCode.BadRequest,
+        message: 'Email is already confirmed or user does not exist',
+        extensions: [
+          {
+            field: 'email',
+            message: 'Email is already confirmed or user does not exist',
+          },
+        ],
+      });
+    }
+
     await this.handleRegistrationConfirmation(email);
   }
 

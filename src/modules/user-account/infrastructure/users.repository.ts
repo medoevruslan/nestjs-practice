@@ -53,6 +53,10 @@ export class UsersRepository {
     return this.UserModel.findOne({ email, deletedAt: null });
   }
 
+  async findByLoginOrNull(login: string): Promise<UserDocument | null> {
+    return this.UserModel.findOne({ login, deletedAt: null });
+  }
+
   async findByEmailConfirmationCodeOrFail(code: string): Promise<UserDocument> {
     const found = await this.UserModel.findOne({
       emailConfirmationCode: code,

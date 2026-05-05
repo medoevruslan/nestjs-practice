@@ -56,6 +56,7 @@ describe('users test', () => {
 
     const response = await request(app.getHttpServer())
       .post('/api/users')
+      .auth('admin', 'qwerty')
       .send(testUser)
       .expect(HttpStatus.CREATED);
 
@@ -72,16 +73,17 @@ describe('users test', () => {
   it('should not create user because password too short, throw 400', async () => {
     const response = await request(app.getHttpServer())
       .post('/api/users')
+      .auth('admin', 'qwerty')
       .send({
         ...testUser,
         password: '12345',
       })
       .expect(HttpStatus.BAD_REQUEST);
 
-    expect(response.body.errorMessages.length).toBeGreaterThan(0);
+    expect(response.body.errorsMessages.length).toBeGreaterThan(0);
 
-    expect(response.body.errorMessages[0].field).toBe('password');
-    expect(response.body.errorMessages[0].message).toBe(
+    expect(response.body.errorsMessages[0].field).toBe('password');
+    expect(response.body.errorsMessages[0].message).toBe(
       'password must be longer than or equal to 6 characters',
     );
   });
@@ -118,8 +120,8 @@ describe('users test', () => {
       .send(newUser)
       .expect(HttpStatus.BAD_REQUEST);
 
-    expect(response.body.errorMessages.length).toBeGreaterThan(0);
-    expect(response.body.errorMessages[0].message).toBe('User already exists');
+    expect(response.body.errorsMessages.length).toBeGreaterThan(0);
+    expect(response.body.errorsMessages[0].field).toBe('login');
     expect(emailSenderMock.sendEmailConfirmation).toHaveBeenCalledTimes(0);
   });
 
@@ -133,7 +135,7 @@ describe('users test', () => {
     await request(app.getHttpServer())
       .post('/api/auth/registration')
       .send(newUser)
-      .expect(HttpStatus.OK);
+      .expect(HttpStatus.NO_CONTENT);
 
     const emailSender = app.get(AbstractEmailSender);
 
@@ -159,8 +161,8 @@ describe('users test', () => {
       .send({ loginOrEmail: newUser.email, password: newUser.password })
       .expect(HttpStatus.UNAUTHORIZED);
 
-    expect(res.body.errorMessages.length).toBeGreaterThan(0);
-    expect(res.body.errorMessages[0].message).toBe('Invalid credentials');
+    expect(res.body.errorsMessages.length).toBeGreaterThan(0);
+    expect(res.body.errorsMessages[0].message).toBe('Invalid credentials');
   });
 
   it('should not recover password because user not unauthorized', async () => {
@@ -195,8 +197,8 @@ describe('users test', () => {
       .send(body)
       .expect(HttpStatus.BAD_REQUEST);
 
-    expect(res.body.errorMessages.length).toBeGreaterThan(0);
-    expect(res.body.errorMessages[0].message).toBe(
+    expect(res.body.errorsMessages.length).toBeGreaterThan(0);
+    expect(res.body.errorsMessages[0].message).toBe(
       'Recovery code is invalid or expired',
     );
   });
@@ -226,8 +228,8 @@ describe('users test', () => {
       .send(body)
       .expect(HttpStatus.BAD_REQUEST);
 
-    expect(res.body.errorMessages.length).toBeGreaterThan(0);
-    expect(res.body.errorMessages[0].message).toBe(
+    expect(res.body.errorsMessages.length).toBeGreaterThan(0);
+    expect(res.body.errorsMessages[0].message).toBe(
       'Recovery code is invalid or expired',
     );
   });
@@ -294,8 +296,8 @@ describe('users test', () => {
       .send({ email: testUser.email, code: 'fake-code' })
       .expect(HttpStatus.BAD_REQUEST);
 
-    expect(res.body.errorMessages.length).toBeGreaterThan(0);
-    expect(res.body.errorMessages[0].message).toBe(
+    expect(res.body.errorsMessages.length).toBeGreaterThan(0);
+    expect(res.body.errorsMessages[0].message).toBe(
       'Confirmation code is invalid or expired',
     );
   });
@@ -318,8 +320,8 @@ describe('users test', () => {
       .send({ email: testUser.email, code: confirmationCode })
       .expect(HttpStatus.BAD_REQUEST);
 
-    expect(res.body.errorMessages.length).toBeGreaterThan(0);
-    expect(res.body.errorMessages[0].message).toBe(
+    expect(res.body.errorsMessages.length).toBeGreaterThan(0);
+    expect(res.body.errorsMessages[0].message).toBe(
       'Confirmation code is invalid or expired',
     );
   });

@@ -8,6 +8,9 @@ import { UserAccountModule } from './modules/user-account/user-account.module';
 import { TestingModule } from './modules/testing/testing.module';
 import { CoreModule } from './core/core.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { APP_FILTER } from '@nestjs/core';
+import { DomainExceptionFilter } from './core/exceptions/domain-exception.filter';
+import { AllHttpExceptionsFilter } from './core/exceptions/base-exception.filter';
 
 @Module({
   imports: [
@@ -20,6 +23,10 @@ import { AuthModule } from './modules/auth/auth.module';
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_FILTER, useClass: AllHttpExceptionsFilter },
+    { provide: APP_FILTER, useClass: DomainExceptionFilter },
+  ],
 })
 export class AppModule {}

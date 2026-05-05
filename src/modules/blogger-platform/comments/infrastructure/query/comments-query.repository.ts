@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Comment, CommentModelType } from '../../domain/comment.entity';
 import { CommentViewDto } from '../../api/view-dto/comment-view-dto';
+import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
+import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 
 @Injectable()
 export class CommentsQueryRepository {
@@ -22,7 +24,10 @@ export class CommentsQueryRepository {
       .exec();
 
     if (!found) {
-      throw new NotFoundException();
+      throw new DomainException({
+        code: DomainExceptionCode.NotFound,
+        message: 'Comment not found',
+      });
     }
 
     return CommentViewDto.mapToView(found);
@@ -41,7 +46,10 @@ export class CommentsQueryRepository {
       .exec();
 
     if (!found.length) {
-      throw new NotFoundException();
+      throw new DomainException({
+        code: DomainExceptionCode.NotFound,
+        message: 'Comment not found',
+      });
     }
 
     return found.map(CommentViewDto.mapToView);

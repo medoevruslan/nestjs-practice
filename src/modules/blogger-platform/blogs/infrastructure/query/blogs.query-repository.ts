@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Blog, BlogDocument, BlogModelType } from '../../domain/blog.entity';
 import { BlogViewDto } from '../../api/view-dto/blog.view-dto';
@@ -8,6 +8,8 @@ import {
   PaginatedViewDto,
 } from '../../../../../core/dto/base.paginated.view-dto';
 import { FilterQuery } from 'mongoose';
+import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
+import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 
 @Injectable()
 export class BlogsQueryRepository {
@@ -51,7 +53,10 @@ export class BlogsQueryRepository {
     });
 
     if (!found) {
-      throw new NotFoundException('Blog not found');
+      throw new DomainException({
+        code: DomainExceptionCode.NotFound,
+        message: 'Blog not found',
+      });
     }
 
     return BlogViewDto.mapToView(found);

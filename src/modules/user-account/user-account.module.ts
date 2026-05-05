@@ -6,10 +6,13 @@ import { UsersQueryRepository } from './infrastructure/query/users.query-reposit
 import { UsersRepository } from './infrastructure/users.repository';
 import { UsersService } from './application/users.service';
 import { CryptoService } from './application/crypto-service';
+import { JwtModule } from '@nestjs/jwt';
+import { AuthConfig } from '../auth/auth.config';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    JwtModule.registerAsync({ useClass: AuthConfig }),
   ],
   controllers: [UsersController],
   providers: [

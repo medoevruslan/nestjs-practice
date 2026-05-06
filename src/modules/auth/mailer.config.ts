@@ -1,9 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  MailerOptions,
-  MailerOptionsFactory,
-} from '@nestjs-modules/mailer';
+import { MailerOptions, MailerOptionsFactory } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter';
 
 @Injectable()
@@ -15,9 +12,9 @@ export class MailerConfig implements MailerOptionsFactory {
 
   constructor(@Inject() private config: ConfigService) {
     this.user = this.config.get('GOOGLE_MAIL_USER') ?? '';
-    this.clientId = this.config.get('GOOGLE.CLIENT_ID') ?? '';
-    this.clientSecret = this.config.get('GOOGLE.CLIENT_SECRET') ?? '';
-    this.refreshToken = this.config.get('GOOGLE.REFRESH_TOKEN') ?? '';
+    this.clientId = this.config.get('GOOGLE_CLIENT_ID') ?? '';
+    this.clientSecret = this.config.get('GOOGLE_CLIENT_SECRET') ?? '';
+    this.refreshToken = this.config.get('GOOGLE_REFRESH_TOKEN') ?? '';
   }
 
   createMailerOptions(): MailerOptions {

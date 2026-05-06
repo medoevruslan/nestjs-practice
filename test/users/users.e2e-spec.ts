@@ -1,8 +1,4 @@
-import {
-  HttpStatus,
-  INestApplication,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Connection } from 'mongoose';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
@@ -18,6 +14,8 @@ import {
   UserModelType,
 } from '../../src/modules/user-account/domain/user.entity';
 import bcrypt from 'bcrypt';
+import { DomainException } from '../../src/core/exceptions/domain-exceptions';
+import { DomainExceptionCode } from '../../src/core/exceptions/domain-exception-codes';
 
 const emailSenderMock = {
   sendEmailConfirmation: jest.fn().mockResolvedValue(undefined),
@@ -50,7 +48,11 @@ describe('users test', () => {
     const connection = moduleFixture.get<Connection>(getConnectionToken());
     userModel = moduleFixture.get<UserModelType>(getModelToken(User.name));
 
-    if (!connection.db) throw new NotFoundException('Db is not available');
+    if (!connection.db)
+      throw new DomainException({
+        code: DomainExceptionCode.NotFound,
+        message: 'Db is not available',
+      });
 
     await request(app.getHttpServer()).delete('/api/testing/all-data');
 

@@ -18,11 +18,14 @@ import { UsersQueryRepository } from '../infrastructure/query/users.query-reposi
 import { UsersService } from '../application/users.service';
 import { ParseObjectIdOrBadRequestPipe } from '../../../core/pipes/ParseObjectIdOrBadRequestPipe';
 import { BasicAuthGuard } from '../../auth/guards/basic-auth.guard';
+import { CommandBus } from '@nestjs/cqrs';
+import { CreateUserCommand } from '../application/usecases/create-user.usecase';
 
 @Controller('users')
 export class UsersController {
   constructor(
     @Inject() private usersQueryRepository: UsersQueryRepository,
+    @Inject() private commandBus: CommandBus,
     @Inject() private usersService: UsersService,
   ) {}
 
@@ -34,7 +37,9 @@ export class UsersController {
   @Post()
   @UseGuards(BasicAuthGuard)
   async createUser(@Body() dto: CreateUserInputDto) {
-    const userId = await this.usersService.createUser(dto);
+    const userId = await this.commandBus.execute<CreateUserCommand, string>(
+      new CreateUserCommand(dto),
+    );
     return this.usersQueryRepository.getByIdOrFail(userId);
   }
 

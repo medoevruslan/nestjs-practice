@@ -9,9 +9,12 @@ import { CryptoService } from './application/crypto-service';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthConfig } from '../auth/auth.config';
 import { BasicAuthGuard } from '../auth/guards/basic-auth.guard';
+import { CreateUserUseCase } from './application/usecases/create-user.usecase';
+import { CqrsModule } from '@nestjs/cqrs';
 
 @Module({
   imports: [
+    CqrsModule,
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     JwtModule.registerAsync({ useClass: AuthConfig }),
   ],
@@ -22,6 +25,7 @@ import { BasicAuthGuard } from '../auth/guards/basic-auth.guard';
     UsersService,
     CryptoService,
     BasicAuthGuard,
+    CreateUserUseCase,
   ],
   exports: [UsersService],
 })

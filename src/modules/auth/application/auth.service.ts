@@ -66,20 +66,6 @@ export class AuthService {
     await this.usersService.save(found);
   }
 
-  async recoveryPassword(dto: PasswordRecoveryInputDto) {
-    const code = await this.createPasswordRecoveryCode(dto.email);
-    if (code) {
-      try {
-        await this.emailSender.sendPasswordRecovery(dto.email, code);
-      } catch (error: unknown) {
-        this.logger.error(
-          `Failed to send password recovery email for ${dto.email}`,
-          error instanceof Error ? error.stack : undefined,
-        );
-      }
-    }
-  }
-
   async newPassword(dto: NewPasswordDto) {
     const found = await this.usersService.getByPasswordRecoveryCodeNullable(
       dto.code,
@@ -136,19 +122,6 @@ export class AuthService {
         );
       }
     }
-  }
-
-  async createPasswordRecoveryCode(email: string): Promise<string | null> {
-    const found = await this.usersService.getByEmailNullable(email);
-    if (found) {
-      const code = crypto.randomUUID();
-      found.passwordRecoveryCode = code;
-      found.confirmationCodeExpiration = new Date(Date.now() + 1000 * 60 * 5);
-      await this.usersService.save(found);
-      return code;
-    }
-
-    return null;
   }
 
   async createRegistrationConfirmationCode(

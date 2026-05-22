@@ -21,6 +21,7 @@ import { AuthGuard } from '../guards/auth.guard';
 import { CommandBus } from '@nestjs/cqrs';
 import { RegisterUserCommand } from '../application/usecases/register-user.usecase';
 import { LoginUserCommand } from '../application/usecases/login-user.usecase';
+import { RecoveryPasswordCommand } from '../application/usecases/recovery-password.usecase';
 
 @Controller('auth')
 export class AuthController {
@@ -65,7 +66,7 @@ export class AuthController {
   @Post('password-recovery')
   @HttpCode(HttpStatus.NO_CONTENT)
   async passwordRecovery(@Body() body: PasswordRecoveryInputDto) {
-    return this.authService.recoveryPassword(body);
+    return this.commandBus.execute(new RecoveryPasswordCommand(body));
   }
 
   @Post('new-password')

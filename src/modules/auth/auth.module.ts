@@ -13,6 +13,8 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { RegisterUserUseCase } from './application/usecases/register-user.usecase';
 import { UserRegisteredHandler } from './application/events/user-registered.handler';
 import { LoginUserUseCase } from './application/usecases/login-user.usecase';
+import { RecoveryPasswordUseCase } from './application/usecases/recovery-password.usecase';
+import { SentRecoveryPasswordHandler } from './application/events/sent-recovery-password.handler';
 
 @Module({
   imports: [
@@ -28,9 +30,11 @@ import { LoginUserUseCase } from './application/usecases/login-user.usecase';
     AuthConfig,
     MailerConfig,
     MailerEmailSender,
+    RecoveryPasswordUseCase,
     RegisterUserUseCase,
     LoginUserUseCase,
     UserRegisteredHandler,
+    SentRecoveryPasswordHandler,
     { provide: AbstractEmailSender, useClass: MailerEmailSender },
   ],
   exports: [AuthConfig, MailerConfig],

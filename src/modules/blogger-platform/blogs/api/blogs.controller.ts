@@ -24,17 +24,20 @@ import { ParseObjectIdOrBadRequestPipe } from '../../../../core/pipes/ParseObjec
 import { PostsQueryRepository } from '../../posts/infrastructure/query/posts.query-repository';
 import { PostsService } from '../../posts/application/posts.service';
 import { GetPostsQueryParams } from '../../posts/api/input-dto/get-posts.query-params.input-dto';
+import { CommandBus } from '@nestjs/cqrs';
+import { CreateBlogCommand } from '../application/usecases/create-blog.usecase';
 
 @Controller('blogs')
 export class BlogsController {
   constructor(
-    @Inject(BlogsQueryRepository)
-    private blogsQueryRepository: BlogsQueryRepository,
-    @Inject(PostsQueryRepository)
-    private postsQueryRepository: PostsQueryRepository,
-    @Inject(PostsService)
-    private postsService: PostsService,
-    @Inject(BlogsService) private blogsService: BlogsService,
+    @Inject()
+    private readonly blogsQueryRepository: BlogsQueryRepository,
+    @Inject()
+    private readonly postsQueryRepository: PostsQueryRepository,
+    @Inject()
+    private readonly postsService: PostsService,
+    @Inject() private readonly blogsService: BlogsService,
+    @Inject() private readonly commandBus: CommandBus,
   ) {}
 
   @Get()
@@ -44,7 +47,9 @@ export class BlogsController {
 
   @Post()
   async createBlog(@Body() body: CreateBlogInputDto) {
-    const blogId = await this.blogsService.createBlog(body);
+    const blogId = await this.commandBus.execute<CreateBlogCommand, string>(
+      new CreateBlogCommand(body),
+    );
     return this.blogsQueryRepository.getByIdOrNotFoundFail(blogId);
   }
 

@@ -16,7 +16,10 @@ export class CreateUserCommand {
 }
 
 @CommandHandler(CreateUserCommand)
-export class CreateUserUseCase implements ICommandHandler<CreateUserCommand> {
+export class CreateUserUseCase implements ICommandHandler<
+  CreateUserCommand,
+  string
+> {
   constructor(
     @InjectModel(User.name) private UserModel: UserModelType,
     @Inject() private usersRepository: UsersRepository,

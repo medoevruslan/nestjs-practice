@@ -1,8 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { CryptoService } from '../../user-account/application/crypto-service';
 import { AuthConfig } from '../auth.config';
@@ -34,7 +30,7 @@ export class AuthService {
   }
 
   async me(userId: string) {
-    const user = await this.usersService.getById(userId);
+    const user = await this.usersService.getByIdOrFail(userId);
     return UserViewDto.mapToView(user);
   }
 
@@ -70,11 +66,6 @@ export class AuthService {
     const refreshToken = this.jswService.sign(payload, { expiresIn: '7d' });
 
     return { accessToken, refreshToken };
-  }
-
-  async register(dto: RegisterUserDto) {
-    await this.usersService.createUser(dto);
-    await this.handleRegistrationConfirmation(dto.email);
   }
 
   async confirmRegistration(dto: { code: string }) {

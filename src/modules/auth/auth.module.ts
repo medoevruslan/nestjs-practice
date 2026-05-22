@@ -15,6 +15,7 @@ import { UserRegisteredHandler } from './application/events/user-registered.hand
 import { LoginUserUseCase } from './application/usecases/login-user.usecase';
 import { RecoveryPasswordUseCase } from './application/usecases/recovery-password.usecase';
 import { SentRecoveryPasswordHandler } from './application/events/sent-recovery-password.handler';
+import { ConfirmRegistrationUseCase } from './application/usecases/confirm-registration.usecase';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { SentRecoveryPasswordHandler } from './application/events/sent-recovery-
     MailerConfig,
     MailerEmailSender,
     RecoveryPasswordUseCase,
+    ConfirmRegistrationUseCase,
     RegisterUserUseCase,
     LoginUserUseCase,
     UserRegisteredHandler,

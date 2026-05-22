@@ -22,6 +22,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import { RegisterUserCommand } from '../application/usecases/register-user.usecase';
 import { LoginUserCommand } from '../application/usecases/login-user.usecase';
 import { RecoveryPasswordCommand } from '../application/usecases/recovery-password.usecase';
+import { ConfirmRegistrationCommand } from '../application/usecases/confirm-registration.usecase';
 
 @Controller('auth')
 export class AuthController {
@@ -66,7 +67,7 @@ export class AuthController {
   @Post('password-recovery')
   @HttpCode(HttpStatus.NO_CONTENT)
   async passwordRecovery(@Body() body: PasswordRecoveryInputDto) {
-    return this.commandBus.execute(new RecoveryPasswordCommand(body));
+    await this.commandBus.execute(new RecoveryPasswordCommand(body));
   }
 
   @Post('new-password')
@@ -78,7 +79,7 @@ export class AuthController {
   @Post('registration-confirmation')
   @HttpCode(HttpStatus.NO_CONTENT)
   async registrationConfirmation(@Body() body: { code: string }) {
-    return this.authService.confirmRegistration(body);
+    await this.commandBus.execute(new ConfirmRegistrationCommand(body.code));
   }
 
   @Post('registration-email-resending')

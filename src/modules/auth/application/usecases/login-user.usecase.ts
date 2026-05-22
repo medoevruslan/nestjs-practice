@@ -15,10 +15,10 @@ export class LoginUserCommand {
 @CommandHandler(LoginUserCommand)
 export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
   constructor(
+    @Inject() private readonly jwtService: JwtService,
     @Inject() private readonly cryptoService: CryptoService,
     @Inject() private readonly authConfig: AuthConfig,
     @Inject() private readonly usersService: UsersService,
-    @Inject() private readonly jswService: JwtService,
   ) {}
 
   async execute(command: LoginUserCommand) {
@@ -51,8 +51,8 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
 
     const payload = { email: dto.loginOrEmail, id: user.id };
 
-    const accessToken = this.jswService.sign(payload);
-    const refreshToken = this.jswService.sign(payload, { expiresIn: '7d' });
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
     return { accessToken, refreshToken };
   }

@@ -11,7 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from '../application/auth.service';
-import { Response, Request } from 'express';
+import { Request, Response } from 'express';
 import { RegisterUserInputDto } from './input-dto/register-user.input-dto';
 import { NewPasswordInputDto } from './input-dto/new-password.input-dto';
 import { LoginInputDto } from './input-dto/login.input-dto';
@@ -23,8 +23,8 @@ import { RegisterUserCommand } from '../application/usecases/register-user.useca
 import { LoginUserCommand } from '../application/usecases/login-user.usecase';
 import { RecoveryPasswordCommand } from '../application/usecases/recovery-password.usecase';
 import { ConfirmRegistrationCommand } from '../application/usecases/confirm-registration.usecase';
-import { ResentConfirmationEmailEvent } from '../application/events/resent-confirmation-email.event';
 import { ResendConfirmationCommand } from '../application/usecases/resend-confirmation-email.usecase';
+import { NewPasswordCommand } from '../application/usecases/new-password.usecase';
 
 @Controller('auth')
 export class AuthController {
@@ -75,7 +75,7 @@ export class AuthController {
   @Post('new-password')
   @HttpCode(HttpStatus.NO_CONTENT)
   async newPassword(@Body() body: NewPasswordInputDto) {
-    return this.authService.newPassword(body);
+    await this.commandBus.execute(new NewPasswordCommand(body));
   }
 
   @Post('registration-confirmation')

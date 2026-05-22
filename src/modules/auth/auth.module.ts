@@ -18,6 +18,7 @@ import { SentRecoveryPasswordHandler } from './application/events/sent-recovery-
 import { ConfirmRegistrationUseCase } from './application/usecases/confirm-registration.usecase';
 import { ResentConfirmationEmailHandler } from './application/events/resent-confirmation-email.handler';
 import { ResendConfirmationEmailUseCase } from './application/usecases/resend-confirmation-email.usecase';
+import { NewPasswordUseCase } from './application/usecases/new-password.usecase';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { ResendConfirmationEmailUseCase } from './application/usecases/resend-co
     ConfirmRegistrationUseCase,
     ResendConfirmationEmailUseCase,
     RegisterUserUseCase,
+    NewPasswordUseCase,
     LoginUserUseCase,
     UserRegisteredHandler,
     SentRecoveryPasswordHandler,

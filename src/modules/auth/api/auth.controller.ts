@@ -23,6 +23,8 @@ import { RegisterUserCommand } from '../application/usecases/register-user.useca
 import { LoginUserCommand } from '../application/usecases/login-user.usecase';
 import { RecoveryPasswordCommand } from '../application/usecases/recovery-password.usecase';
 import { ConfirmRegistrationCommand } from '../application/usecases/confirm-registration.usecase';
+import { ResentConfirmationEmailEvent } from '../application/events/resent-confirmation-email.event';
+import { ResendConfirmationCommand } from '../application/usecases/resend-confirmation-email.usecase';
 
 @Controller('auth')
 export class AuthController {
@@ -85,6 +87,6 @@ export class AuthController {
   @Post('registration-email-resending')
   @HttpCode(HttpStatus.NO_CONTENT)
   async registrationEmailResending(@Body() body: EmailConfirmationInputDto) {
-    return this.authService.resendEmailConfirmation(body.email);
+    await this.commandBus.execute(new ResendConfirmationCommand(body.email));
   }
 }

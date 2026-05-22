@@ -4,7 +4,6 @@ import { CryptoService } from '../../user-account/application/crypto-service';
 import { AuthConfig } from '../auth.config';
 import { UsersService } from '../../user-account/application/users.service';
 import { NewPasswordDto } from '../dto/new-password.dto';
-import { PasswordRecoveryInputDto } from '../api/input-dto/password-recovery-input.dto';
 import { AbstractEmailSender } from './port/abstract-email-sender';
 import { UserViewDto } from '../api/view-dto/user-view.dto';
 import { DomainException } from '../../../core/exceptions/domain-exceptions';
@@ -32,40 +31,6 @@ export class AuthService {
     return UserViewDto.mapToView(user);
   }
 
-  async confirmRegistration(dto: { code: string }) {
-    const found = await this.usersService.getByEmailConfirmationCodeNullable(
-      dto.code,
-    );
-
-    if (
-      !found ||
-      !found.confirmationCodeExpiration ||
-      Date.now() > found.confirmationCodeExpiration.getTime()
-    ) {
-      throw new DomainException({
-        code: DomainExceptionCode.ConfirmationCodeExpired,
-        message: 'Confirmation code is invalid or expired',
-        extensions: [
-          { field: 'code', message: 'Confirmation code is invalid or expired' },
-        ],
-      });
-    }
-
-    if (found.isEmailConfirmed) {
-      throw new DomainException({
-        code: DomainExceptionCode.BadRequest,
-        message: 'Confirmation code is invalid or expired',
-        extensions: [
-          { field: 'code', message: 'Confirmation code is invalid or expired' },
-        ],
-      });
-    }
-
-    found.isEmailConfirmed = true;
-    found.confirmationCodeExpiration = null;
-    await this.usersService.save(found);
-  }
-
   async newPassword(dto: NewPasswordDto) {
     const found = await this.usersService.getByPasswordRecoveryCodeNullable(
       dto.code,
@@ -88,54 +53,5 @@ export class AuthService {
     found.confirmationCodeExpiration = null;
     found.passwordRecoveryCode = null;
     await this.usersService.save(found);
-  }
-
-  async resendEmailConfirmation(email: string) {
-    const found = await this.usersService.getByEmailNullable(email);
-
-    if (!found || found.isEmailConfirmed) {
-      throw new DomainException({
-        code: DomainExceptionCode.BadRequest,
-        message: 'Email is already confirmed or user does not exist',
-        extensions: [
-          {
-            field: 'email',
-            message: 'Email is already confirmed or user does not exist',
-          },
-        ],
-      });
-    }
-
-    await this.handleRegistrationConfirmation(email);
-  }
-
-  async handleRegistrationConfirmation(email: string) {
-    const code = await this.createRegistrationConfirmationCode(email);
-
-    if (code) {
-      try {
-        await this.emailSender.sendEmailConfirmation(email, code);
-      } catch (error: unknown) {
-        this.logger.error(
-          `Failed to send email confirmation to ${email}`,
-          error instanceof Error ? error.stack : undefined,
-        );
-      }
-    }
-  }
-
-  async createRegistrationConfirmationCode(
-    email: string,
-  ): Promise<string | null> {
-    const found = await this.usersService.getByEmailNullable(email);
-    if (found) {
-      const code = crypto.randomUUID();
-      found.emailConfirmationCode = code;
-      found.confirmationCodeExpiration = new Date(Date.now() + 1000 * 60 * 5);
-      await this.usersService.save(found);
-      return code;
-    }
-
-    return null;
   }
 }

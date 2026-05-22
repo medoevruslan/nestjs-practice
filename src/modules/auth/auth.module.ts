@@ -16,6 +16,8 @@ import { LoginUserUseCase } from './application/usecases/login-user.usecase';
 import { RecoveryPasswordUseCase } from './application/usecases/recovery-password.usecase';
 import { SentRecoveryPasswordHandler } from './application/events/sent-recovery-password.handler';
 import { ConfirmRegistrationUseCase } from './application/usecases/confirm-registration.usecase';
+import { ResentConfirmationEmailHandler } from './application/events/resent-confirmation-email.handler';
+import { ResendConfirmationEmailUseCase } from './application/usecases/resend-confirmation-email.usecase';
 
 @Module({
   imports: [
@@ -33,10 +35,12 @@ import { ConfirmRegistrationUseCase } from './application/usecases/confirm-regis
     MailerEmailSender,
     RecoveryPasswordUseCase,
     ConfirmRegistrationUseCase,
+    ResendConfirmationEmailUseCase,
     RegisterUserUseCase,
     LoginUserUseCase,
     UserRegisteredHandler,
     SentRecoveryPasswordHandler,
+    ResentConfirmationEmailHandler,
     { provide: AbstractEmailSender, useClass: MailerEmailSender },
   ],
   exports: [AuthConfig, MailerConfig],

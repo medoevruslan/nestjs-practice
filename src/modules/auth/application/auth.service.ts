@@ -3,9 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { CryptoService } from '../../user-account/application/crypto-service';
 import { AuthConfig } from '../auth.config';
 import { UsersService } from '../../user-account/application/users.service';
-import { RegisterUserDto } from '../dto/register-user.dto';
 import { NewPasswordDto } from '../dto/new-password.dto';
-import { LoginDto } from '../dto/login.dto';
 import { PasswordRecoveryInputDto } from '../api/input-dto/password-recovery-input.dto';
 import { AbstractEmailSender } from './port/abstract-email-sender';
 import { UserViewDto } from '../api/view-dto/user-view.dto';
@@ -32,40 +30,6 @@ export class AuthService {
   async me(userId: string) {
     const user = await this.usersService.getByIdOrFail(userId);
     return UserViewDto.mapToView(user);
-  }
-
-  async login(dto: LoginDto) {
-    const user = await this.usersService.getByLoginOrEmailNullable(
-      dto.loginOrEmail,
-    );
-
-    if (!user) {
-      throw new DomainException({
-        code: DomainExceptionCode.Unauthorized,
-        message: 'Invalid credentials',
-      });
-    }
-
-    if (!this.authConfig.skipPasswordCheck) {
-      const isPass = await this.cryptoService.checkPassword(
-        dto.password,
-        user.password,
-      );
-
-      if (!isPass) {
-        throw new DomainException({
-          code: DomainExceptionCode.Unauthorized,
-          message: 'Invalid credentials',
-        });
-      }
-    }
-
-    const payload = { email: dto.loginOrEmail, id: user.id };
-
-    const accessToken = this.jswService.sign(payload);
-    const refreshToken = this.jswService.sign(payload, { expiresIn: '7d' });
-
-    return { accessToken, refreshToken };
   }
 
   async confirmRegistration(dto: { code: string }) {

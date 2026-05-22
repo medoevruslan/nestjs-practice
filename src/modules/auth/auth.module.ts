@@ -12,6 +12,7 @@ import { MailerEmailSender } from './infrastructure/mailer-email-sender';
 import { CqrsModule } from '@nestjs/cqrs';
 import { RegisterUserUseCase } from './application/usecases/register-user.usecase';
 import { UserRegisteredHandler } from './application/events/user-registered.handler';
+import { LoginUserUseCase } from './application/usecases/login-user.usecase';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { UserRegisteredHandler } from './application/events/user-registered.hand
     MailerConfig,
     MailerEmailSender,
     RegisterUserUseCase,
+    LoginUserUseCase,
     UserRegisteredHandler,
     { provide: AbstractEmailSender, useClass: MailerEmailSender },
   ],

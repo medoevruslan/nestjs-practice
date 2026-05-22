@@ -20,6 +20,7 @@ import { PasswordRecoveryInputDto } from './input-dto/password-recovery-input.dt
 import { AuthGuard } from '../guards/auth.guard';
 import { CommandBus } from '@nestjs/cqrs';
 import { RegisterUserCommand } from '../application/usecases/register-user.usecase';
+import { LoginUserCommand } from '../application/usecases/login-user.usecase';
 
 @Controller('auth')
 export class AuthController {
@@ -41,7 +42,10 @@ export class AuthController {
     @Body() body: LoginInputDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { refreshToken, accessToken } = await this.authService.login(body);
+    const { refreshToken, accessToken } = await this.commandBus.execute<
+      LoginUserCommand,
+      { refreshToken: string; accessToken: string }
+    >(new LoginUserCommand(body));
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,

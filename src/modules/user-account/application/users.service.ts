@@ -16,7 +16,7 @@ export class UsersService {
     await this.usersRepository.save(user);
   }
 
-  async getById(id: string) {
+  async getByIdOrFail(id: string) {
     return this.usersRepository.findByIdOrFail(id);
   }
 
@@ -46,13 +46,6 @@ export class UsersService {
 
   async getByEmailConfirmationCodeNullable(code: string) {
     return this.usersRepository.findByEmailConfirmationCodeOrNull(code);
-  }
-
-  async deleteUser(id: string): Promise<string> {
-    const user = await this.usersRepository.findByIdOrFail(id);
-    user.markDeleted();
-    await this.usersRepository.save(user);
-    return user.id;
   }
 
   async confirmUser(code: string) {

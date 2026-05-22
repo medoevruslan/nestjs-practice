@@ -350,4 +350,24 @@ describe('users test', () => {
     expect(confirmedUser!.isEmailConfirmed).toBe(true);
     expect(confirmedUser!.confirmationCodeExpiration).toBe(null);
   });
+
+  it('should not delete user, because not authorized', async () => {
+    await request(app.getHttpServer())
+      .delete(`/api/users/${testUserId}`)
+      .set('Authorization', `Basic ${testUserId}`)
+      .expect(HttpStatus.UNAUTHORIZED);
+
+    const res = await request(app.getHttpServer()).get('/api/users');
+    expect(res.body.totalCount).toBe(1);
+  });
+
+  it('should not delete user', async () => {
+    await request(app.getHttpServer())
+      .delete(`/api/users/${testUserId}`)
+      .auth('admin', `qwerty`)
+      .expect(HttpStatus.NO_CONTENT);
+
+    const res = await request(app.getHttpServer()).get('/api/users');
+    expect(res.body.totalCount).toBe(0);
+  });
 });

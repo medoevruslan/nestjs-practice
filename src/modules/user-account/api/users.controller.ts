@@ -20,6 +20,7 @@ import { ParseObjectIdOrBadRequestPipe } from '../../../core/pipes/ParseObjectId
 import { BasicAuthGuard } from '../../auth/guards/basic-auth.guard';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreateUserCommand } from '../application/usecases/create-user.usecase';
+import { DeleteUserCommand } from '../application/usecases/delete-user.usecase';
 
 @Controller('users')
 export class UsersController {
@@ -48,6 +49,8 @@ export class UsersController {
   @UseGuards(BasicAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteUser(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
-    return this.usersService.deleteUser(id);
+    return this.commandBus.execute<DeleteUserCommand, string>(
+      new DeleteUserCommand(id),
+    );
   }
 }

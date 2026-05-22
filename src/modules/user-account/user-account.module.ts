@@ -11,6 +11,7 @@ import { AuthConfig } from '../auth/auth.config';
 import { BasicAuthGuard } from '../auth/guards/basic-auth.guard';
 import { CreateUserUseCase } from './application/usecases/create-user.usecase';
 import { CqrsModule } from '@nestjs/cqrs';
+import { DeleteUserUseCase } from './application/usecases/delete-user.usecase';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { CqrsModule } from '@nestjs/cqrs';
     CryptoService,
     BasicAuthGuard,
     CreateUserUseCase,
+    DeleteUserUseCase,
   ],
   exports: [UsersService],
 })

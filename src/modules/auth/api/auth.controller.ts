@@ -18,10 +18,15 @@ import { LoginInputDto } from './input-dto/login.input-dto';
 import { EmailConfirmationInputDto } from './input-dto/email.confirmation.input-dto';
 import { PasswordRecoveryInputDto } from './input-dto/password-recovery-input.dto';
 import { AuthGuard } from '../guards/auth.guard';
+import { CommandBus } from '@nestjs/cqrs';
+import { RegisterUserCommand } from '../application/usecases/register-user.usecase';
 
 @Controller('auth')
 export class AuthController {
-  constructor(@Inject() private readonly authService: AuthService) {}
+  constructor(
+    @Inject() private readonly authService: AuthService,
+    @Inject() private readonly commandBus: CommandBus,
+  ) {}
 
   @Get('me')
   @UseGuards(AuthGuard)
@@ -50,7 +55,7 @@ export class AuthController {
   @Post('registration')
   @HttpCode(HttpStatus.NO_CONTENT)
   async register(@Body() body: RegisterUserInputDto) {
-    return this.authService.register(body);
+    return this.commandBus.execute(new RegisterUserCommand(body));
   }
 
   @Post('password-recovery')

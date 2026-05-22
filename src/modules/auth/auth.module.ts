@@ -9,11 +9,15 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { MailerConfig } from './mailer.config';
 import { AbstractEmailSender } from './application/port/abstract-email-sender';
 import { MailerEmailSender } from './infrastructure/mailer-email-sender';
+import { CqrsModule } from '@nestjs/cqrs';
+import { RegisterUserUseCase } from './application/usecases/register-user.usecase';
+import { UserRegisteredHandler } from './application/events/user-registered.handler';
 
 @Module({
   imports: [
     JwtModule.registerAsync({ useClass: AuthConfig }),
     MailerModule.forRootAsync({ useClass: MailerConfig }),
+    CqrsModule,
     UserAccountModule,
   ],
   controllers: [AuthController],
@@ -23,6 +27,8 @@ import { MailerEmailSender } from './infrastructure/mailer-email-sender';
     AuthConfig,
     MailerConfig,
     MailerEmailSender,
+    RegisterUserUseCase,
+    UserRegisteredHandler,
     { provide: AbstractEmailSender, useClass: MailerEmailSender },
   ],
   exports: [AuthConfig, MailerConfig],

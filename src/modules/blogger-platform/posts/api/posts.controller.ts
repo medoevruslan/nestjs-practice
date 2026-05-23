@@ -21,6 +21,8 @@ import { PostsService } from '../application/posts.service';
 import { ApiParam } from '@nestjs/swagger';
 import { ParseObjectIdOrBadRequestPipe } from '../../../../core/pipes/ParseObjectIdOrBadRequestPipe';
 import { CommentsQueryRepository } from '../../comments/infrastructure/query/comments-query.repository';
+import { CommandBus } from '@nestjs/cqrs';
+import { CreatePostCommand } from '../application/usecases/create-post.usecase';
 
 @Controller('posts')
 export class PostsController {
@@ -31,6 +33,7 @@ export class PostsController {
     private commentsQueryRepository: CommentsQueryRepository,
     @Inject(PostsService)
     private postsService: PostsService,
+    @Inject() private readonly commandBus: CommandBus,
   ) {}
 
   @Get()
@@ -57,7 +60,9 @@ export class PostsController {
 
   @Post()
   async createPost(@Body() dto: CreatePostInputDto) {
-    const postId = await this.postsService.createPost(dto);
+    const postId = await this.commandBus.execute<CreatePostCommand, string>(
+      new CreatePostCommand(dto),
+    );
     return this.postsQueryRepository.getPostByIdOrFail(postId, 'dummyId');
   }
 

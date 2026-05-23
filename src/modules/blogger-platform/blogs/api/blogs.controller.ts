@@ -26,6 +26,7 @@ import { PostsService } from '../../posts/application/posts.service';
 import { GetPostsQueryParams } from '../../posts/api/input-dto/get-posts.query-params.input-dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreateBlogCommand } from '../application/usecases/create-blog.usecase';
+import { CreatePostByBlogIdCommand } from '../application/usecases/create-post-by-blog-id.usecase';
 
 @Controller('blogs')
 export class BlogsController {
@@ -78,7 +79,9 @@ export class BlogsController {
     @Param('blogId', ParseObjectIdOrBadRequestPipe) blogId: string,
     @Body() dto: CreatePostByBlogIdInputDto,
   ) {
-    const postId = await this.postsService.createPost({ ...dto, blogId });
+    const postId = await this.commandBus.execute(
+      new CreatePostByBlogIdCommand({ ...dto, blogId: blogId }),
+    );
     return this.postsQueryRepository.getPostByIdOrFail(postId, 'dummyId');
   }
 

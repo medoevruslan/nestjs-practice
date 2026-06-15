@@ -1,4 +1,4 @@
-import { INestApplication } from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
 import { appSetup } from '../../src/setup/app.setup';
@@ -9,6 +9,7 @@ import { DomainExceptionCode } from '../../src/core/exceptions/domain-exception-
 import request from 'supertest';
 import { CreatePostDto } from '../../src/modules/blogger-platform/posts/dto/create-post.dto';
 import { CreateBlogDto } from '../../src/modules/blogger-platform/blogs/dto/create-blog.dto';
+import { UpdatePostDto } from '../../src/modules/blogger-platform/posts/dto/update-post.dto';
 
 describe('posts e2e tests', () => {
   let app: INestApplication;
@@ -37,7 +38,7 @@ describe('posts e2e tests', () => {
     const testBlog: CreateBlogDto = {
       name: 'test-blog',
       description: 'test-blog-descripton',
-      websiteUrl: 'test-blog-url.com',
+      websiteUrl: 'https://test-blog-url.com',
     };
 
     const res = await request(app.getHttpServer())
@@ -65,5 +66,44 @@ describe('posts e2e tests', () => {
       shortDescription: 'test-post-description',
       title: 'test-post-title',
     };
+
+    await request(app.getHttpServer())
+      .post('/api/posts')
+      .send(newPost)
+      .expect(201);
+
+    const res = await request(app.getHttpServer()).get('/api/posts');
+    expect(res.body.totalCount).toBe(1);
+  });
+
+  it('should update post', async () => {
+    const newPost: CreatePostDto = {
+      blogId: testBlogId,
+      content: 'test-post-content',
+      shortDescription: 'test-post-description',
+      title: 'test-post-title',
+    };
+    const resCreated = await request(app.getHttpServer())
+      .post('/api/posts')
+      .send(newPost)
+      .expect(HttpStatus.CREATED);
+
+    const postId = resCreated.body.id;
+
+    const updatePost: UpdatePostDto = {
+      blogId: testBlogId,
+      content: 'updated-post-content',
+      shortDescription: 'updated-post-description',
+      title: 'updated-post-title',
+    };
+
+    const resUpdated = await request(app.getHttpServer())
+      .post(`/api/posts/${postId}`)
+      .send(updatePost)
+      .expect(HttpStatus.NO_CONTENT);
+
+    const resAll = await request(app.getHttpServer()).get('/api/posts');
+    expect(resAll.body.totalCount).toBe(2);
+    expect(resAll.body.items[1]).toEqual(updatePost);
   });
 });

@@ -97,13 +97,18 @@ describe('posts e2e tests', () => {
       title: 'updated-post-title',
     };
 
-    const resUpdated = await request(app.getHttpServer())
-      .post(`/api/posts/${postId}`)
+    await request(app.getHttpServer())
+      .put(`/api/posts/${postId}`)
       .send(updatePost)
       .expect(HttpStatus.NO_CONTENT);
 
     const resAll = await request(app.getHttpServer()).get('/api/posts');
+
+    const updatedFromResult = resAll.body.items.find(
+      (item) => item.id === postId,
+    );
+
     expect(resAll.body.totalCount).toBe(2);
-    expect(resAll.body.items[1]).toEqual(updatePost);
+    expect(updatedFromResult).toMatchObject(updatePost);
   });
 });

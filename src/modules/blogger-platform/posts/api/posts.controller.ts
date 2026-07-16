@@ -24,6 +24,7 @@ import { CommentsQueryRepository } from '../../comments/infrastructure/query/com
 import { CommandBus } from '@nestjs/cqrs';
 import { CreatePostCommand } from '../application/usecases/create-post.usecase';
 import { UpdatePostCommand } from '../application/usecases/update-post.usecase';
+import { DeletePostCommand } from '../application/usecases/delete-post.usecase';
 
 @Controller('posts')
 export class PostsController {
@@ -81,6 +82,8 @@ export class PostsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete(':id')
   async deletePost(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
-    return this.postsService.deletePost(id);
+    return this.commandBus.execute<DeletePostCommand>(
+      new DeletePostCommand(id),
+    );
   }
 }

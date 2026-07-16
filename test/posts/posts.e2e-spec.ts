@@ -111,4 +111,31 @@ describe('posts e2e tests', () => {
     expect(resAll.body.totalCount).toBe(2);
     expect(updatedFromResult).toMatchObject(updatePost);
   });
+
+  it('should delete post', async () => {
+    const newPost: CreatePostDto = {
+      blogId: testBlogId,
+      content: 'test-post-content',
+      shortDescription: 'test-post-description',
+      title: 'test-post-title',
+    };
+    const resCreated = await request(app.getHttpServer())
+      .post('/api/posts')
+      .send(newPost)
+      .expect(HttpStatus.CREATED);
+
+    const postId = resCreated.body.id;
+
+    const resAll1 = await request(app.getHttpServer()).get('/api/posts');
+
+    expect(resAll1.body.totalCount).toBe(3);
+
+    await request(app.getHttpServer())
+      .delete(`/api/posts/${postId}`)
+      .expect(HttpStatus.NO_CONTENT);
+
+    const resAll2 = await request(app.getHttpServer()).get('/api/posts');
+
+    expect(resAll2.body.totalCount).toBe(2);
+  });
 });

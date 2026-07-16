@@ -2,7 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UpdatePostDto } from '../../dto/update-post.dto';
 import { PostsRepository } from '../../infrastructure/posts.repository';
 
-class UpdatePostCommand {
+export class UpdatePostCommand {
   constructor(
     public readonly id: string,
     public dto: UpdatePostDto,

@@ -18,6 +18,7 @@ import { CreateBlogUseCase } from './blogs/application/usecases/create-blog.usec
 import { CreatePostByBlogIdUseCase } from './blogs/application/usecases/create-post-by-blog-id.usecase';
 import { CreatePostUseCase } from './posts/application/usecases/create-post.usecase';
 import { CqrsModule } from '@nestjs/cqrs';
+import { UpdatePostUseCase } from './posts/application/usecases/update-post.usecase';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { CqrsModule } from '@nestjs/cqrs';
     CreateBlogUseCase,
     CreatePostByBlogIdUseCase,
     CreatePostUseCase,
+    UpdatePostUseCase,
     PostsRepository,
     PostsService,
     CommentsQueryRepository,

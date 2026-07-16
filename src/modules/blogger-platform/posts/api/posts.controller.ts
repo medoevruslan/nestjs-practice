@@ -23,6 +23,7 @@ import { ParseObjectIdOrBadRequestPipe } from '../../../../core/pipes/ParseObjec
 import { CommentsQueryRepository } from '../../comments/infrastructure/query/comments-query.repository';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreatePostCommand } from '../application/usecases/create-post.usecase';
+import { UpdatePostCommand } from '../application/usecases/update-post.usecase';
 
 @Controller('posts')
 export class PostsController {
@@ -72,7 +73,9 @@ export class PostsController {
     @Param('id', ParseObjectIdOrBadRequestPipe) id: string,
     @Body() dto: UpdatePostInputDto,
   ) {
-    return this.postsService.updatePost(id, dto);
+    return this.commandBus.execute<UpdatePostCommand>(
+      new UpdatePostCommand(id, dto),
+    );
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)

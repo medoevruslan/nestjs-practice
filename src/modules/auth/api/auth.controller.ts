@@ -26,17 +26,19 @@ import { ConfirmRegistrationCommand } from '../application/usecases/confirm-regi
 import { ResendConfirmationCommand } from '../application/usecases/resend-confirmation-email.usecase';
 import { NewPasswordCommand } from '../application/usecases/new-password.usecase';
 
+type AuthRequest = Request & { user: Express.User }
+
 @Controller('auth')
 export class AuthController {
   constructor(
     @Inject() private readonly authService: AuthService,
     @Inject() private readonly commandBus: CommandBus,
-  ) {}
+  ) { }
 
   @Get('me')
   @UseGuards(AuthGuard)
-  async me(@Req() req: Request) {
-    const user = req.user as { id: string };
+  async me(@Req() req: AuthRequest) {
+    const user = req.user
     return this.authService.me(user.id);
   }
 

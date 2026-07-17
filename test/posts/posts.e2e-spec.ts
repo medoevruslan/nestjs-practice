@@ -10,6 +10,7 @@ import request from 'supertest';
 import { CreatePostDto } from '../../src/modules/blogger-platform/posts/dto/create-post.dto';
 import { CreateBlogDto } from '../../src/modules/blogger-platform/blogs/dto/create-blog.dto';
 import { UpdatePostDto } from '../../src/modules/blogger-platform/posts/dto/update-post.dto';
+import { CommentInputDto } from '../../src/modules/blogger-platform/shared/api/input-dto/comment.input-dto';
 
 describe('posts e2e tests', () => {
   let app: INestApplication;
@@ -137,5 +138,33 @@ describe('posts e2e tests', () => {
     const resAll2 = await request(app.getHttpServer()).get('/api/posts');
 
     expect(resAll2.body.totalCount).toBe(2);
+  });
+
+  it('should not create post because blog not found, throw 400', async () => {
+    const newPost: CreatePostDto = {
+      blogId: 'fake-id',
+      content: 'test-post-content',
+      shortDescription: 'test-post-description',
+      title: 'test-post-title',
+    };
+
+    await request(app.getHttpServer())
+      .post('/api/posts')
+      .send(newPost)
+      .expect(HttpStatus.BAD_REQUEST);
+  });
+
+  it('should create post comment', async () => {
+    const comment: CommentInputDto = { content: 'post-comment-content' };
+
+    await request(app.getHttpServer())
+      .post('/api/posts/1/comments')
+      .send(comment)
+      .expect(HttpStatus.CREATED);
+
+    const comments = await request(app.getHttpServer()).get(
+      '/api/posts/1/comments',
+    );
+    expect(comments.body.totalCount).toBe(1);
   });
 });

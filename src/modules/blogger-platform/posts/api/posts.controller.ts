@@ -25,6 +25,7 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CreatePostCommand } from '../application/usecases/create-post.usecase';
 import { UpdatePostCommand } from '../application/usecases/update-post.usecase';
 import { DeletePostCommand } from '../application/usecases/delete-post.usecase';
+import { CommentInputDto } from '../../shared/api/input-dto/comment.input-dto';
 
 @Controller('posts')
 export class PostsController {
@@ -58,6 +59,19 @@ export class PostsController {
       postId,
       'dummyId',
     );
+  }
+
+  @ApiParam({ name: 'postId' })
+  @Post(':postId/comments')
+  @HttpCode(HttpStatus.CREATED)
+  async createPostComment(
+    @Param('postId', ParseObjectIdOrBadRequestPipe) postId: string,
+    @Body() dto: CommentInputDto,
+  ) {
+    // const postId = await this.commandBus.execute<CreatePostCommand, string>(
+    //   new CreatePostCommand(dto),
+    // );
+    // return this.postsQueryRepository.getPostByIdOrFail(postId, 'dummyId');
   }
 
   @Post()

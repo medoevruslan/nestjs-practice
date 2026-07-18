@@ -218,4 +218,130 @@ describe('posts e2e tests', () => {
 
     expect(comments.body).toHaveLength(1);
   });
+
+  it('should update post like status and remove the like for None status', async () => {
+    const loginResponse = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ loginOrEmail: testUser.email, password: testUser.password })
+      .expect(HttpStatus.OK);
+
+    const createdPost = await request(app.getHttpServer())
+      .post('/api/posts')
+      .send({
+        blogId: testBlogId,
+        content: 'post for like-status test',
+        shortDescription: 'like-status test post',
+        title: 'post-like-status',
+      })
+      .expect(HttpStatus.CREATED);
+
+    await request(app.getHttpServer())
+      .put(`/api/posts/${createdPost.body.id}/like-status`)
+      .auth(loginResponse.body.accessToken, { type: 'bearer' })
+      .send({ likeStatus: 'Like' })
+      .expect(HttpStatus.NO_CONTENT);
+
+    const likedPost = await request(app.getHttpServer())
+      .get(`/api/posts/${createdPost.body.id}`)
+      .expect(HttpStatus.OK);
+
+    expect(likedPost.body.extendedLikesInfo.likesCount).toBe(1);
+    expect(likedPost.body.extendedLikesInfo.dislikesCount).toBe(0);
+
+    await request(app.getHttpServer())
+      .put(`/api/posts/${createdPost.body.id}/like-status`)
+      .auth(loginResponse.body.accessToken, { type: 'bearer' })
+      .send({ likeStatus: 'None' })
+      .expect(HttpStatus.NO_CONTENT);
+
+    const unlikedPost = await request(app.getHttpServer())
+      .get(`/api/posts/${createdPost.body.id}`)
+      .expect(HttpStatus.OK);
+
+    expect(unlikedPost.body.extendedLikesInfo.likesCount).toBe(0);
+  });
+
+  it('should update and delete only the authenticated user comment', async () => {
+    const ownerLogin = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ loginOrEmail: testUser.email, password: testUser.password })
+      .expect(HttpStatus.OK);
+
+    const anotherUser = {
+      login: 'other-user',
+      email: 'another-user@email.com',
+      password: '123456',
+    };
+
+    await request(app.getHttpServer())
+      .post('/api/users')
+      .auth('admin', 'qwerty')
+      .send(anotherUser)
+      .expect(HttpStatus.CREATED);
+
+    const anotherUserLogin = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ loginOrEmail: anotherUser.email, password: anotherUser.password })
+      .expect(HttpStatus.OK);
+
+    const createdPost = await request(app.getHttpServer())
+      .post('/api/posts')
+      .send({
+        blogId: testBlogId,
+        content: 'post for comment lifecycle test',
+        shortDescription: 'comment lifecycle post',
+        title: 'comment-lifecycle',
+      })
+      .expect(HttpStatus.CREATED);
+
+    await request(app.getHttpServer())
+      .post(`/api/posts/${createdPost.body.id}/comments`)
+      .auth(ownerLogin.body.accessToken, { type: 'bearer' })
+      .send({ content: 'initial comment content' })
+      .expect(HttpStatus.CREATED);
+
+    const comments = await request(app.getHttpServer())
+      .get(`/api/posts/${createdPost.body.id}/comments`)
+      .expect(HttpStatus.OK);
+    const commentId = comments.body[0].id;
+
+    await request(app.getHttpServer())
+      .put(`/api/comments/${commentId}/like-status`)
+      .auth(ownerLogin.body.accessToken, { type: 'bearer' })
+      .send({ likeStatus: 'Dislike' })
+      .expect(HttpStatus.NO_CONTENT);
+
+    await request(app.getHttpServer())
+      .put(`/api/comments/${commentId}`)
+      .auth(anotherUserLogin.body.accessToken, { type: 'bearer' })
+      .send({ content: 'updated comment content' })
+      .expect(HttpStatus.FORBIDDEN);
+
+    await request(app.getHttpServer())
+      .put(`/api/comments/${commentId}`)
+      .auth(ownerLogin.body.accessToken, { type: 'bearer' })
+      .send({ content: 'updated comment content' })
+      .expect(HttpStatus.NO_CONTENT);
+
+    const updatedComment = await request(app.getHttpServer())
+      .get(`/api/comments/${commentId}`)
+      .expect(HttpStatus.OK);
+
+    expect(updatedComment.body.content).toBe('updated comment content');
+    expect(updatedComment.body.likesInfo.dislikesCount).toBe(1);
+
+    await request(app.getHttpServer())
+      .delete(`/api/comments/${commentId}`)
+      .auth(anotherUserLogin.body.accessToken, { type: 'bearer' })
+      .expect(HttpStatus.FORBIDDEN);
+
+    await request(app.getHttpServer())
+      .delete(`/api/comments/${commentId}`)
+      .auth(ownerLogin.body.accessToken, { type: 'bearer' })
+      .expect(HttpStatus.NO_CONTENT);
+
+    await request(app.getHttpServer())
+      .get(`/api/comments/${commentId}`)
+      .expect(HttpStatus.NOT_FOUND);
+  });
 });

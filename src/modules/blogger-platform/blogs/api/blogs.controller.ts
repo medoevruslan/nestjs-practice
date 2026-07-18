@@ -10,6 +10,7 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { BlogsService } from '../application/blogs.service';
 import { BlogsQueryRepository } from '../infrastructure/query/blogs.query-repository';
@@ -27,6 +28,7 @@ import { GetPostsQueryParams } from '../../posts/api/input-dto/get-posts.query-p
 import { CommandBus } from '@nestjs/cqrs';
 import { CreateBlogCommand } from '../application/usecases/create-blog.usecase';
 import { CreatePostByBlogIdCommand } from '../application/usecases/create-post-by-blog-id.usecase';
+import { AuthGuard } from '../../../auth/guards/auth.guard';
 
 @Controller('blogs')
 export class BlogsController {
@@ -73,7 +75,8 @@ export class BlogsController {
     );
   }
 
-  @ApiParam({ name: 'blogId' }) // for swagger
+  @ApiParam({ name: 'blogId' })
+  @UseGuards(AuthGuard) // for swagger
   @Post(':blogId/posts')
   async createPostByBlogId(
     @Param('blogId', ParseObjectIdOrBadRequestPipe) blogId: string,
@@ -86,6 +89,7 @@ export class BlogsController {
   }
 
   @ApiParam({ name: 'id' })
+  @UseGuards(AuthGuard)
   @Put(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateBlog(
@@ -97,6 +101,7 @@ export class BlogsController {
   }
 
   @ApiParam({ name: 'id' }) // for swagger
+  @UseGuards(AuthGuard)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteBlog(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {

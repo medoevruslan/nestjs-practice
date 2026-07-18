@@ -57,8 +57,8 @@ export class PostsController {
   }
 
   @ApiParam({ name: 'postId' })
-  @Put(':postId/like-status')
   @UseGuards(AuthGuard)
+  @Put(':postId/like-status')
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateLikeStatus(
     @Param('postId', ParseObjectIdOrBadRequestPipe) postId: string,
@@ -100,6 +100,7 @@ export class PostsController {
     );
   }
 
+  @UseGuards(AuthGuard)
   @Post()
   async createPost(@Body() dto: CreatePostInputDto) {
     const postId = await this.commandBus.execute<CreatePostCommand, string>(
@@ -108,8 +109,9 @@ export class PostsController {
     return this.postsQueryRepository.getPostByIdOrFail(postId, 'dummyId');
   }
 
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(AuthGuard)
   @Put(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   async updatePost(
     @Param('id', ParseObjectIdOrBadRequestPipe) id: string,
     @Body() dto: UpdatePostInputDto,
@@ -119,8 +121,9 @@ export class PostsController {
     );
   }
 
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(AuthGuard)
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   async deletePost(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
     return this.commandBus.execute<DeletePostCommand>(
       new DeletePostCommand(id),

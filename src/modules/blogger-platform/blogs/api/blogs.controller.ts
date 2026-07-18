@@ -10,6 +10,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { BlogsService } from '../application/blogs.service';
@@ -29,6 +30,9 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CreateBlogCommand } from '../application/usecases/create-blog.usecase';
 import { CreatePostByBlogIdCommand } from '../application/usecases/create-post-by-blog-id.usecase';
 import { BasicAuthGuard } from '../../../auth/guards/basic-auth.guard';
+import { OptionalAuthGuard } from '../../../auth/guards/optional-auth.guard';
+
+type OptionalAuthorizedRequest = Request & { user?: { id: string } };
 
 @Controller('blogs')
 export class BlogsController {
@@ -65,13 +69,15 @@ export class BlogsController {
 
   @ApiParam({ name: 'blogId' }) // for swagger
   @Get(':blogId/posts')
+  @UseGuards(OptionalAuthGuard)
   async getPostByBlogId(
     @Param('blogId', ParseObjectIdOrBadRequestPipe) blogId: string,
     @Query() query: GetPostsQueryParams,
+    @Req() req: OptionalAuthorizedRequest,
   ) {
     return this.postsQueryRepository.getPostByBlogIdOrFail(
       blogId,
-      'dummyId',
+      req.user?.id ?? '',
       query,
     );
   }

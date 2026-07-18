@@ -1,5 +1,5 @@
 import { IsMongoId, IsNotEmpty } from 'class-validator';
-import { IsStringWithTrim } from '../../../../core/decorators/validation/is-string-with-trim';
+import { IsStringWithTrim } from '../../../../../core/decorators/validation/is-string-with-trim';
 
 export class CreatePostInputDto {
   @IsStringWithTrim(1, 30)

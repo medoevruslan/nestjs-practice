@@ -19,8 +19,10 @@ import { UpdateCommentCommand } from '../application/usecases/update-comment.use
 import { DeleteCommentCommand } from '../application/usecases/delete-comment.usecase';
 import { LikeStatusInputDto } from '../../likes/api/input-dto/like-status.input-dto';
 import { UpdateLikeStatusCommand } from '../../likes/application/usecases/update-like-status.usecase';
+import { OptionalAuthGuard } from '../../../auth/guards/optional-auth.guard';
 
 type AuthorizedRequest = Request & { user: { id: string } };
+type OptionalAuthorizedRequest = Request & { user?: { id: string } };
 
 @Controller('comments')
 export class CommentsController {
@@ -30,8 +32,15 @@ export class CommentsController {
   ) {}
 
   @Get(':id')
-  getCommentById(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
-    return this.commentsQueryRepository.getCommentByIdOrFail(id, 'unknown');
+  @UseGuards(OptionalAuthGuard)
+  getCommentById(
+    @Param('id', ParseObjectIdOrBadRequestPipe) id: string,
+    @Req() req: OptionalAuthorizedRequest,
+  ) {
+    return this.commentsQueryRepository.getCommentByIdOrFail(
+      id,
+      req.user?.id ?? '',
+    );
   }
 
   @Put(':commentId/like-status')

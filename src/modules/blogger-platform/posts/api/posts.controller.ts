@@ -33,8 +33,10 @@ import { CreateCommentDto } from '../../comments/dto/create-comment.dto';
 import { LikeStatusInputDto } from '../../likes/api/input-dto/like-status.input-dto';
 import { UpdateLikeStatusCommand } from '../../likes/application/usecases/update-like-status.usecase';
 import { BasicAuthGuard } from '../../../auth/guards/basic-auth.guard';
+import { OptionalAuthGuard } from '../../../auth/guards/optional-auth.guard';
 
 type AuthorizedRequest = Request & { user: { id: string } };
+type OptionalAuthorizedRequest = Request & { user?: { id: string } };
 
 @Controller('posts')
 export class PostsController {
@@ -47,14 +49,22 @@ export class PostsController {
   ) {}
 
   @Get()
-  async getAll(@Query() query: GetPostsQueryParams) {
-    return this.postsQueryRepository.getAll(query, 'dummyId');
+  @UseGuards(OptionalAuthGuard)
+  async getAll(
+    @Query() query: GetPostsQueryParams,
+    @Req() req: OptionalAuthorizedRequest,
+  ) {
+    return this.postsQueryRepository.getAll(query, req.user?.id ?? '');
   }
 
   @ApiParam({ name: 'id' })
   @Get(':id')
-  async getPostById(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
-    return this.postsQueryRepository.getPostByIdOrFail(id, 'dummyId');
+  @UseGuards(OptionalAuthGuard)
+  async getPostById(
+    @Param('id', ParseObjectIdOrBadRequestPipe) id: string,
+    @Req() req: OptionalAuthorizedRequest,
+  ) {
+    return this.postsQueryRepository.getPostByIdOrFail(id, req.user?.id ?? '');
   }
 
   @ApiParam({ name: 'postId' })
@@ -73,12 +83,14 @@ export class PostsController {
 
   @ApiParam({ name: 'postId' })
   @Get(':postId/comments')
+  @UseGuards(OptionalAuthGuard)
   async getPostComments(
     @Param('postId', ParseObjectIdOrBadRequestPipe) postId: string,
+    @Req() req: OptionalAuthorizedRequest,
   ) {
     return this.commentsQueryRepository.getCommentsByPostIdOrFail(
       postId,
-      'dummyId',
+      req.user?.id ?? '',
     );
   }
 

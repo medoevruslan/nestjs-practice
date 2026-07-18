@@ -51,6 +51,7 @@ describe('posts e2e tests', () => {
 
     const res = await request(app.getHttpServer())
       .post('/api/blogs')
+      .auth('admin', 'qwerty')
       .send(testBlog);
 
     expect(res.status).toBe(201);
@@ -257,10 +258,12 @@ describe('posts e2e tests', () => {
 
     const likedPost = await request(app.getHttpServer())
       .get(`/api/posts/${createdPost.body.id}`)
+      .auth(accessToken, { type: 'bearer' })
       .expect(HttpStatus.OK);
 
     expect(likedPost.body.extendedLikesInfo.likesCount).toBe(1);
     expect(likedPost.body.extendedLikesInfo.dislikesCount).toBe(0);
+    expect(likedPost.body.extendedLikesInfo.myStatus).toBe('Like');
 
     await request(app.getHttpServer())
       .put(`/api/posts/${createdPost.body.id}/like-status`)
@@ -270,9 +273,17 @@ describe('posts e2e tests', () => {
 
     const unlikedPost = await request(app.getHttpServer())
       .get(`/api/posts/${createdPost.body.id}`)
+      .auth(accessToken, { type: 'bearer' })
       .expect(HttpStatus.OK);
 
     expect(unlikedPost.body.extendedLikesInfo.likesCount).toBe(0);
+    expect(unlikedPost.body.extendedLikesInfo.myStatus).toBe('None');
+
+    await request(app.getHttpServer())
+      .put('/api/posts/507f1f77bcf86cd799439011/like-status')
+      .auth(accessToken, { type: 'bearer' })
+      .send({ likeStatus: 'Like' })
+      .expect(HttpStatus.NOT_FOUND);
   });
 
   it('should update and delete only the authenticated user comment', async () => {
@@ -340,10 +351,12 @@ describe('posts e2e tests', () => {
 
     const updatedComment = await request(app.getHttpServer())
       .get(`/api/comments/${commentId}`)
+      .auth(ownerLogin.body.accessToken, { type: 'bearer' })
       .expect(HttpStatus.OK);
 
     expect(updatedComment.body.content).toBe('updated comment content');
     expect(updatedComment.body.likesInfo.dislikesCount).toBe(1);
+    expect(updatedComment.body.likesInfo.myStatus).toBe('Dislike');
 
     await request(app.getHttpServer())
       .delete(`/api/comments/${commentId}`)

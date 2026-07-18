@@ -34,6 +34,7 @@ import { LikeStatusInputDto } from '../../likes/api/input-dto/like-status.input-
 import { UpdateLikeStatusCommand } from '../../likes/application/usecases/update-like-status.usecase';
 import { BasicAuthGuard } from '../../../auth/guards/basic-auth.guard';
 import { OptionalAuthGuard } from '../../../auth/guards/optional-auth.guard';
+import { GetCommentsQueryParams } from '../../comments/api/input-dto/get-comments.query-params.input-dto';
 
 type AuthorizedRequest = Request & { user: { id: string } };
 type OptionalAuthorizedRequest = Request & { user?: { id: string } };
@@ -86,11 +87,13 @@ export class PostsController {
   @UseGuards(OptionalAuthGuard)
   async getPostComments(
     @Param('postId', ParseObjectIdOrBadRequestPipe) postId: string,
+    @Query() query: GetCommentsQueryParams,
     @Req() req: OptionalAuthorizedRequest,
   ) {
     return this.commentsQueryRepository.getCommentsByPostIdOrFail(
       postId,
       req.user?.id ?? '',
+      query,
     );
   }
 

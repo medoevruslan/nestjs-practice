@@ -238,7 +238,7 @@ describe('posts e2e tests', () => {
       .get(`/api/posts/${postId}/comments`)
       .expect(HttpStatus.OK);
 
-    expect(comments.body).toHaveLength(1);
+    expect(comments.body.items).toHaveLength(1);
   });
 
   it('should update post like status and remove the like for None status', async () => {
@@ -337,7 +337,7 @@ describe('posts e2e tests', () => {
     const comments = await request(app.getHttpServer())
       .get(`/api/posts/${createdPost.body.id}/comments`)
       .expect(HttpStatus.OK);
-    const commentId = comments.body[0].id;
+    const commentId = comments.body.items[0].id;
 
     await request(app.getHttpServer())
       .put(`/api/comments/${commentId}/like-status`)

@@ -46,7 +46,7 @@ export class CommentsQueryRepository {
     userId: string,
     query: GetCommentsQueryParams,
   ): Promise<PaginatedViewDto<CommentViewDto[]>> {
-    await this.postsRepository.getByIdOrF ail(postId);
+    await this.postsRepository.getByIdOrFail(postId);
 
     const filter = {
       postId,

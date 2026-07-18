@@ -20,7 +20,7 @@ export class CommentsQueryRepository {
       .populate([
         { path: 'likesCount' },
         { path: 'dislikesCount' },
-        { path: 'userLikeStatus', match: { userId } },
+        this.userLikeStatusPopulate(userId),
       ])
       .exec();
 
@@ -42,7 +42,7 @@ export class CommentsQueryRepository {
       .populate([
         { path: 'likesCount' },
         { path: 'dislikesCount' },
-        { path: 'userLikeStatus', match: { userId } },
+        this.userLikeStatusPopulate(userId),
       ])
       .exec();
 
@@ -54,5 +54,16 @@ export class CommentsQueryRepository {
     }
 
     return found.map(CommentViewDto.mapToView);
+  }
+
+  private userLikeStatusPopulate(userId: string) {
+    return {
+      path: 'userLikeStatus',
+      match: {
+        userId: Types.ObjectId.isValid(userId)
+          ? new Types.ObjectId(userId)
+          : new Types.ObjectId(),
+      },
+    };
   }
 }

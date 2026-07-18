@@ -40,11 +40,11 @@ export class Comment {
     return comment as CommentDocument;
   }
 
-  markDeleted(comment: CommentDocument) {
+  markDeleted() {
     if (this.deletedAt !== null) {
       throw new Error('Entity already deleted');
     }
-    comment.deletedAt = new Date();
+    this.deletedAt = new Date();
   }
 
   @Prop({ type: Date, default: null })
@@ -84,7 +84,7 @@ export type CommentDocument = HydratedDocument<Comment>;
 export type CommentWithLikesInfo = CommentDocument & {
   likesCount?: number;
   dislikesCount?: number;
-  myStatus?: LikeStatus;
+  userLikeStatus?: { status: LikeStatus } | null;
 };
 
 export type CommentModelType = Model<CommentDocument> & typeof Comment;

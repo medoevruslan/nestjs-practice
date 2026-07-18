@@ -17,7 +17,7 @@ export class CommentViewDto {
       likesInfo: {
         likesCount: dto.likesCount ?? 0,
         dislikesCount: dto.dislikesCount ?? 0,
-        myStatus: dto.myStatus ?? LikeStatus.None,
+        myStatus: dto.userLikeStatus?.status ?? LikeStatus.None,
       },
       commentatorInfo: {
         userId: dto.userId.toString(),

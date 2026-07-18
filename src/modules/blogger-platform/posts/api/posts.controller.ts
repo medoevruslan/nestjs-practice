@@ -108,9 +108,11 @@ export class PostsController {
       { userId, postId: postId },
       dto,
     );
-    await this.commandBus.execute<CreateCommentCommand, string>(
-      new CreateCommentCommand(payload),
-    );
+    const commentId = await this.commandBus.execute<
+      CreateCommentCommand,
+      string
+    >(new CreateCommentCommand(payload));
+    return this.commentsQueryRepository.getCommentByIdOrFail(commentId, userId);
   }
 
   @UseGuards(BasicAuthGuard)

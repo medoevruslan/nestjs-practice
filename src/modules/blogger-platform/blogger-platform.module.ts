@@ -27,6 +27,7 @@ import { UserAccountModule } from '../user-account/user-account.module';
 import { UpdateCommentUseCase } from './comments/application/usecases/update-comment.usecase';
 import { DeleteCommentUseCase } from './comments/application/usecases/delete-comment.usecase';
 import { UpdateLikeStatusUseCase } from './likes/application/usecases/update-like-status.usecase';
+import { BasicAuthGuard } from '../auth/guards/basic-auth.guard';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { UpdateLikeStatusUseCase } from './likes/application/usecases/update-lik
     PostsService,
     CommentsQueryRepository,
     CommentsRepository,
+    BasicAuthGuard,
   ],
 })
 export class BloggerPlatformModule {}

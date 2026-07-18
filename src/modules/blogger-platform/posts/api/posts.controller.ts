@@ -10,6 +10,8 @@ import {
   Post,
   Put,
   Query,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import {
   CreatePostInputDto,
@@ -17,7 +19,6 @@ import {
 } from './input-dto/post.input-dto';
 import { GetPostsQueryParams } from './input-dto/get-posts.query-params.input-dto';
 import { PostsQueryRepository } from '../infrastructure/query/posts.query-repository';
-import { PostsService } from '../application/posts.service';
 import { ApiParam } from '@nestjs/swagger';
 import { ParseObjectIdOrBadRequestPipe } from '../../../../core/pipes/ParseObjectIdOrBadRequestPipe';
 import { CommentsQueryRepository } from '../../comments/infrastructure/query/comments-query.repository';
@@ -27,6 +28,11 @@ import { UpdatePostCommand } from '../application/usecases/update-post.usecase';
 import { DeletePostCommand } from '../application/usecases/delete-post.usecase';
 import { CommentInputDto } from '../../shared/api/input-dto/comment.input-dto';
 import { CreateCommentCommand } from '../../comments/application/usecases/create-comment.usecase';
+import { AuthGuard } from 'src/modules/auth/guards/auth.guard';
+import { UsersQueryRepository } from 'src/modules/user-account/infrastructure/query/users.query-repository';
+import { CreateCommentDto } from '../../comments/dto/create-comment.dto';
+
+type AuthorizedRequest = Request & { user: { id: string } }
 
 @Controller('posts')
 export class PostsController {
@@ -35,10 +41,8 @@ export class PostsController {
     private postsQueryRepository: PostsQueryRepository,
     @Inject(CommentsQueryRepository)
     private commentsQueryRepository: CommentsQueryRepository,
-    @Inject(PostsService)
-    private postsService: PostsService,
     @Inject() private readonly commandBus: CommandBus,
-  ) {}
+  ) { }
 
   @Get()
   async getAll(@Query() query: GetPostsQueryParams) {
@@ -64,15 +68,18 @@ export class PostsController {
 
   @ApiParam({ name: 'postId' })
   @Post(':postId/comments')
+  @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async createPostComment(
     @Param('postId', ParseObjectIdOrBadRequestPipe) postId: string,
     @Body() dto: CommentInputDto,
+    @Req() req: AuthorizedRequest
   ) {
+    const userId = req.user.id
+    const payload: CreateCommentDto = Object.assign({ userId, postId: postId }, dto)
     await this.commandBus.execute<CreateCommentCommand, string>(
-      new CreateCommentCommand(dto),
+      new CreateCommentCommand(payload),
     );
-    // return this.postsQueryRepository.getPostByIdOrFail(postId, 'dummyId');
   }
 
   @Post()

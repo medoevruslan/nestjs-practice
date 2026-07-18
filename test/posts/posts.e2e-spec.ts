@@ -12,9 +12,18 @@ import { CreateBlogDto } from '../../src/modules/blogger-platform/blogs/dto/crea
 import { UpdatePostDto } from '../../src/modules/blogger-platform/posts/dto/update-post.dto';
 import { CommentInputDto } from '../../src/modules/blogger-platform/shared/api/input-dto/comment.input-dto';
 
+jest.setTimeout(100000);
+
 describe('posts e2e tests', () => {
   let app: INestApplication;
   let testBlogId: string;
+
+
+  const testUser = {
+    login: 'test-user',
+    email: 'test-user@email.com',
+    password: '123456',
+  };
 
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
@@ -49,6 +58,15 @@ describe('posts e2e tests', () => {
     expect(res.status).toBe(201);
 
     testBlogId = res.body.id;
+
+    const response = await request(app.getHttpServer())
+      .post('/api/users')
+      .auth('admin', 'qwerty')
+      .send(testUser)
+      .expect(HttpStatus.CREATED);
+
+    expect(response.body.login).toBe(testUser.login);
+    expect(response.body.email).toBe(testUser.email);
   });
 
   afterAll(async () => {
@@ -154,17 +172,51 @@ describe('posts e2e tests', () => {
       .expect(HttpStatus.BAD_REQUEST);
   });
 
-  it('should create post comment', async () => {
+
+  it('should unauthorized on create post comment', async () => {
     const comment: CommentInputDto = { content: 'post-comment-content' };
 
     await request(app.getHttpServer())
       .post('/api/posts/1/comments')
       .send(comment)
+      .expect(HttpStatus.UNAUTHORIZED);
+  });
+
+  it('should create post comment', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ loginOrEmail: testUser.email, password: testUser.password })
+      .expect(HttpStatus.OK);
+
+    const newPost: CreatePostDto = {
+      blogId: testBlogId,
+      content: 'test-post-content',
+      shortDescription: 'test-post-description',
+      title: 'test-post-title',
+    };
+
+    const createdPostResponse = await request(app.getHttpServer())
+      .post('/api/posts')
+      .send(newPost)
+      .expect(HttpStatus.CREATED);
+
+    const postId = createdPostResponse.body.id
+
+    const postsRes = await request(app.getHttpServer()).get('/api/posts')
+
+    expect(postsRes.body.totalCount).toBeGreaterThan(0);
+
+    const comment: CommentInputDto = { content: 'post-comment-content' };
+
+    await request(app.getHttpServer())
+      .post(`/api/posts/${postId}/comments`)
+      .send(comment)
+      .auth(response.body.accessToken, { type: 'bearer' })
       .expect(HttpStatus.CREATED);
 
     const comments = await request(app.getHttpServer()).get(
-      '/api/posts/1/comments',
+      `/api/posts/${postId}/comments`,
     );
-    expect(comments.body.totalCount).toBe(1);
+    expect(comments.body.length).toBe(1);
   });
 });

@@ -15,7 +15,6 @@ import { GetUsersQueryParams } from './input-dto/get-users.query-params.input-dt
 import { CreateUserInputDto } from './input-dto/create-user-input.dto';
 import { ApiParam } from '@nestjs/swagger';
 import { UsersQueryRepository } from '../infrastructure/query/users.query-repository';
-import { UsersService } from '../application/users.service';
 import { ParseObjectIdOrBadRequestPipe } from '../../../core/pipes/ParseObjectIdOrBadRequestPipe';
 import { BasicAuthGuard } from '../../auth/guards/basic-auth.guard';
 import { CommandBus } from '@nestjs/cqrs';
@@ -27,8 +26,7 @@ export class UsersController {
   constructor(
     @Inject() private usersQueryRepository: UsersQueryRepository,
     @Inject() private commandBus: CommandBus,
-    @Inject() private usersService: UsersService,
-  ) {}
+  ) { }
 
   @Get()
   async getAll(@Query() query: GetUsersQueryParams) {

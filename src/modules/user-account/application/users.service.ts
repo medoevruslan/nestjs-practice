@@ -8,9 +8,7 @@ import { CryptoService } from './crypto-service';
 export class UsersService {
   constructor(
     @Inject() private usersRepository: UsersRepository,
-    @InjectModel(User.name) private UserModel: UserModelType,
-    @Inject() private cryptoService: CryptoService,
-  ) {}
+  ) { }
 
   async save(user: UserDocument) {
     await this.usersRepository.save(user);

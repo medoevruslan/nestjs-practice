@@ -2,6 +2,7 @@ import {
   ArgumentsHost,
   Catch,
   ExceptionFilter,
+  HttpException,
   HttpStatus,
   Logger,
 } from '@nestjs/common';
@@ -22,7 +23,10 @@ export class AllHttpExceptionsFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
 
     const message = exception.message;
-    const status = HttpStatus.INTERNAL_SERVER_ERROR;
+    const status =
+      exception instanceof HttpException
+        ? exception.getStatus()
+        : HttpStatus.INTERNAL_SERVER_ERROR;
 
     this.logger.error(message, exception.stack);
 

@@ -52,6 +52,8 @@ export class Comment {
 
 export const CommentSchema = SchemaFactory.createForClass(Comment);
 
+CommentSchema.loadClass(Comment);
+
 CommentSchema.virtual('likesCount', {
   ref: 'Like',
   localField: '_id',

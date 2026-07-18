@@ -12,11 +12,10 @@ import { CreateBlogDto } from '../../src/modules/blogger-platform/blogs/dto/crea
 import { UpdatePostDto } from '../../src/modules/blogger-platform/posts/dto/update-post.dto';
 import { CommentInputDto } from '../../src/modules/blogger-platform/shared/api/input-dto/comment.input-dto';
 
-jest.setTimeout(100000);
-
 describe('posts e2e tests', () => {
   let app: INestApplication;
   let testBlogId: string;
+  let accessToken: string;
 
   const testUser = {
     login: 'test-user',
@@ -66,6 +65,13 @@ describe('posts e2e tests', () => {
 
     expect(response.body.login).toBe(testUser.login);
     expect(response.body.email).toBe(testUser.email);
+
+    const loginResponse = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({ loginOrEmail: testUser.email, password: testUser.password })
+      .expect(HttpStatus.OK);
+
+    accessToken = loginResponse.body.accessToken;
   });
 
   afterAll(async () => {
@@ -87,6 +93,7 @@ describe('posts e2e tests', () => {
 
     await request(app.getHttpServer())
       .post('/api/posts')
+      .auth(accessToken, { type: 'bearer' })
       .send(newPost)
       .expect(201);
 
@@ -103,6 +110,7 @@ describe('posts e2e tests', () => {
     };
     const resCreated = await request(app.getHttpServer())
       .post('/api/posts')
+      .auth(accessToken, { type: 'bearer' })
       .send(newPost)
       .expect(HttpStatus.CREATED);
 
@@ -117,6 +125,7 @@ describe('posts e2e tests', () => {
 
     await request(app.getHttpServer())
       .put(`/api/posts/${postId}`)
+      .auth(accessToken, { type: 'bearer' })
       .send(updatePost)
       .expect(HttpStatus.NO_CONTENT);
 
@@ -139,6 +148,7 @@ describe('posts e2e tests', () => {
     };
     const resCreated = await request(app.getHttpServer())
       .post('/api/posts')
+      .auth(accessToken, { type: 'bearer' })
       .send(newPost)
       .expect(HttpStatus.CREATED);
 
@@ -150,6 +160,7 @@ describe('posts e2e tests', () => {
 
     await request(app.getHttpServer())
       .delete(`/api/posts/${postId}`)
+      .auth(accessToken, { type: 'bearer' })
       .expect(HttpStatus.NO_CONTENT);
 
     const resAll2 = await request(app.getHttpServer()).get('/api/posts');
@@ -167,6 +178,7 @@ describe('posts e2e tests', () => {
 
     await request(app.getHttpServer())
       .post('/api/posts')
+      .auth(accessToken, { type: 'bearer' })
       .send(newPost)
       .expect(HttpStatus.BAD_REQUEST);
   });
@@ -195,6 +207,7 @@ describe('posts e2e tests', () => {
 
     const createdPostResponse = await request(app.getHttpServer())
       .post('/api/posts')
+      .auth(accessToken, { type: 'bearer' })
       .send(newPost)
       .expect(HttpStatus.CREATED);
 
@@ -227,6 +240,7 @@ describe('posts e2e tests', () => {
 
     const createdPost = await request(app.getHttpServer())
       .post('/api/posts')
+      .auth(accessToken, { type: 'bearer' })
       .send({
         blogId: testBlogId,
         content: 'post for like-status test',
@@ -286,6 +300,7 @@ describe('posts e2e tests', () => {
 
     const createdPost = await request(app.getHttpServer())
       .post('/api/posts')
+      .auth(accessToken, { type: 'bearer' })
       .send({
         blogId: testBlogId,
         content: 'post for comment lifecycle test',

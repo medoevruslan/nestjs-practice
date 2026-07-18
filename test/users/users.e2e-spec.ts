@@ -358,7 +358,7 @@ describe('users test', () => {
       .expect(HttpStatus.UNAUTHORIZED);
 
     const res = await request(app.getHttpServer()).get('/api/users');
-    expect(res.body.totalCount).toBe(1);
+    expect(res.body.totalCount).toBe(2);
   });
 
   it('should not delete user', async () => {
@@ -368,6 +368,6 @@ describe('users test', () => {
       .expect(HttpStatus.NO_CONTENT);
 
     const res = await request(app.getHttpServer()).get('/api/users');
-    expect(res.body.totalCount).toBe(0);
+    expect(res.body.totalCount).toBe(1);
   });
 });

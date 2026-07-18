@@ -24,6 +24,9 @@ import { AuthModule } from '../auth/auth.module';
 import { CreateCommentUseCase } from './comments/application/usecases/create-comment.usecase';
 import { CommentsRepository } from './comments/infrastructure/comments.repository';
 import { UserAccountModule } from '../user-account/user-account.module';
+import { UpdateCommentUseCase } from './comments/application/usecases/update-comment.usecase';
+import { DeleteCommentUseCase } from './comments/application/usecases/delete-comment.usecase';
+import { UpdateLikeStatusUseCase } from './likes/application/usecases/update-like-status.usecase';
 
 @Module({
   imports: [
@@ -35,7 +38,7 @@ import { UserAccountModule } from '../user-account/user-account.module';
     ]),
     CqrsModule,
     AuthModule,
-    UserAccountModule
+    UserAccountModule,
   ],
   controllers: [BlogsController, PostsController, CommentsController],
   providers: [
@@ -49,10 +52,13 @@ import { UserAccountModule } from '../user-account/user-account.module';
     CreatePostUseCase,
     UpdatePostUseCase,
     DeletePostUseCase,
+    UpdateCommentUseCase,
+    DeleteCommentUseCase,
+    UpdateLikeStatusUseCase,
     PostsRepository,
     PostsService,
     CommentsQueryRepository,
-    CommentsRepository
+    CommentsRepository,
   ],
 })
-export class BloggerPlatformModule { }
+export class BloggerPlatformModule {}

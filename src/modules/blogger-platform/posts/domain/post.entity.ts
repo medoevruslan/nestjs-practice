@@ -3,7 +3,6 @@ import { HydratedDocument, Model, Types } from 'mongoose';
 import { CreatePostDomainDto } from './dto/create-post.domain-dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
 import { LikeDocument, LikeStatus } from '../../likes/domain/like.entity';
-import * as stream from 'node:stream';
 
 @Schema({
   timestamps: true,
@@ -114,7 +113,7 @@ export type PostDocument = HydratedDocument<Post>;
 export type PostWithLikesInfoDocument = PostDocument & {
   likesCount?: number;
   dislikesCount?: number;
-  myStatus?: LikeStatus;
+  userLikeStatus?: { status: LikeStatus } | null;
   newestLikes?: LikeDocument[];
 };
 

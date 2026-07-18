@@ -1,5 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Model, Types } from 'mongoose';
+import {
+  HydratedDocument,
+  Model,
+  Schema as MongooseSchema,
+  Types,
+} from 'mongoose';
 
 export enum LikeStatus {
   Like = 'Like',
@@ -9,14 +14,14 @@ export enum LikeStatus {
 
 @Schema({ timestamps: true })
 export class Like {
-  @Prop({ type: Types.ObjectId, required: true })
-  parentId: string;
+  @Prop({ type: MongooseSchema.Types.ObjectId, required: true })
+  parentId: Types.ObjectId;
 
   @Prop({ type: String, enum: ['Post', 'Comment'], required: true })
   parentType: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  userId: string;
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
+  userId: Types.ObjectId;
 
   @Prop({ type: String, required: true })
   login: string;
@@ -29,6 +34,8 @@ export class Like {
 }
 
 export const LikeSchema = SchemaFactory.createForClass(Like);
+
+LikeSchema.index({ parentId: 1, parentType: 1, userId: 1 }, { unique: true });
 
 export type LikeDocument = HydratedDocument<Like>;
 

@@ -30,6 +30,8 @@ import { CommentInputDto } from '../../shared/api/input-dto/comment.input-dto';
 import { CreateCommentCommand } from '../../comments/application/usecases/create-comment.usecase';
 import { AuthGuard } from 'src/modules/auth/guards/auth.guard';
 import { CreateCommentDto } from '../../comments/dto/create-comment.dto';
+import { LikeStatusInputDto } from '../../likes/api/input-dto/like-status.input-dto';
+import { UpdateLikeStatusCommand } from '../../likes/application/usecases/update-like-status.usecase';
 
 type AuthorizedRequest = Request & { user: { id: string } };
 
@@ -52,6 +54,20 @@ export class PostsController {
   @Get(':id')
   async getPostById(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
     return this.postsQueryRepository.getPostByIdOrFail(id, 'dummyId');
+  }
+
+  @ApiParam({ name: 'postId' })
+  @Put(':postId/like-status')
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async updateLikeStatus(
+    @Param('postId', ParseObjectIdOrBadRequestPipe) postId: string,
+    @Body() dto: LikeStatusInputDto,
+    @Req() req: AuthorizedRequest,
+  ) {
+    await this.commandBus.execute(
+      new UpdateLikeStatusCommand(postId, 'Post', req.user.id, dto.likeStatus),
+    );
   }
 
   @ApiParam({ name: 'postId' })

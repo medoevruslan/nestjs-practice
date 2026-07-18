@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Schema as MongooseSchema } from 'mongoose';
 import { HydratedDocument, Model, Types } from 'mongoose';
 import { CreateCommentDomainDto } from './dto/create-comment.domain-dto';
 import { LikeStatus } from '../../likes/domain/like.entity';
@@ -14,13 +15,13 @@ export class Comment {
   @Prop({ type: String, max: 300, min: 20, required: true })
   content: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 
   @Prop({ type: String, required: true })
   userLogin: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Post', required: true })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Post', required: true })
   postId: Types.ObjectId;
 
   createdAt: Date;

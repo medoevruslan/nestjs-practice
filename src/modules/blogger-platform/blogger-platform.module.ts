@@ -37,7 +37,6 @@ import { UpdateLikeStatusUseCase } from './likes/application/usecases/update-lik
       { name: Comment.name, schema: CommentSchema },
     ]),
     CqrsModule,
-    AuthModule,
     UserAccountModule,
   ],
   controllers: [BlogsController, PostsController, CommentsController],

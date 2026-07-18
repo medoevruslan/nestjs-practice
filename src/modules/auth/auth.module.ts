@@ -23,7 +23,7 @@ import { AuthGuard } from './guards/auth.guard';
 
 @Module({
   imports: [
-    JwtModule.registerAsync({ useClass: AuthConfig }),
+    JwtModule.registerAsync({ global: true, useClass: AuthConfig }),
     MailerModule.forRootAsync({ useClass: MailerConfig }),
     CqrsModule,
     UserAccountModule,
@@ -49,4 +49,4 @@ import { AuthGuard } from './guards/auth.guard';
   ],
   exports: [AuthConfig, MailerConfig, AuthGuard, JwtModule],
 })
-export class AuthModule { }
+export class AuthModule {}

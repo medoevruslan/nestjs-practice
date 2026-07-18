@@ -16,7 +16,11 @@ export class OptionalAuthGuard implements CanActivate {
     }
 
     const [type, token] = authorization.split(' ');
-    if (type !== 'Bearer' || !token) {
+    if (type !== 'Bearer') {
+      return true;
+    }
+
+    if (!token) {
       this.throwUnauthorized();
     }
 

@@ -8,7 +8,7 @@ import { CreateCommentDomainDto } from '../../domain/dto/create-comment.domain-d
 import { UsersService } from 'src/modules/user-account/application/users.service';
 
 export class CreateCommentCommand {
-  constructor(readonly dto: CreateCommentDto) { }
+  constructor(readonly dto: CreateCommentDto) {}
 }
 
 @CommandHandler(CreateCommentCommand)
@@ -16,12 +16,15 @@ export class CreateCommentUseCase implements ICommandHandler<CreateCommentComman
   constructor(
     @InjectModel(Comment.name) private readonly CommentModel: CommentModelType,
     @Inject() private readonly commentsRepository: CommentsRepository,
-    @Inject() private readonly usersService: UsersService
-  ) { }
+    @Inject() private readonly usersService: UsersService,
+  ) {}
   async execute(command: CreateCommentCommand) {
     const { dto } = command;
     const user = await this.usersService.getByIdOrFail(dto.userId);
-    const commentDto: CreateCommentDomainDto = Object.assign({ userLogin: user.login }, dto)
+    const commentDto: CreateCommentDomainDto = Object.assign(
+      { userLogin: user.login },
+      dto,
+    );
     const comment = this.CommentModel.createInstance(commentDto);
     await this.commentsRepository.save(comment);
   }

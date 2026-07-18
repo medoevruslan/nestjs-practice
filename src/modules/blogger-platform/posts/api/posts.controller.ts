@@ -29,10 +29,9 @@ import { DeletePostCommand } from '../application/usecases/delete-post.usecase';
 import { CommentInputDto } from '../../shared/api/input-dto/comment.input-dto';
 import { CreateCommentCommand } from '../../comments/application/usecases/create-comment.usecase';
 import { AuthGuard } from 'src/modules/auth/guards/auth.guard';
-import { UsersQueryRepository } from 'src/modules/user-account/infrastructure/query/users.query-repository';
 import { CreateCommentDto } from '../../comments/dto/create-comment.dto';
 
-type AuthorizedRequest = Request & { user: { id: string } }
+type AuthorizedRequest = Request & { user: { id: string } };
 
 @Controller('posts')
 export class PostsController {
@@ -42,7 +41,7 @@ export class PostsController {
     @Inject(CommentsQueryRepository)
     private commentsQueryRepository: CommentsQueryRepository,
     @Inject() private readonly commandBus: CommandBus,
-  ) { }
+  ) {}
 
   @Get()
   async getAll(@Query() query: GetPostsQueryParams) {
@@ -73,10 +72,13 @@ export class PostsController {
   async createPostComment(
     @Param('postId', ParseObjectIdOrBadRequestPipe) postId: string,
     @Body() dto: CommentInputDto,
-    @Req() req: AuthorizedRequest
+    @Req() req: AuthorizedRequest,
   ) {
-    const userId = req.user.id
-    const payload: CreateCommentDto = Object.assign({ userId, postId: postId }, dto)
+    const userId = req.user.id;
+    const payload: CreateCommentDto = Object.assign(
+      { userId, postId: postId },
+      dto,
+    );
     await this.commandBus.execute<CreateCommentCommand, string>(
       new CreateCommentCommand(payload),
     );

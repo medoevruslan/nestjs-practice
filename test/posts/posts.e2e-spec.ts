@@ -18,7 +18,6 @@ describe('posts e2e tests', () => {
   let app: INestApplication;
   let testBlogId: string;
 
-
   const testUser = {
     login: 'test-user',
     email: 'test-user@email.com',
@@ -172,7 +171,6 @@ describe('posts e2e tests', () => {
       .expect(HttpStatus.BAD_REQUEST);
   });
 
-
   it('should unauthorized on create post comment', async () => {
     const comment: CommentInputDto = { content: 'post-comment-content' };
 
@@ -200,9 +198,9 @@ describe('posts e2e tests', () => {
       .send(newPost)
       .expect(HttpStatus.CREATED);
 
-    const postId = createdPostResponse.body.id
+    const postId = createdPostResponse.body.id;
 
-    const postsRes = await request(app.getHttpServer()).get('/api/posts')
+    const postsRes = await request(app.getHttpServer()).get('/api/posts');
 
     expect(postsRes.body.totalCount).toBeGreaterThan(0);
 
@@ -214,9 +212,10 @@ describe('posts e2e tests', () => {
       .auth(response.body.accessToken, { type: 'bearer' })
       .expect(HttpStatus.CREATED);
 
-    const comments = await request(app.getHttpServer()).get(
-      `/api/posts/${postId}/comments`,
-    );
-    expect(comments.body.length).toBe(1);
+    const comments = await request(app.getHttpServer())
+      .get(`/api/posts/${postId}/comments`)
+      .expect(HttpStatus.OK);
+
+    expect(comments.body).toHaveLength(1);
   });
 });

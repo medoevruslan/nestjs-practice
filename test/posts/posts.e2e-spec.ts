@@ -193,6 +193,14 @@ describe('posts e2e tests', () => {
       .expect(HttpStatus.UNAUTHORIZED);
   });
 
+  it('should not create a comment for a nonexistent post', async () => {
+    await request(app.getHttpServer())
+      .post('/api/posts/507f1f77bcf86cd799439011/comments')
+      .auth(accessToken, { type: 'bearer' })
+      .send({ content: 'comment for missing post' })
+      .expect(HttpStatus.NOT_FOUND);
+  });
+
   it('should create post comment', async () => {
     const response = await request(app.getHttpServer())
       .post('/api/auth/login')

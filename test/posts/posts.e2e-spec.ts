@@ -93,7 +93,7 @@ describe('posts e2e tests', () => {
 
     await request(app.getHttpServer())
       .post('/api/posts')
-      .auth(accessToken, { type: 'bearer' })
+      .auth('admin', 'qwerty')
       .send(newPost)
       .expect(201);
 
@@ -110,7 +110,7 @@ describe('posts e2e tests', () => {
     };
     const resCreated = await request(app.getHttpServer())
       .post('/api/posts')
-      .auth(accessToken, { type: 'bearer' })
+      .auth('admin', 'qwerty')
       .send(newPost)
       .expect(HttpStatus.CREATED);
 
@@ -125,7 +125,7 @@ describe('posts e2e tests', () => {
 
     await request(app.getHttpServer())
       .put(`/api/posts/${postId}`)
-      .auth(accessToken, { type: 'bearer' })
+      .auth('admin', 'qwerty')
       .send(updatePost)
       .expect(HttpStatus.NO_CONTENT);
 
@@ -148,7 +148,7 @@ describe('posts e2e tests', () => {
     };
     const resCreated = await request(app.getHttpServer())
       .post('/api/posts')
-      .auth(accessToken, { type: 'bearer' })
+      .auth('admin', 'qwerty')
       .send(newPost)
       .expect(HttpStatus.CREATED);
 
@@ -160,7 +160,7 @@ describe('posts e2e tests', () => {
 
     await request(app.getHttpServer())
       .delete(`/api/posts/${postId}`)
-      .auth(accessToken, { type: 'bearer' })
+      .auth('admin', 'qwerty')
       .expect(HttpStatus.NO_CONTENT);
 
     const resAll2 = await request(app.getHttpServer()).get('/api/posts');
@@ -178,7 +178,7 @@ describe('posts e2e tests', () => {
 
     await request(app.getHttpServer())
       .post('/api/posts')
-      .auth(accessToken, { type: 'bearer' })
+      .auth('admin', 'qwerty')
       .send(newPost)
       .expect(HttpStatus.BAD_REQUEST);
   });
@@ -207,7 +207,7 @@ describe('posts e2e tests', () => {
 
     const createdPostResponse = await request(app.getHttpServer())
       .post('/api/posts')
-      .auth(accessToken, { type: 'bearer' })
+      .auth('admin', 'qwerty')
       .send(newPost)
       .expect(HttpStatus.CREATED);
 
@@ -240,7 +240,7 @@ describe('posts e2e tests', () => {
 
     const createdPost = await request(app.getHttpServer())
       .post('/api/posts')
-      .auth(accessToken, { type: 'bearer' })
+      .auth('admin', 'qwerty')
       .send({
         blogId: testBlogId,
         content: 'post for like-status test',
@@ -300,7 +300,7 @@ describe('posts e2e tests', () => {
 
     const createdPost = await request(app.getHttpServer())
       .post('/api/posts')
-      .auth(accessToken, { type: 'bearer' })
+      .auth('admin', 'qwerty')
       .send({
         blogId: testBlogId,
         content: 'post for comment lifecycle test',

@@ -11,7 +11,6 @@ import { appSetup } from '../../src/setup/app.setup';
 describe('blogs e2e tests', () => {
   let app: INestApplication;
   let blogId: string;
-  let accessToken: string;
 
   const createdBlog: CreateBlogDto = {
     name: 'test-blog',
@@ -36,34 +35,23 @@ describe('blogs e2e tests', () => {
     await request(app.getHttpServer())
       .delete('/api/testing/all-data')
       .expect(HttpStatus.NO_CONTENT);
-
-    const user = {
-      login: 'blog-user',
-      email: 'blog-user@example.com',
-      password: '123456',
-    };
-
-    await request(app.getHttpServer())
-      .post('/api/users')
-      .auth('admin', 'qwerty')
-      .send(user)
-      .expect(HttpStatus.CREATED);
-
-    const loginResponse = await request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({ loginOrEmail: user.email, password: user.password })
-      .expect(HttpStatus.OK);
-
-    accessToken = loginResponse.body.accessToken;
   });
 
   afterAll(async () => {
     await app?.close();
   });
 
+  it('should require Basic authentication for blog mutations', async () => {
+    await request(app.getHttpServer())
+      .post('/api/blogs')
+      .send(createdBlog)
+      .expect(HttpStatus.UNAUTHORIZED);
+  });
+
   it('should create a blog and return it by id', async () => {
     const createResponse = await request(app.getHttpServer())
       .post('/api/blogs')
+      .auth('admin', 'qwerty')
       .send(createdBlog)
       .expect(HttpStatus.CREATED);
 
@@ -88,6 +76,25 @@ describe('blogs e2e tests', () => {
     expect(response.body.items[0].id).toBe(blogId);
   });
 
+  it('should validate trimmed blog fields', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/api/blogs')
+      .auth('admin', 'qwerty')
+      .send({
+        name: '    ',
+        description: 'Valid description',
+        websiteUrl: '',
+      })
+      .expect(HttpStatus.BAD_REQUEST);
+
+    expect(response.body.errorsMessages).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ field: 'name' }),
+        expect.objectContaining({ field: 'websiteUrl' }),
+      ]),
+    );
+  });
+
   it('should update a blog', async () => {
     const updateDto: UpdateBlogDto = {
       name: 'updated-blog',
@@ -97,7 +104,7 @@ describe('blogs e2e tests', () => {
 
     await request(app.getHttpServer())
       .put(`/api/blogs/${blogId}`)
-      .auth(accessToken, { type: 'bearer' })
+      .auth('admin', 'qwerty')
       .send(updateDto)
       .expect(HttpStatus.NO_CONTENT);
 
@@ -117,7 +124,7 @@ describe('blogs e2e tests', () => {
 
     const createResponse = await request(app.getHttpServer())
       .post(`/api/blogs/${blogId}/posts`)
-      .auth(accessToken, { type: 'bearer' })
+      .auth('admin', 'qwerty')
       .send(post)
       .expect(HttpStatus.CREATED);
 
@@ -134,7 +141,7 @@ describe('blogs e2e tests', () => {
   it('should delete a blog and return 404 afterwards', async () => {
     await request(app.getHttpServer())
       .delete(`/api/blogs/${blogId}`)
-      .auth(accessToken, { type: 'bearer' })
+      .auth('admin', 'qwerty')
       .expect(HttpStatus.NO_CONTENT);
 
     await request(app.getHttpServer())

@@ -28,7 +28,7 @@ import { GetPostsQueryParams } from '../../posts/api/input-dto/get-posts.query-p
 import { CommandBus } from '@nestjs/cqrs';
 import { CreateBlogCommand } from '../application/usecases/create-blog.usecase';
 import { CreatePostByBlogIdCommand } from '../application/usecases/create-post-by-blog-id.usecase';
-import { AuthGuard } from '../../../auth/guards/auth.guard';
+import { BasicAuthGuard } from '../../../auth/guards/basic-auth.guard';
 
 @Controller('blogs')
 export class BlogsController {
@@ -49,6 +49,7 @@ export class BlogsController {
   }
 
   @Post()
+  @UseGuards(BasicAuthGuard)
   async createBlog(@Body() body: CreateBlogInputDto) {
     const blogId = await this.commandBus.execute<CreateBlogCommand, string>(
       new CreateBlogCommand(body),
@@ -76,7 +77,7 @@ export class BlogsController {
   }
 
   @ApiParam({ name: 'blogId' })
-  @UseGuards(AuthGuard) // for swagger
+  @UseGuards(BasicAuthGuard)
   @Post(':blogId/posts')
   async createPostByBlogId(
     @Param('blogId', ParseObjectIdOrBadRequestPipe) blogId: string,
@@ -89,7 +90,7 @@ export class BlogsController {
   }
 
   @ApiParam({ name: 'id' })
-  @UseGuards(AuthGuard)
+  @UseGuards(BasicAuthGuard)
   @Put(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateBlog(
@@ -101,7 +102,7 @@ export class BlogsController {
   }
 
   @ApiParam({ name: 'id' }) // for swagger
-  @UseGuards(AuthGuard)
+  @UseGuards(BasicAuthGuard)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteBlog(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {

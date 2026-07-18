@@ -32,6 +32,7 @@ import { AuthGuard } from 'src/modules/auth/guards/auth.guard';
 import { CreateCommentDto } from '../../comments/dto/create-comment.dto';
 import { LikeStatusInputDto } from '../../likes/api/input-dto/like-status.input-dto';
 import { UpdateLikeStatusCommand } from '../../likes/application/usecases/update-like-status.usecase';
+import { BasicAuthGuard } from '../../../auth/guards/basic-auth.guard';
 
 type AuthorizedRequest = Request & { user: { id: string } };
 
@@ -100,7 +101,7 @@ export class PostsController {
     );
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(BasicAuthGuard)
   @Post()
   async createPost(@Body() dto: CreatePostInputDto) {
     const postId = await this.commandBus.execute<CreatePostCommand, string>(
@@ -109,7 +110,7 @@ export class PostsController {
     return this.postsQueryRepository.getPostByIdOrFail(postId, 'dummyId');
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(BasicAuthGuard)
   @Put(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async updatePost(
@@ -121,7 +122,7 @@ export class PostsController {
     );
   }
 
-  @UseGuards(AuthGuard)
+  @UseGuards(BasicAuthGuard)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deletePost(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {

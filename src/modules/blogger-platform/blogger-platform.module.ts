@@ -20,6 +20,10 @@ import { CreatePostUseCase } from './posts/application/usecases/create-post.usec
 import { CqrsModule } from '@nestjs/cqrs';
 import { UpdatePostUseCase } from './posts/application/usecases/update-post.usecase';
 import { DeletePostUseCase } from './posts/application/usecases/delete-post.usecase';
+import { AuthModule } from '../auth/auth.module';
+import { CreateCommentUseCase } from './comments/application/usecases/create-comment.usecase';
+import { CommentsRepository } from './comments/infrastructure/comments.repository';
+import { UserAccountModule } from '../user-account/user-account.module';
 
 @Module({
   imports: [
@@ -30,6 +34,8 @@ import { DeletePostUseCase } from './posts/application/usecases/delete-post.usec
       { name: Comment.name, schema: CommentSchema },
     ]),
     CqrsModule,
+    AuthModule,
+    UserAccountModule
   ],
   controllers: [BlogsController, PostsController, CommentsController],
   providers: [
@@ -39,12 +45,14 @@ import { DeletePostUseCase } from './posts/application/usecases/delete-post.usec
     PostsQueryRepository,
     CreateBlogUseCase,
     CreatePostByBlogIdUseCase,
+    CreateCommentUseCase,
     CreatePostUseCase,
     UpdatePostUseCase,
     DeletePostUseCase,
     PostsRepository,
     PostsService,
     CommentsQueryRepository,
+    CommentsRepository
   ],
 })
-export class BloggerPlatformModule {}
+export class BloggerPlatformModule { }

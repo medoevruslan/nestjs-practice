@@ -6,8 +6,6 @@ import { UsersQueryRepository } from './infrastructure/query/users.query-reposit
 import { UsersRepository } from './infrastructure/users.repository';
 import { UsersService } from './application/users.service';
 import { CryptoService } from './application/crypto-service';
-import { JwtModule } from '@nestjs/jwt';
-import { AuthConfig } from '../auth/auth.config';
 import { BasicAuthGuard } from '../auth/guards/basic-auth.guard';
 import { CreateUserUseCase } from './application/usecases/create-user.usecase';
 import { CqrsModule } from '@nestjs/cqrs';
@@ -17,7 +15,6 @@ import { DeleteUserUseCase } from './application/usecases/delete-user.usecase';
   imports: [
     CqrsModule,
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-    JwtModule.registerAsync({ useClass: AuthConfig }),
   ],
   controllers: [UsersController],
   providers: [
@@ -31,4 +28,4 @@ import { DeleteUserUseCase } from './application/usecases/delete-user.usecase';
   ],
   exports: [UsersService],
 })
-export class UserAccountModule {}
+export class UserAccountModule { }

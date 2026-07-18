@@ -19,6 +19,7 @@ import { ConfirmRegistrationUseCase } from './application/usecases/confirm-regis
 import { ResentConfirmationEmailHandler } from './application/events/resent-confirmation-email.handler';
 import { ResendConfirmationEmailUseCase } from './application/usecases/resend-confirmation-email.usecase';
 import { NewPasswordUseCase } from './application/usecases/new-password.usecase';
+import { AuthGuard } from './guards/auth.guard';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { NewPasswordUseCase } from './application/usecases/new-password.usecase'
   ],
   controllers: [AuthController],
   providers: [
+    AuthGuard,
     AuthService,
     CryptoService,
     AuthConfig,
@@ -45,6 +47,6 @@ import { NewPasswordUseCase } from './application/usecases/new-password.usecase'
     ResentConfirmationEmailHandler,
     { provide: AbstractEmailSender, useClass: MailerEmailSender },
   ],
-  exports: [AuthConfig, MailerConfig],
+  exports: [AuthConfig, MailerConfig, AuthGuard, JwtModule],
 })
-export class AuthModule {}
+export class AuthModule { }

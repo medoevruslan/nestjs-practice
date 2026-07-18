@@ -20,7 +20,6 @@ import { CreatePostUseCase } from './posts/application/usecases/create-post.usec
 import { CqrsModule } from '@nestjs/cqrs';
 import { UpdatePostUseCase } from './posts/application/usecases/update-post.usecase';
 import { DeletePostUseCase } from './posts/application/usecases/delete-post.usecase';
-import { AuthModule } from '../auth/auth.module';
 import { CreateCommentUseCase } from './comments/application/usecases/create-comment.usecase';
 import { CommentsRepository } from './comments/infrastructure/comments.repository';
 import { UserAccountModule } from '../user-account/user-account.module';
@@ -28,6 +27,7 @@ import { UpdateCommentUseCase } from './comments/application/usecases/update-com
 import { DeleteCommentUseCase } from './comments/application/usecases/delete-comment.usecase';
 import { UpdateLikeStatusUseCase } from './likes/application/usecases/update-like-status.usecase';
 import { BasicAuthGuard } from '../auth/guards/basic-auth.guard';
+import { OptionalAuthGuard } from '../auth/guards/optional-auth.guard';
 
 @Module({
   imports: [
@@ -60,6 +60,7 @@ import { BasicAuthGuard } from '../auth/guards/basic-auth.guard';
     CommentsQueryRepository,
     CommentsRepository,
     BasicAuthGuard,
+    OptionalAuthGuard,
   ],
 })
 export class BloggerPlatformModule {}

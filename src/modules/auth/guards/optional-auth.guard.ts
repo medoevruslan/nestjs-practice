@@ -1,14 +1,20 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { ExecutionContext, Injectable } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import type { Request } from 'express';
 import { DomainException } from '../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
 
-@Injectable()
-export class OptionalAuthGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService) {}
+type JwtUser = {
+  id: string;
+  email: string;
+};
 
-  canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
+type OptionalAuthUser = Pick<JwtUser, 'id'>;
+
+@Injectable()
+export class OptionalAuthGuard extends AuthGuard('jwt') {
+  canActivate(context: ExecutionContext) {
+    const request = context.switchToHttp().getRequest<Request>();
     const authorization = request.headers.authorization;
 
     if (!authorization) {
@@ -24,13 +30,16 @@ export class OptionalAuthGuard implements CanActivate {
       this.throwUnauthorized();
     }
 
-    try {
-      const payload = this.jwtService.verify<{ id: string }>(token);
-      request.user = { id: payload.id };
-      return true;
-    } catch {
+    return super.canActivate(context);
+  }
+
+  handleRequest<TUser = JwtUser>(error: unknown, user: unknown): TUser {
+    if (error || !user) {
       this.throwUnauthorized();
     }
+
+    // Preserve the old request.user shape instead of exposing email as well.
+    return { id: (user as JwtUser).id } as OptionalAuthUser as TUser;
   }
 
   private throwUnauthorized(): never {

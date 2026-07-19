@@ -19,7 +19,8 @@ import { ConfirmRegistrationUseCase } from './application/usecases/confirm-regis
 import { ResentConfirmationEmailHandler } from './application/events/resent-confirmation-email.handler';
 import { ResendConfirmationEmailUseCase } from './application/usecases/resend-confirmation-email.usecase';
 import { NewPasswordUseCase } from './application/usecases/new-password.usecase';
-import { AuthGuard } from './guards/auth.guard';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   imports: [
@@ -27,10 +28,11 @@ import { AuthGuard } from './guards/auth.guard';
     MailerModule.forRootAsync({ useClass: MailerConfig }),
     CqrsModule,
     UserAccountModule,
+    PassportModule,
   ],
   controllers: [AuthController],
   providers: [
-    AuthGuard,
+    JwtStrategy,
     AuthService,
     CryptoService,
     AuthConfig,
@@ -47,6 +49,6 @@ import { AuthGuard } from './guards/auth.guard';
     ResentConfirmationEmailHandler,
     { provide: AbstractEmailSender, useClass: MailerEmailSender },
   ],
-  exports: [AuthConfig, MailerConfig, AuthGuard, JwtModule],
+  exports: [AuthConfig, MailerConfig, JwtModule],
 })
 export class AuthModule {}

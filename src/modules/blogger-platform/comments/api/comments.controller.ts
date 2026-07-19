@@ -12,7 +12,6 @@ import {
 } from '@nestjs/common';
 import { CommentsQueryRepository } from '../infrastructure/query/comments-query.repository';
 import { ParseObjectIdOrBadRequestPipe } from '../../../../core/pipes/ParseObjectIdOrBadRequestPipe';
-import { AuthGuard } from '../../../auth/guards/auth.guard';
 import { CommandBus } from '@nestjs/cqrs';
 import { CommentInputDto } from '../../shared/api/input-dto/comment.input-dto';
 import { UpdateCommentCommand } from '../application/usecases/update-comment.usecase';
@@ -20,6 +19,7 @@ import { DeleteCommentCommand } from '../application/usecases/delete-comment.use
 import { LikeStatusInputDto } from '../../likes/api/input-dto/like-status.input-dto';
 import { UpdateLikeStatusCommand } from '../../likes/application/usecases/update-like-status.usecase';
 import { OptionalAuthGuard } from '../../../auth/guards/optional-auth.guard';
+import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 
 type AuthorizedRequest = Request & { user: { id: string } };
 type OptionalAuthorizedRequest = Request & { user?: { id: string } };
@@ -44,7 +44,7 @@ export class CommentsController {
   }
 
   @Put(':commentId/like-status')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateLikeStatus(
     @Param('commentId', ParseObjectIdOrBadRequestPipe) commentId: string,
@@ -62,7 +62,7 @@ export class CommentsController {
   }
 
   @Put(':commentId')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateComment(
     @Param('commentId', ParseObjectIdOrBadRequestPipe) commentId: string,
@@ -75,7 +75,7 @@ export class CommentsController {
   }
 
   @Delete(':commentId')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteComment(
     @Param('commentId', ParseObjectIdOrBadRequestPipe) commentId: string,

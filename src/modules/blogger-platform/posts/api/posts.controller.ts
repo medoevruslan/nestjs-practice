@@ -28,13 +28,13 @@ import { UpdatePostCommand } from '../application/usecases/update-post.usecase';
 import { DeletePostCommand } from '../application/usecases/delete-post.usecase';
 import { CommentInputDto } from '../../shared/api/input-dto/comment.input-dto';
 import { CreateCommentCommand } from '../../comments/application/usecases/create-comment.usecase';
-import { AuthGuard } from 'src/modules/auth/guards/auth.guard';
 import { CreateCommentDto } from '../../comments/dto/create-comment.dto';
 import { LikeStatusInputDto } from '../../likes/api/input-dto/like-status.input-dto';
 import { UpdateLikeStatusCommand } from '../../likes/application/usecases/update-like-status.usecase';
 import { BasicAuthGuard } from '../../../auth/guards/basic-auth.guard';
 import { OptionalAuthGuard } from '../../../auth/guards/optional-auth.guard';
 import { GetCommentsQueryParams } from '../../comments/api/input-dto/get-comments.query-params.input-dto';
+import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 
 type AuthorizedRequest = Request & { user: { id: string } };
 type OptionalAuthorizedRequest = Request & { user?: { id: string } };
@@ -69,7 +69,7 @@ export class PostsController {
   }
 
   @ApiParam({ name: 'postId' })
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Put(':postId/like-status')
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateLikeStatus(
@@ -99,7 +99,7 @@ export class PostsController {
 
   @ApiParam({ name: 'postId' })
   @Post(':postId/comments')
-  @UseGuards(AuthGuard)
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async createPostComment(
     @Param('postId', ParseObjectIdOrBadRequestPipe) postId: string,

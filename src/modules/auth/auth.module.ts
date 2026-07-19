@@ -21,6 +21,7 @@ import { ResendConfirmationEmailUseCase } from './application/usecases/resend-co
 import { NewPasswordUseCase } from './application/usecases/new-password.usecase';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { BasicStrategy } from './strategies/basic.strategy';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
   controllers: [AuthController],
   providers: [
     JwtStrategy,
+    BasicStrategy,
     AuthService,
     CryptoService,
     AuthConfig,
@@ -51,4 +53,4 @@ import { JwtStrategy } from './strategies/jwt.strategy';
   ],
   exports: [AuthConfig, MailerConfig, JwtModule],
 })
-export class AuthModule {}
+export class AuthModule { }

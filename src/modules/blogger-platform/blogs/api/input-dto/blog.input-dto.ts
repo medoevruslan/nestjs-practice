@@ -1,14 +1,11 @@
-import { IsNotEmpty, IsString, IsUrl, MaxLength } from 'class-validator';
+import { IsNotEmpty, IsUrl, MaxLength } from 'class-validator';
+import { IsStringWithTrim } from '../../../../../core/decorators/validation/is-string-with-trim';
 
 export class CreateBlogInputDto {
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(15)
+  @IsStringWithTrim(1, 15)
   name: string;
 
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(500)
+  @IsStringWithTrim(1, 500)
   description: string;
 
   @IsNotEmpty()
@@ -18,31 +15,21 @@ export class CreateBlogInputDto {
 }
 
 export class CreatePostByBlogIdInputDto {
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(30)
+  @IsStringWithTrim(1, 30)
   title: string;
 
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(100)
+  @IsStringWithTrim(1, 100)
   shortDescription: string;
 
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(1000)
+  @IsStringWithTrim(1, 1000)
   content: string;
 }
 
 export class UpdateBlogInputDto {
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(15)
+  @IsStringWithTrim(1, 15)
   name: string;
 
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(500)
+  @IsStringWithTrim(1, 500)
   description: string;
 
   @IsNotEmpty()

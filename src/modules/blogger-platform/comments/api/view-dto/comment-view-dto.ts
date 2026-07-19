@@ -13,11 +13,11 @@ export class CommentViewDto {
     return {
       id: dto.id,
       content: dto.content,
-      createdAt: dto.createdAt.toString(),
+      createdAt: dto.createdAt.toISOString(),
       likesInfo: {
         likesCount: dto.likesCount ?? 0,
         dislikesCount: dto.dislikesCount ?? 0,
-        myStatus: dto.myStatus ?? LikeStatus.None,
+        myStatus: dto.userLikeStatus?.status ?? LikeStatus.None,
       },
       commentatorInfo: {
         userId: dto.userId.toString(),

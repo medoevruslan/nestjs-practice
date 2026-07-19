@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Schema as MongooseSchema } from 'mongoose';
 import { HydratedDocument, Model, Types } from 'mongoose';
 import { CreateCommentDomainDto } from './dto/create-comment.domain-dto';
 import { LikeStatus } from '../../likes/domain/like.entity';
@@ -14,13 +15,13 @@ export class Comment {
   @Prop({ type: String, max: 300, min: 20, required: true })
   content: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 
   @Prop({ type: String, required: true })
   userLogin: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Post', required: true })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Post', required: true })
   postId: Types.ObjectId;
 
   createdAt: Date;
@@ -39,11 +40,11 @@ export class Comment {
     return comment as CommentDocument;
   }
 
-  markDeleted(comment: CommentDocument) {
+  markDeleted() {
     if (this.deletedAt !== null) {
       throw new Error('Entity already deleted');
     }
-    comment.deletedAt = new Date();
+    this.deletedAt = new Date();
   }
 
   @Prop({ type: Date, default: null })
@@ -51,6 +52,8 @@ export class Comment {
 }
 
 export const CommentSchema = SchemaFactory.createForClass(Comment);
+
+CommentSchema.loadClass(Comment);
 
 CommentSchema.virtual('likesCount', {
   ref: 'Like',
@@ -81,7 +84,7 @@ export type CommentDocument = HydratedDocument<Comment>;
 export type CommentWithLikesInfo = CommentDocument & {
   likesCount?: number;
   dislikesCount?: number;
-  myStatus?: LikeStatus;
+  userLikeStatus?: { status: LikeStatus } | null;
 };
 
 export type CommentModelType = Model<CommentDocument> & typeof Comment;

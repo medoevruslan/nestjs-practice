@@ -10,6 +10,8 @@ import {
   Post,
   Put,
   Query,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { BlogsService } from '../application/blogs.service';
 import { BlogsQueryRepository } from '../infrastructure/query/blogs.query-repository';
@@ -24,17 +26,25 @@ import { ParseObjectIdOrBadRequestPipe } from '../../../../core/pipes/ParseObjec
 import { PostsQueryRepository } from '../../posts/infrastructure/query/posts.query-repository';
 import { PostsService } from '../../posts/application/posts.service';
 import { GetPostsQueryParams } from '../../posts/api/input-dto/get-posts.query-params.input-dto';
+import { CommandBus } from '@nestjs/cqrs';
+import { CreateBlogCommand } from '../application/usecases/create-blog.usecase';
+import { CreatePostByBlogIdCommand } from '../application/usecases/create-post-by-blog-id.usecase';
+import { BasicAuthGuard } from '../../../auth/guards/basic-auth.guard';
+import { OptionalAuthGuard } from '../../../auth/guards/optional-auth.guard';
+
+type OptionalAuthorizedRequest = Request & { user?: { id: string } };
 
 @Controller('blogs')
 export class BlogsController {
   constructor(
-    @Inject(BlogsQueryRepository)
-    private blogsQueryRepository: BlogsQueryRepository,
-    @Inject(PostsQueryRepository)
-    private postsQueryRepository: PostsQueryRepository,
-    @Inject(PostsService)
-    private postsService: PostsService,
-    @Inject(BlogsService) private blogsService: BlogsService,
+    @Inject()
+    private readonly blogsQueryRepository: BlogsQueryRepository,
+    @Inject()
+    private readonly postsQueryRepository: PostsQueryRepository,
+    @Inject()
+    private readonly postsService: PostsService,
+    @Inject() private readonly blogsService: BlogsService,
+    @Inject() private readonly commandBus: CommandBus,
   ) {}
 
   @Get()
@@ -43,8 +53,11 @@ export class BlogsController {
   }
 
   @Post()
+  @UseGuards(BasicAuthGuard)
   async createBlog(@Body() body: CreateBlogInputDto) {
-    const blogId = await this.blogsService.createBlog(body);
+    const blogId = await this.commandBus.execute<CreateBlogCommand, string>(
+      new CreateBlogCommand(body),
+    );
     return this.blogsQueryRepository.getByIdOrNotFoundFail(blogId);
   }
 
@@ -56,28 +69,34 @@ export class BlogsController {
 
   @ApiParam({ name: 'blogId' }) // for swagger
   @Get(':blogId/posts')
+  @UseGuards(OptionalAuthGuard)
   async getPostByBlogId(
     @Param('blogId', ParseObjectIdOrBadRequestPipe) blogId: string,
     @Query() query: GetPostsQueryParams,
+    @Req() req: OptionalAuthorizedRequest,
   ) {
     return this.postsQueryRepository.getPostByBlogIdOrFail(
       blogId,
-      'dummyId',
+      req.user?.id ?? '',
       query,
     );
   }
 
-  @ApiParam({ name: 'blogId' }) // for swagger
+  @ApiParam({ name: 'blogId' })
+  @UseGuards(BasicAuthGuard)
   @Post(':blogId/posts')
   async createPostByBlogId(
     @Param('blogId', ParseObjectIdOrBadRequestPipe) blogId: string,
     @Body() dto: CreatePostByBlogIdInputDto,
   ) {
-    const postId = await this.postsService.createPost({ ...dto, blogId });
+    const postId = await this.commandBus.execute(
+      new CreatePostByBlogIdCommand({ ...dto, blogId: blogId }),
+    );
     return this.postsQueryRepository.getPostByIdOrFail(postId, 'dummyId');
   }
 
   @ApiParam({ name: 'id' })
+  @UseGuards(BasicAuthGuard)
   @Put(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateBlog(
@@ -89,6 +108,7 @@ export class BlogsController {
   }
 
   @ApiParam({ name: 'id' }) // for swagger
+  @UseGuards(BasicAuthGuard)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteBlog(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {

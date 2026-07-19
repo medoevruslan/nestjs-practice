@@ -25,6 +25,10 @@ export class UsersRepository {
     return found;
   }
 
+  async findByIdOrNull(id: string): Promise<UserDocument | null> {
+    return this.UserModel.findOne({ _id: id, deletedAt: null });
+  }
+
   async findByEmailOrFail(email: string): Promise<UserDocument> {
     const found = await this.UserModel.findOne({ email, deletedAt: null });
 

@@ -1,8 +1,4 @@
-import {
-  HttpStatus,
-  INestApplication,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Connection } from 'mongoose';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
@@ -18,6 +14,8 @@ import {
   UserModelType,
 } from '../../src/modules/user-account/domain/user.entity';
 import bcrypt from 'bcrypt';
+import { DomainException } from '../../src/core/exceptions/domain-exceptions';
+import { DomainExceptionCode } from '../../src/core/exceptions/domain-exception-codes';
 
 const emailSenderMock = {
   sendEmailConfirmation: jest.fn().mockResolvedValue(undefined),
@@ -50,7 +48,11 @@ describe('users test', () => {
     const connection = moduleFixture.get<Connection>(getConnectionToken());
     userModel = moduleFixture.get<UserModelType>(getModelToken(User.name));
 
-    if (!connection.db) throw new NotFoundException('Db is not available');
+    if (!connection.db)
+      throw new DomainException({
+        code: DomainExceptionCode.NotFound,
+        message: 'Db is not available',
+      });
 
     await request(app.getHttpServer()).delete('/api/testing/all-data');
 
@@ -347,5 +349,25 @@ describe('users test', () => {
 
     expect(confirmedUser!.isEmailConfirmed).toBe(true);
     expect(confirmedUser!.confirmationCodeExpiration).toBe(null);
+  });
+
+  it('should not delete user, because not authorized', async () => {
+    await request(app.getHttpServer())
+      .delete(`/api/users/${testUserId}`)
+      .set('Authorization', `Basic ${testUserId}`)
+      .expect(HttpStatus.UNAUTHORIZED);
+
+    const res = await request(app.getHttpServer()).get('/api/users');
+    expect(res.body.totalCount).toBe(2);
+  });
+
+  it('should not delete user', async () => {
+    await request(app.getHttpServer())
+      .delete(`/api/users/${testUserId}`)
+      .auth('admin', `qwerty`)
+      .expect(HttpStatus.NO_CONTENT);
+
+    const res = await request(app.getHttpServer()).get('/api/users');
+    expect(res.body.totalCount).toBe(1);
   });
 });

@@ -9,22 +9,44 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { MailerConfig } from './mailer.config';
 import { AbstractEmailSender } from './application/port/abstract-email-sender';
 import { MailerEmailSender } from './infrastructure/mailer-email-sender';
+import { CqrsModule } from '@nestjs/cqrs';
+import { RegisterUserUseCase } from './application/usecases/register-user.usecase';
+import { UserRegisteredHandler } from './application/events/user-registered.handler';
+import { LoginUserUseCase } from './application/usecases/login-user.usecase';
+import { RecoveryPasswordUseCase } from './application/usecases/recovery-password.usecase';
+import { SentRecoveryPasswordHandler } from './application/events/sent-recovery-password.handler';
+import { ConfirmRegistrationUseCase } from './application/usecases/confirm-registration.usecase';
+import { ResentConfirmationEmailHandler } from './application/events/resent-confirmation-email.handler';
+import { ResendConfirmationEmailUseCase } from './application/usecases/resend-confirmation-email.usecase';
+import { NewPasswordUseCase } from './application/usecases/new-password.usecase';
+import { AuthGuard } from './guards/auth.guard';
 
 @Module({
   imports: [
-    JwtModule.registerAsync({ useClass: AuthConfig }),
+    JwtModule.registerAsync({ global: true, useClass: AuthConfig }),
     MailerModule.forRootAsync({ useClass: MailerConfig }),
+    CqrsModule,
     UserAccountModule,
   ],
   controllers: [AuthController],
   providers: [
+    AuthGuard,
     AuthService,
     CryptoService,
     AuthConfig,
     MailerConfig,
     MailerEmailSender,
+    RecoveryPasswordUseCase,
+    ConfirmRegistrationUseCase,
+    ResendConfirmationEmailUseCase,
+    RegisterUserUseCase,
+    NewPasswordUseCase,
+    LoginUserUseCase,
+    UserRegisteredHandler,
+    SentRecoveryPasswordHandler,
+    ResentConfirmationEmailHandler,
     { provide: AbstractEmailSender, useClass: MailerEmailSender },
   ],
-  exports: [AuthConfig, MailerConfig],
+  exports: [AuthConfig, MailerConfig, AuthGuard, JwtModule],
 })
 export class AuthModule {}

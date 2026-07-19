@@ -1,0 +1,14 @@
+{
+  "jest.virtualFolders": [
+    {
+      "name": "unit",
+      "jestCommandLine": "yarn test",
+      "runMode": "watch"
+    },
+    {
+      "name": "e2e",
+      "jestCommandLine": "yarn test:e2e",
+      "runMode": "on-demand"
+    }
+  ]
+}

@@ -31,7 +31,7 @@ export class PostsQueryRepository {
           { path: 'likesCount' },
           { path: 'dislikesCount' },
           { path: 'newestLikes' },
-          { path: 'userLikeStatus', match: { userId } },
+          this.userLikeStatusPopulate(userId),
         ])
         .exec(),
     ]);
@@ -55,7 +55,7 @@ export class PostsQueryRepository {
         { path: 'likesCount' },
         { path: 'dislikesCount' },
         { path: 'newestLikes' },
-        { path: 'userLikeStatus', match: { userId } },
+        this.userLikeStatusPopulate(userId),
       ])
       .exec();
 
@@ -88,7 +88,7 @@ export class PostsQueryRepository {
           { path: 'likesCount' },
           { path: 'dislikesCount' },
           { path: 'newestLikes' },
-          { path: 'userLikeStatus', match: { userId } },
+          this.userLikeStatusPopulate(userId),
         ])
         .exec(),
     ]);
@@ -105,5 +105,16 @@ export class PostsQueryRepository {
     } satisfies MappedPaginatedViewType<PostViewDto[]>;
 
     return PaginatedViewDto.mapToView(data);
+  }
+
+  private userLikeStatusPopulate(userId: string) {
+    return {
+      path: 'userLikeStatus',
+      match: {
+        userId: Types.ObjectId.isValid(userId)
+          ? new Types.ObjectId(userId)
+          : new Types.ObjectId(),
+      },
+    };
   }
 }

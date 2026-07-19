@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Post, PostDocument, PostModelType } from '../domain/post.entity';
 import { GetPostsQueryParams } from '../api/input-dto/get-posts.query-params.input-dto';
@@ -8,6 +8,8 @@ import {
   PaginatedViewDto,
 } from '../../../../core/dto/base.paginated.view-dto';
 import { PostViewDto } from '../api/view-dto/PostViewDto';
+import { DomainException } from '../../../../core/exceptions/domain-exceptions';
+import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
 
 @Injectable()
 export class PostsRepository {
@@ -46,7 +48,10 @@ export class PostsRepository {
     const found = await this.PostModel.findOne({ _id: id, deletedAt: null });
 
     if (!found) {
-      throw new NotFoundException();
+      throw new DomainException({
+        code: DomainExceptionCode.NotFound,
+        message: 'Post not found',
+      });
     }
 
     return found;

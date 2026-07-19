@@ -14,6 +14,20 @@ import { Like, LikeSchema } from './likes/domain/like.entity';
 import { CommentsController } from './comments/api/comments.controller';
 import { CommentsQueryRepository } from './comments/infrastructure/query/comments-query.repository';
 import { Comment, CommentSchema } from './comments/domain/comment.entity';
+import { CreateBlogUseCase } from './blogs/application/usecases/create-blog.usecase';
+import { CreatePostByBlogIdUseCase } from './blogs/application/usecases/create-post-by-blog-id.usecase';
+import { CreatePostUseCase } from './posts/application/usecases/create-post.usecase';
+import { CqrsModule } from '@nestjs/cqrs';
+import { UpdatePostUseCase } from './posts/application/usecases/update-post.usecase';
+import { DeletePostUseCase } from './posts/application/usecases/delete-post.usecase';
+import { CreateCommentUseCase } from './comments/application/usecases/create-comment.usecase';
+import { CommentsRepository } from './comments/infrastructure/comments.repository';
+import { UserAccountModule } from '../user-account/user-account.module';
+import { UpdateCommentUseCase } from './comments/application/usecases/update-comment.usecase';
+import { DeleteCommentUseCase } from './comments/application/usecases/delete-comment.usecase';
+import { UpdateLikeStatusUseCase } from './likes/application/usecases/update-like-status.usecase';
+import { BasicAuthGuard } from '../auth/guards/basic-auth.guard';
+import { OptionalAuthGuard } from '../auth/guards/optional-auth.guard';
 
 @Module({
   imports: [
@@ -23,6 +37,8 @@ import { Comment, CommentSchema } from './comments/domain/comment.entity';
       { name: Like.name, schema: LikeSchema },
       { name: Comment.name, schema: CommentSchema },
     ]),
+    CqrsModule,
+    UserAccountModule,
   ],
   controllers: [BlogsController, PostsController, CommentsController],
   providers: [
@@ -30,9 +46,21 @@ import { Comment, CommentSchema } from './comments/domain/comment.entity';
     BlogsRepository,
     BlogsQueryRepository,
     PostsQueryRepository,
+    CreateBlogUseCase,
+    CreatePostByBlogIdUseCase,
+    CreateCommentUseCase,
+    CreatePostUseCase,
+    UpdatePostUseCase,
+    DeletePostUseCase,
+    UpdateCommentUseCase,
+    DeleteCommentUseCase,
+    UpdateLikeStatusUseCase,
     PostsRepository,
     PostsService,
     CommentsQueryRepository,
+    CommentsRepository,
+    BasicAuthGuard,
+    OptionalAuthGuard,
   ],
 })
 export class BloggerPlatformModule {}

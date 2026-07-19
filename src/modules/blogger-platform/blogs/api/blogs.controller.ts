@@ -31,8 +31,7 @@ import { CreateBlogCommand } from '../application/usecases/create-blog.usecase';
 import { CreatePostByBlogIdCommand } from '../application/usecases/create-post-by-blog-id.usecase';
 import { BasicAuthGuard } from '../../../auth/guards/basic-auth.guard';
 import { OptionalAuthGuard } from '../../../auth/guards/optional-auth.guard';
-
-type OptionalAuthorizedRequest = Request & { user?: { id: string } };
+import { CurrentUserId } from 'src/core/decorators/auth/create-param.decorator';
 
 @Controller('blogs')
 export class BlogsController {
@@ -41,11 +40,9 @@ export class BlogsController {
     private readonly blogsQueryRepository: BlogsQueryRepository,
     @Inject()
     private readonly postsQueryRepository: PostsQueryRepository,
-    @Inject()
-    private readonly postsService: PostsService,
     @Inject() private readonly blogsService: BlogsService,
     @Inject() private readonly commandBus: CommandBus,
-  ) {}
+  ) { }
 
   @Get()
   async getAll(@Query() query: GetBlogsQueryParams) {
@@ -73,11 +70,11 @@ export class BlogsController {
   async getPostByBlogId(
     @Param('blogId', ParseObjectIdOrBadRequestPipe) blogId: string,
     @Query() query: GetPostsQueryParams,
-    @Req() req: OptionalAuthorizedRequest,
+    @CurrentUserId() userId: string,
   ) {
     return this.postsQueryRepository.getPostByBlogIdOrFail(
       blogId,
-      req.user?.id ?? '',
+      userId,
       query,
     );
   }

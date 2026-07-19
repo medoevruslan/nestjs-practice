@@ -25,21 +25,19 @@ import { ConfirmRegistrationCommand } from '../application/usecases/confirm-regi
 import { ResendConfirmationCommand } from '../application/usecases/resend-confirmation-email.usecase';
 import { NewPasswordCommand } from '../application/usecases/new-password.usecase';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-
-type AuthRequest = Request & { user: Express.User };
+import { CurrentUserId } from 'src/core/decorators/auth/create-param.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     @Inject() private readonly authService: AuthService,
     @Inject() private readonly commandBus: CommandBus,
-  ) {}
+  ) { }
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  async me(@Req() req: AuthRequest) {
-    const user = req.user;
-    return this.authService.me(user.id);
+  async me(@CurrentUserId() userId: string) {
+    return this.authService.me(userId);
   }
 
   @Post('login')

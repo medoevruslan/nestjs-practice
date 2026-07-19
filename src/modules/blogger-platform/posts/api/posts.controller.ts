@@ -10,7 +10,6 @@ import {
   Post,
   Put,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -35,9 +34,7 @@ import { BasicAuthGuard } from '../../../auth/guards/basic-auth.guard';
 import { OptionalAuthGuard } from '../../../auth/guards/optional-auth.guard';
 import { GetCommentsQueryParams } from '../../comments/api/input-dto/get-comments.query-params.input-dto';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
-
-type AuthorizedRequest = Request & { user: { id: string } };
-type OptionalAuthorizedRequest = Request & { user?: { id: string } };
+import { CurrentUserId } from 'src/core/decorators/auth/create-param.decorator';
 
 @Controller('posts')
 export class PostsController {
@@ -47,15 +44,15 @@ export class PostsController {
     @Inject(CommentsQueryRepository)
     private commentsQueryRepository: CommentsQueryRepository,
     @Inject() private readonly commandBus: CommandBus,
-  ) {}
+  ) { }
 
   @Get()
   @UseGuards(OptionalAuthGuard)
   async getAll(
     @Query() query: GetPostsQueryParams,
-    @Req() req: OptionalAuthorizedRequest,
+    @CurrentUserId() userId: string
   ) {
-    return this.postsQueryRepository.getAll(query, req.user?.id ?? '');
+    return this.postsQueryRepository.getAll(query, userId);
   }
 
   @ApiParam({ name: 'id' })
@@ -63,9 +60,9 @@ export class PostsController {
   @UseGuards(OptionalAuthGuard)
   async getPostById(
     @Param('id', ParseObjectIdOrBadRequestPipe) id: string,
-    @Req() req: OptionalAuthorizedRequest,
+    @CurrentUserId() userId: string
   ) {
-    return this.postsQueryRepository.getPostByIdOrFail(id, req.user?.id ?? '');
+    return this.postsQueryRepository.getPostByIdOrFail(id, userId);
   }
 
   @ApiParam({ name: 'postId' })
@@ -75,10 +72,10 @@ export class PostsController {
   async updateLikeStatus(
     @Param('postId', ParseObjectIdOrBadRequestPipe) postId: string,
     @Body() dto: LikeStatusInputDto,
-    @Req() req: AuthorizedRequest,
+    @CurrentUserId() userId: string
   ) {
     await this.commandBus.execute(
-      new UpdateLikeStatusCommand(postId, 'Post', req.user.id, dto.likeStatus),
+      new UpdateLikeStatusCommand(postId, 'Post', userId, dto.likeStatus),
     );
   }
 
@@ -88,11 +85,11 @@ export class PostsController {
   async getPostComments(
     @Param('postId', ParseObjectIdOrBadRequestPipe) postId: string,
     @Query() query: GetCommentsQueryParams,
-    @Req() req: OptionalAuthorizedRequest,
+    @CurrentUserId() userId: string
   ) {
     return this.commentsQueryRepository.getCommentsByPostIdOrFail(
       postId,
-      req.user?.id ?? '',
+      userId,
       query,
     );
   }
@@ -104,9 +101,8 @@ export class PostsController {
   async createPostComment(
     @Param('postId', ParseObjectIdOrBadRequestPipe) postId: string,
     @Body() dto: CommentInputDto,
-    @Req() req: AuthorizedRequest,
+    @CurrentUserId() userId: string,
   ) {
-    const userId = req.user.id;
     const payload: CreateCommentDto = Object.assign(
       { userId, postId: postId },
       dto,

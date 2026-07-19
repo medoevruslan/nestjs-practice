@@ -7,7 +7,6 @@ import {
   HttpStatus,
   Param,
   Put,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { CommentsQueryRepository } from '../infrastructure/query/comments-query.repository';
@@ -20,26 +19,24 @@ import { LikeStatusInputDto } from '../../likes/api/input-dto/like-status.input-
 import { UpdateLikeStatusCommand } from '../../likes/application/usecases/update-like-status.usecase';
 import { OptionalAuthGuard } from '../../../auth/guards/optional-auth.guard';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
-
-type AuthorizedRequest = Request & { user: { id: string } };
-type OptionalAuthorizedRequest = Request & { user?: { id: string } };
+import { CurrentUserId } from 'src/core/decorators/auth/create-param.decorator';
 
 @Controller('comments')
 export class CommentsController {
   constructor(
     private readonly commentsQueryRepository: CommentsQueryRepository,
     private readonly commandBus: CommandBus,
-  ) {}
+  ) { }
 
   @Get(':id')
   @UseGuards(OptionalAuthGuard)
   getCommentById(
     @Param('id', ParseObjectIdOrBadRequestPipe) id: string,
-    @Req() req: OptionalAuthorizedRequest,
+    @CurrentUserId() userId: string
   ) {
     return this.commentsQueryRepository.getCommentByIdOrFail(
       id,
-      req.user?.id ?? '',
+      userId,
     );
   }
 
@@ -49,13 +46,13 @@ export class CommentsController {
   async updateLikeStatus(
     @Param('commentId', ParseObjectIdOrBadRequestPipe) commentId: string,
     @Body() dto: LikeStatusInputDto,
-    @Req() req: AuthorizedRequest,
+    @CurrentUserId() userId: string
   ) {
     await this.commandBus.execute(
       new UpdateLikeStatusCommand(
         commentId,
         'Comment',
-        req.user.id,
+        userId,
         dto.likeStatus,
       ),
     );
@@ -67,10 +64,10 @@ export class CommentsController {
   async updateComment(
     @Param('commentId', ParseObjectIdOrBadRequestPipe) commentId: string,
     @Body() dto: CommentInputDto,
-    @Req() req: AuthorizedRequest,
+    @CurrentUserId() userId: string
   ) {
     await this.commandBus.execute(
-      new UpdateCommentCommand(commentId, req.user.id, dto.content),
+      new UpdateCommentCommand(commentId, userId, dto.content),
     );
   }
 
@@ -79,10 +76,10 @@ export class CommentsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteComment(
     @Param('commentId', ParseObjectIdOrBadRequestPipe) commentId: string,
-    @Req() req: AuthorizedRequest,
+    @CurrentUserId() userId: string
   ) {
     await this.commandBus.execute(
-      new DeleteCommentCommand(commentId, req.user.id),
+      new DeleteCommentCommand(commentId, userId),
     );
   }
 }

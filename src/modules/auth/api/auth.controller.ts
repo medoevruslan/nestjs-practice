@@ -26,6 +26,7 @@ import { ResendConfirmationCommand } from '../application/usecases/resend-confir
 import { NewPasswordCommand } from '../application/usecases/new-password.usecase';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUserId } from 'src/core/decorators/auth/create-param.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('auth')
 export class AuthController {
@@ -34,6 +35,7 @@ export class AuthController {
     @Inject() private readonly commandBus: CommandBus,
   ) { }
 
+  @ApiBearerAuth('bearer')
   @Get('me')
   @UseGuards(JwtAuthGuard)
   async me(@CurrentUserId() userId: string) {

@@ -18,7 +18,7 @@ import {
 } from './input-dto/post.input-dto';
 import { GetPostsQueryParams } from './input-dto/get-posts.query-params.input-dto';
 import { PostsQueryRepository } from '../infrastructure/query/posts.query-repository';
-import { ApiParam } from '@nestjs/swagger';
+import { ApiBasicAuth, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { ParseObjectIdOrBadRequestPipe } from '../../../../core/pipes/ParseObjectIdOrBadRequestPipe';
 import { CommentsQueryRepository } from '../../comments/infrastructure/query/comments-query.repository';
 import { CommandBus } from '@nestjs/cqrs';
@@ -65,6 +65,7 @@ export class PostsController {
     return this.postsQueryRepository.getPostByIdOrFail(id, userId);
   }
 
+  @ApiBearerAuth('bearer')
   @ApiParam({ name: 'postId' })
   @UseGuards(JwtAuthGuard)
   @Put(':postId/like-status')
@@ -94,6 +95,7 @@ export class PostsController {
     );
   }
 
+  @ApiBearerAuth('bearer')
   @ApiParam({ name: 'postId' })
   @Post(':postId/comments')
   @UseGuards(JwtAuthGuard)
@@ -114,6 +116,7 @@ export class PostsController {
     return this.commentsQueryRepository.getCommentByIdOrFail(commentId, userId);
   }
 
+  @ApiBasicAuth('basic')
   @UseGuards(BasicAuthGuard)
   @Post()
   async createPost(@Body() dto: CreatePostInputDto) {
@@ -123,6 +126,7 @@ export class PostsController {
     return this.postsQueryRepository.getPostByIdOrFail(postId, 'dummyId');
   }
 
+  @ApiBasicAuth('basic')
   @UseGuards(BasicAuthGuard)
   @Put(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -135,6 +139,7 @@ export class PostsController {
     );
   }
 
+  @ApiBasicAuth('basic')
   @UseGuards(BasicAuthGuard)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)

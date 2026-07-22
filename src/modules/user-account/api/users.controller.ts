@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { GetUsersQueryParams } from './input-dto/get-users.query-params.input-dto';
 import { CreateUserInputDto } from './input-dto/create-user-input.dto';
-import { ApiParam } from '@nestjs/swagger';
+import { ApiBasicAuth, ApiParam } from '@nestjs/swagger';
 import { UsersQueryRepository } from '../infrastructure/query/users.query-repository';
 import { ParseObjectIdOrBadRequestPipe } from '../../../core/pipes/ParseObjectIdOrBadRequestPipe';
 import { BasicAuthGuard } from '../../auth/guards/basic-auth.guard';
@@ -33,6 +33,7 @@ export class UsersController {
     return this.usersQueryRepository.getAll(query);
   }
 
+  @ApiBasicAuth('basic')
   @Post()
   @UseGuards(BasicAuthGuard)
   async createUser(@Body() dto: CreateUserInputDto) {
@@ -42,6 +43,7 @@ export class UsersController {
     return this.usersQueryRepository.getByIdOrFail(userId);
   }
 
+  @ApiBasicAuth('basic')
   @ApiParam({ name: 'id' })
   @Delete(':id')
   @UseGuards(BasicAuthGuard)

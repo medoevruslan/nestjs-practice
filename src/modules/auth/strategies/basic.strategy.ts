@@ -1,21 +1,20 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
-import { Request } from "express";
 import { BasicStrategy as Strategy } from 'passport-http'
 import { DomainExceptionCode } from "src/core/exceptions/domain-exception-codes";
 import { DomainException } from "src/core/exceptions/domain-exceptions";
+import { AuthConfig } from "../auth.config";
 
 
 @Injectable()
 export class BasicStrategy extends PassportStrategy(Strategy) {
-    constructor(@Inject() private readonly configService: ConfigService) {
-        super({ passReqToCallback: true });
+    constructor(private readonly authConfig: AuthConfig) {
+        super();
     }
 
-    validate(req: Request, username: string, password: string) {
-        const name = this.configService.get<string>('ADMIN_NAME')
-        const passw = this.configService.get<string>('ADMIN_PASSWORD')
+    validate(username: string, password: string) {
+        const name = this.authConfig.adminName
+        const passw = this.authConfig.adminPassword
 
         if (name === username && passw === password) return true
         this.throwUnauthorized()

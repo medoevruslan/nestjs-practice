@@ -1,8 +1,10 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ParseObjectIdOrBadRequestPipe } from './pipes/ParseObjectIdOrBadRequestPipe';
+import { CoreConfig } from './core.config';
 
+@Global()
 @Module({
-  providers: [ParseObjectIdOrBadRequestPipe],
-  exports: [ParseObjectIdOrBadRequestPipe],
+  providers: [ParseObjectIdOrBadRequestPipe, CoreConfig],
+  exports: [ParseObjectIdOrBadRequestPipe, CoreConfig],
 })
-export class CoreModule {}
+export class CoreModule { }

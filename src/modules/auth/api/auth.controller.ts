@@ -15,7 +15,10 @@ import { Request, Response } from 'express';
 import { RegisterUserInputDto } from './input-dto/register-user.input-dto';
 import { NewPasswordInputDto } from './input-dto/new-password.input-dto';
 import { LoginInputDto } from './input-dto/login.input-dto';
-import { EmailConfirmationInputDto } from './input-dto/email.confirmation.input-dto';
+import {
+  EmailConfirmationInputDto,
+  RegistrationConfirmationInputDto,
+} from './input-dto/email.confirmation.input-dto';
 import { PasswordRecoveryInputDto } from './input-dto/password-recovery-input.dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { RegisterUserCommand } from '../application/usecases/register-user.usecase';
@@ -33,7 +36,7 @@ export class AuthController {
   constructor(
     @Inject() private readonly authService: AuthService,
     @Inject() private readonly commandBus: CommandBus,
-  ) { }
+  ) {}
 
   @ApiBearerAuth('bearer')
   @Get('me')
@@ -82,7 +85,9 @@ export class AuthController {
 
   @Post('registration-confirmation')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async registrationConfirmation(@Body() body: { code: string }) {
+  async registrationConfirmation(
+    @Body() body: RegistrationConfirmationInputDto,
+  ) {
     await this.commandBus.execute(new ConfirmRegistrationCommand(body.code));
   }
 

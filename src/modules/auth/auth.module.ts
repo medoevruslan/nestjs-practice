@@ -22,9 +22,12 @@ import { NewPasswordUseCase } from './application/usecases/new-password.usecase'
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { BasicStrategy } from './strategies/basic.strategy';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { RateLimitConfig } from './rate-limit.config';
 
 @Module({
   imports: [
+    ThrottlerModule.forRootAsync({ useClass: RateLimitConfig }),
     JwtModule.registerAsync({ global: true, useClass: AuthConfig }),
     MailerModule.forRootAsync({ useClass: MailerConfig }),
     CqrsModule,
@@ -53,4 +56,4 @@ import { BasicStrategy } from './strategies/basic.strategy';
   ],
   exports: [AuthConfig, MailerConfig, JwtModule],
 })
-export class AuthModule { }
+export class AuthModule {}

@@ -30,7 +30,9 @@ import { NewPasswordCommand } from '../application/usecases/new-password.usecase
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUserId } from 'src/core/decorators/auth/create-param.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
 
+@UseGuards(ThrottlerGuard)
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -38,6 +40,7 @@ export class AuthController {
     @Inject() private readonly commandBus: CommandBus,
   ) {}
 
+  @SkipThrottle()
   @ApiBearerAuth('bearer')
   @Get('me')
   @UseGuards(JwtAuthGuard)

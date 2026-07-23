@@ -20,6 +20,7 @@ import { UpdateLikeStatusCommand } from '../../likes/application/usecases/update
 import { OptionalAuthGuard } from '../../../auth/guards/optional-auth.guard';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 import { CurrentUserId } from 'src/core/decorators/auth/create-param.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('comments')
 export class CommentsController {
@@ -40,6 +41,7 @@ export class CommentsController {
     );
   }
 
+  @ApiBearerAuth('bearer')
   @Put(':commentId/like-status')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -58,6 +60,7 @@ export class CommentsController {
     );
   }
 
+  @ApiBearerAuth('bearer')
   @Put(':commentId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -71,6 +74,7 @@ export class CommentsController {
     );
   }
 
+  @ApiBearerAuth('bearer')
   @Delete(':commentId')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)

@@ -1,20 +1,29 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import ms from 'ms';
 import { JwtModuleOptions, JwtOptionsFactory } from '@nestjs/jwt';
+import { IsBoolean } from 'class-validator';
+import { IsStringWithTrim } from 'src/core/decorators/validation/is-string-with-trim';
+import { IsMsDuration } from 'src/core/decorators/validation/is-ms-duration';
 
 @Injectable()
 export class AuthConfig implements JwtOptionsFactory {
-  skipPasswordCheck: boolean;
-  jwtSecret: string;
-  expiresIn: ms.StringValue;
+  @IsBoolean()
+  skipPasswordCheck: boolean = this.configService.get<string>('SKIP_PASSWORD_CHECK') === 'true';
 
-  constructor(@Inject() private readonly configService: ConfigService) {
-    this.skipPasswordCheck =
-      this.configService.get<string>('SKIP_PASSWORD_CHECK') === 'true';
-    this.jwtSecret = this.configService.get('JWT_SECRET') ?? 'secret';
-    this.expiresIn = this.configService.get('JWT_EXPIRES_IN') ?? '15m';
-  }
+  @IsStringWithTrim(4)
+  jwtSecret: string = String(this.configService.get('JWT_SECRET'));
+
+  @IsMsDuration()
+  expiresIn: ms.StringValue = this.configService.get<ms.StringValue>('JWT_EXPIRES_IN') as ms.StringValue;
+
+  @IsStringWithTrim(1)
+  adminName: string = String(this.configService.get<string>('ADMIN_NAME'))
+
+  @IsStringWithTrim(4)
+  adminPassword: string = String(this.configService.get('ADMIN_PASSWORD'))
+
+  constructor(private readonly configService: ConfigService) { }
 
   createJwtOptions(): JwtModuleOptions {
     return {

@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { BlogsService } from '../application/blogs.service';
 import { BlogsQueryRepository } from '../infrastructure/query/blogs.query-repository';
-import { ApiParam } from '@nestjs/swagger';
+import { ApiBasicAuth, ApiParam } from '@nestjs/swagger';
 import {
   CreateBlogInputDto,
   CreatePostByBlogIdInputDto,
@@ -49,6 +49,7 @@ export class BlogsController {
     return this.blogsQueryRepository.getAll(query);
   }
 
+  @ApiBasicAuth('basic')
   @Post()
   @UseGuards(BasicAuthGuard)
   async createBlog(@Body() body: CreateBlogInputDto) {
@@ -79,6 +80,7 @@ export class BlogsController {
     );
   }
 
+  @ApiBasicAuth('basic')
   @ApiParam({ name: 'blogId' })
   @UseGuards(BasicAuthGuard)
   @Post(':blogId/posts')
@@ -92,6 +94,7 @@ export class BlogsController {
     return this.postsQueryRepository.getPostByIdOrFail(postId, 'dummyId');
   }
 
+  @ApiBasicAuth('basic')
   @ApiParam({ name: 'id' })
   @UseGuards(BasicAuthGuard)
   @Put(':id')
@@ -104,6 +107,7 @@ export class BlogsController {
     return this.blogsQueryRepository.getByIdOrNotFoundFail(blogId);
   }
 
+  @ApiBasicAuth('basic')
   @ApiParam({ name: 'id' }) // for swagger
   @UseGuards(BasicAuthGuard)
   @Delete(':id')

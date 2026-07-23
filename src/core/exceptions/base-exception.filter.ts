@@ -9,13 +9,13 @@ import {
 import { ErrorResponseBody } from './domain-exceptions';
 import { Request, Response } from 'express';
 import { DomainExceptionCode } from './domain-exception-codes';
-import { ConfigService } from '@nestjs/config';
+import { CoreConfig } from '../core.config';
 
 @Catch()
 export class AllHttpExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllHttpExceptionsFilter.name);
 
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly coreConfig: CoreConfig) { }
 
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -42,7 +42,7 @@ export class AllHttpExceptionsFilter implements ExceptionFilter {
     requestUrl: string,
     message: string,
   ): ErrorResponseBody {
-    const isProduction = this.configService.get('NODE_ENV') === 'production';
+    const isProduction = this.coreConfig.env === 'production';
 
     if (isProduction) {
       return {

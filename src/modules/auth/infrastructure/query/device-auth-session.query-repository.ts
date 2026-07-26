@@ -13,8 +13,9 @@ export class DeviceAuthSessionQueryRepository {
     @InjectModel(DeviceAuthSession.name)
     private readonly Model: DeviceAuthSessionModel,
   ) {}
+
   async getAll() {
-    this.Model.find({});
+    return this.Model.find({});
   }
 
   async getByUserIdOrNotFoundFail(userId: string) {

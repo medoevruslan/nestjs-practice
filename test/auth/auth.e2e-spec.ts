@@ -5,16 +5,11 @@ import { appSetup } from '../../src/setup/app.setup';
 import request from 'supertest';
 import { Connection } from 'mongoose';
 import { getConnectionToken } from '@nestjs/mongoose';
+import { createTestUser, TEST_USER } from '../create-test-user';
 
 describe('auth e2e tests', () => {
   let app: INestApplication;
   let accessToken: string = '';
-
-  const testUser = {
-    login: 'test-user',
-    email: 'test-user@email.com',
-    password: '123456',
-  };
 
   beforeAll(async () => {
     const builder = Test.createTestingModule({ imports: [AppModule] });
@@ -35,14 +30,12 @@ describe('auth e2e tests', () => {
     );
     expect(res.status).toBe(HttpStatus.NO_CONTENT);
 
-    const response = await request(app.getHttpServer())
-      .post('/api/users')
-      .auth('admin', 'qwerty')
-      .send(testUser)
-      .expect(HttpStatus.CREATED);
+    const response = await createTestUser(app.getHttpServer());
 
-    expect(response.body.login).toBe(testUser.login);
-    expect(response.body.email).toBe(testUser.email);
+    expect(response.status).toBe(HttpStatus.CREATED);
+
+    expect(response.body.login).toBe(TEST_USER.login);
+    expect(response.body.email).toBe(TEST_USER.email);
   });
 
   afterAll(async () => {
@@ -58,8 +51,8 @@ describe('auth e2e tests', () => {
         const res = await request(app.getHttpServer())
           .post('/api/auth/login')
           .send({
-            loginOrEmail: testUser.email,
-            password: testUser.password,
+            loginOrEmail: TEST_USER.email,
+            password: TEST_USER.password,
           });
 
         if (accessToken === '') {

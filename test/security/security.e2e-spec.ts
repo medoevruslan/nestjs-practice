@@ -39,18 +39,6 @@ describe('Security (e2e)', () => {
     await app?.close();
   });
 
-  it('should return device sessions empty list', async () => {
-    const loginRes = await loginTestUser(app.getHttpServer());
-    expect(loginRes.status).toBe(HttpStatus.OK);
-    expect(loginRes.body.accessToken).toBeDefined();
-
-    const res = await request(app.getHttpServer())
-      .get('/api/security/devices')
-      .auth(loginRes.body.accessToken, { type: 'bearer' });
-
-    expect(res.body.length).toBe(0);
-  });
-
   it('should create device session on login', async () => {
     const loginRes = await loginTestUser(app.getHttpServer());
     expect(loginRes.status).toBe(HttpStatus.OK);

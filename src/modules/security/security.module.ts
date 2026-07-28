@@ -7,16 +7,24 @@ import {
   DeviceAuthSession,
   DeviceAuthSessionSchema,
 } from './domain/device-auth-session.entity';
+import { CreateDeviceAuthSessionUseCase } from './application/usecases/create-device-auth-session.usecase';
+import { UserAccountModule } from '../user-account/user-account.module';
+import { DeviceAuthSessionRepository } from './infrastructure/device-auth-session.repository';
 
 @Module({
   imports: [
     CqrsModule,
+    UserAccountModule,
     MongooseModule.forFeature([
       { name: DeviceAuthSession.name, schema: DeviceAuthSessionSchema },
     ]),
   ],
   controllers: [SecurityController],
-  providers: [DeviceAuthSessionQueryRepository],
-  exports: [],
+  providers: [
+    DeviceAuthSessionQueryRepository,
+    DeviceAuthSessionRepository,
+    CreateDeviceAuthSessionUseCase,
+  ],
+  exports: [CreateDeviceAuthSessionUseCase],
 })
 export class SecurityModule { }

@@ -5,19 +5,13 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
-  Ip,
-  Headers,
   Post,
   Res,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from '../application/auth.service';
-<<<<<<< HEAD
 import { Response, Request } from 'express';
-=======
-import { Response } from 'express';
->>>>>>> 2e2a572 (refac(wip): proj conf routine)
 import { RegisterUserInputDto } from './input-dto/register-user.input-dto';
 import { NewPasswordInputDto } from './input-dto/new-password.input-dto';
 import { LoginInputDto } from './input-dto/login.input-dto';

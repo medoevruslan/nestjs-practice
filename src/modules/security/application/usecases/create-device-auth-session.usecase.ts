@@ -6,8 +6,8 @@ import {
 } from '../../domain/device-auth-session.entity';
 import { CreateDeviceAuthSessionDomainDto } from '../../domain/dto/create-device-auth-session.domain.dto';
 import { Inject } from '@nestjs/common';
-import { DeviceAuthSessionRepository } from '../../infrastructure/device-auth-session.repository';
 import { UsersService } from '../../../user-account/application/users.service';
+import { DeviceAuthSessionRepository } from '../../infrastructure/device-auth-session.repository';
 
 export class CreateDeviceAuthSessionCommand {
   constructor(public readonly dto: CreateDeviceAuthSessionDomainDto) { }

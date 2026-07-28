@@ -9,7 +9,7 @@ import { UsersService } from '../../../user-account/application/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { CreateDeviceAuthSessionCommand } from '../../../security/application/usecases/create-device-auth-session.usecase';
 import { JwtPayload } from 'jsonwebtoken';
-import { v4 as uuidV4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 export class LoginUserCommand {
   constructor(
@@ -74,7 +74,7 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
       });
     }
 
-    const deviceId = uuidV4();
+    const deviceId = randomUUID();
 
     await this.commandBus.execute(
       new CreateDeviceAuthSessionCommand({

@@ -8,7 +8,6 @@ import { UserAccountModule } from '../user-account/user-account.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { MailerConfig } from './mailer.config';
 import { AbstractEmailSender } from './application/port/abstract-email-sender';
-import { MailerEmailSender } from '../security/infrastructure/mailer-email-sender';
 import { CqrsModule } from '@nestjs/cqrs';
 import { RegisterUserUseCase } from './application/usecases/register-user.usecase';
 import { UserRegisteredHandler } from './application/events/user-registered.handler';
@@ -24,6 +23,8 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { BasicStrategy } from './strategies/basic.strategy';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { RateLimitConfig } from './rate-limit.config';
+import { MailerEmailSender } from './infrastructure/mailer-email-sender';
+import { SecurityModule } from '../security/security.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { RateLimitConfig } from './rate-limit.config';
     MailerModule.forRootAsync({ useClass: MailerConfig }),
     CqrsModule,
     UserAccountModule,
+    SecurityModule,
     PassportModule,
   ],
   controllers: [AuthController],

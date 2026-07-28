@@ -2,13 +2,21 @@
   "jest.virtualFolders": [
     {
       "name": "unit",
-      "jestCommandLine": "yarn test",
+      "jestCommandLine": "pnpm test",
       "runMode": "watch"
     },
     {
       "name": "e2e",
-      "jestCommandLine": "yarn test:e2e",
+      "jestCommandLine": "pnpm test:e2e",
       "runMode": "on-demand"
     }
-  ]
+  ],
+  "eslint.enable": true,
+  "eslint.validate": [
+    "javascript",
+    "typescript",
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  }
 }

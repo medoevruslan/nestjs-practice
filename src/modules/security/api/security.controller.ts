@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { DeviceAuthSessionQueryRepository } from '../../auth/infrastructure/query/device-auth-session.query-repository';
+import { DeviceAuthSessionQueryRepository } from '../infrastructure/query/device-auth-session.query-repository';
 import { CommandBus } from '@nestjs/cqrs';
 import { DeleteAllSessionsExceptCurrentCommand } from '../application/usecases/delete-all-sessions-except-current.usecase';
 import { DeleteSessionByDeviceIdCommand } from '../application/usecases/delete-auth-session-by-id.usecase';
@@ -21,7 +21,7 @@ export class SecurityController {
     @Inject()
     private readonly deviceAuthSessionQueryRepository: DeviceAuthSessionQueryRepository,
     @Inject() private readonly commandBus: CommandBus,
-  ) {}
+  ) { }
 
   @Get('devices')
   async getAll() {

@@ -13,7 +13,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from '../application/auth.service';
+<<<<<<< HEAD
 import { Response, Request } from 'express';
+=======
+import { Response } from 'express';
+>>>>>>> 2e2a572 (refac(wip): proj conf routine)
 import { RegisterUserInputDto } from './input-dto/register-user.input-dto';
 import { NewPasswordInputDto } from './input-dto/new-password.input-dto';
 import { LoginInputDto } from './input-dto/login.input-dto';
@@ -40,7 +44,7 @@ export class AuthController {
   constructor(
     @Inject() private readonly authService: AuthService,
     @Inject() private readonly commandBus: CommandBus,
-  ) {}
+  ) { }
 
   @SkipThrottle()
   @ApiBearerAuth('bearer')

@@ -1,7 +1,7 @@
 import { CqrsModule } from '@nestjs/cqrs';
 import { Module } from '@nestjs/common';
 import { SecurityController } from './api/security.controller';
-import { DeviceAuthSessionQueryRepository } from '../auth/infrastructure/query/device-auth-session.query-repository';
+import { DeviceAuthSessionQueryRepository } from './infrastructure/query/device-auth-session.query-repository';
 import { MongooseModule } from '@nestjs/mongoose';
 import {
   DeviceAuthSession,
@@ -19,4 +19,4 @@ import {
   providers: [DeviceAuthSessionQueryRepository],
   exports: [],
 })
-export class SecurityModule {}
+export class SecurityModule { }

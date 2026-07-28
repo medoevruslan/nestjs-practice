@@ -1,4 +1,4 @@
-import { AbstractEmailSender } from '../application/port/abstract-email-sender';
+import { AbstractEmailSender } from '../../auth/application/port/abstract-email-sender';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
 

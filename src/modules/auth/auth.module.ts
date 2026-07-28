@@ -8,7 +8,7 @@ import { UserAccountModule } from '../user-account/user-account.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { MailerConfig } from './mailer.config';
 import { AbstractEmailSender } from './application/port/abstract-email-sender';
-import { MailerEmailSender } from './infrastructure/mailer-email-sender';
+import { MailerEmailSender } from '../security/infrastructure/mailer-email-sender';
 import { CqrsModule } from '@nestjs/cqrs';
 import { RegisterUserUseCase } from './application/usecases/register-user.usecase';
 import { UserRegisteredHandler } from './application/events/user-registered.handler';
@@ -56,4 +56,4 @@ import { RateLimitConfig } from './rate-limit.config';
   ],
   exports: [AuthConfig, MailerConfig, JwtModule],
 })
-export class AuthModule {}
+export class AuthModule { }

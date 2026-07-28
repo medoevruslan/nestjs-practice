@@ -2,7 +2,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import {
   DeviceAuthSession,
   DeviceAuthSessionModel,
-} from '../../../security/domain/device-auth-session.entity';
+} from '../../domain/device-auth-session.entity';
 import { DomainException } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
 import { Injectable } from '@nestjs/common';
@@ -12,7 +12,7 @@ export class DeviceAuthSessionQueryRepository {
   constructor(
     @InjectModel(DeviceAuthSession.name)
     private readonly Model: DeviceAuthSessionModel,
-  ) {}
+  ) { }
 
   async getAll() {
     return this.Model.find({});

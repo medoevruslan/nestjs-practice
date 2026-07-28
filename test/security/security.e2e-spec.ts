@@ -51,7 +51,19 @@ describe('Security (e2e)', () => {
     expect(res.body.length).toBe(0);
   });
 
-  it('should create device session on login', async () => {});
-  it('should delete all sessions on request', async () => {});
-  it('should delete session by id on request', async () => {});
+  it('should create device session on login', async () => {
+    const loginRes = await loginTestUser(app.getHttpServer());
+    expect(loginRes.status).toBe(HttpStatus.OK);
+    expect(loginRes.body.accessToken).toBeDefined();
+
+    const deviceAuthRes = await request(app.getHttpServer())
+      .get('/api/security/devices')
+      .auth(loginRes.body.accessToken, { type: 'bearer' })
+      .expect(HttpStatus.OK);
+
+    expect(deviceAuthRes.body.length).toBe(1);
+  });
+
+  it('should delete all sessions on request', async () => { });
+  it('should delete session by id on request', async () => { });
 });

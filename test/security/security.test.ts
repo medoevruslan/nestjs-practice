@@ -4,7 +4,7 @@ import {
   CreateDeviceAuthSessionCommand,
   CreateDeviceAuthSessionUseCase,
 } from '../../src/modules/security/application/usecases/create-device-auth-session.usecase';
-import { DeviceAuthSessionRepository } from '../../src/modules/auth/infrastructure/device-auth-session.repository';
+import { DeviceAuthSessionRepository } from '../../src/modules/security/infrastructure/device-auth-session.repository';
 import { CqrsModule } from '@nestjs/cqrs';
 import {
   getConnectionToken,
@@ -17,7 +17,7 @@ import {
   DeviceAuthSessionSchema,
 } from '../../src/modules/security/domain/device-auth-session.entity';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { DeviceAuthSessionQueryRepository } from '../../src/modules/auth/infrastructure/query/device-auth-session.query-repository';
+import { DeviceAuthSessionQueryRepository } from '../../src/modules/security/infrastructure/query/device-auth-session.query-repository';
 import { UsersService } from '../../src/modules/user-account/application/users.service';
 import { UsersRepository } from '../../src/modules/user-account/infrastructure/users.repository';
 import {

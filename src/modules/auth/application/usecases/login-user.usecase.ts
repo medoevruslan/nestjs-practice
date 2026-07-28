@@ -1,4 +1,4 @@
-import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { CommandBus, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { LoginInputDto } from '../../api/input-dto/login.input-dto';
 import { DomainException } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
@@ -7,9 +7,15 @@ import { Inject } from '@nestjs/common';
 import { AuthConfig } from '../../auth.config';
 import { UsersService } from '../../../user-account/application/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { CreateDeviceAuthSessionCommand } from '../../../security/application/usecases/create-device-auth-session.usecase';
+import { JwtPayload } from 'jsonwebtoken';
+import { v4 as uuidV4 } from 'uuid';
 
 export class LoginUserCommand {
-  constructor(public readonly dto: LoginInputDto) {}
+  constructor(
+    public readonly dto: LoginInputDto,
+    public readonly deviceSessionInfo: { ip: string; deviceName: string },
+  ) {}
 }
 
 @CommandHandler(LoginUserCommand)
@@ -19,10 +25,11 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
     @Inject() private readonly cryptoService: CryptoService,
     @Inject() private readonly authConfig: AuthConfig,
     @Inject() private readonly usersService: UsersService,
+    @Inject() private readonly commandBus: CommandBus,
   ) {}
 
   async execute(command: LoginUserCommand) {
-    const { dto } = command;
+    const { dto, deviceSessionInfo } = command;
 
     const user = await this.usersService.getByLoginOrEmailNullable(
       dto.loginOrEmail,
@@ -53,6 +60,32 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
 
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+    const tokenData = this.jwtService.decode(accessToken, {
+      json: true,
+    }) as JwtPayload;
+    const iat = tokenData.iat;
+    const exp = tokenData.exp;
+
+    if (!iat || !exp) {
+      throw new DomainException({
+        code: DomainExceptionCode.InternalServerError,
+        message: 'Invalid access token',
+      });
+    }
+
+    const deviceId = uuidV4();
+
+    await this.commandBus.execute(
+      new CreateDeviceAuthSessionCommand({
+        userId: user.id,
+        iat,
+        exp,
+        deviceId,
+        ip: deviceSessionInfo.ip,
+        deviceName: deviceSessionInfo.deviceName,
+      }),
+    );
 
     return { accessToken, refreshToken };
   }

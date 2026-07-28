@@ -5,13 +5,15 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
+  Ip,
+  Headers,
   Post,
-  Req,
   Res,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from '../application/auth.service';
-import { Request, Response } from 'express';
+import { Response, Request } from 'express';
 import { RegisterUserInputDto } from './input-dto/register-user.input-dto';
 import { NewPasswordInputDto } from './input-dto/new-password.input-dto';
 import { LoginInputDto } from './input-dto/login.input-dto';
@@ -53,11 +55,15 @@ export class AuthController {
   async login(
     @Body() body: LoginInputDto,
     @Res({ passthrough: true }) res: Response,
+    @Req() req: Request,
   ) {
+    const reqData = this.authService.getLoginInfo(req);
     const { refreshToken, accessToken } = await this.commandBus.execute<
       LoginUserCommand,
       { refreshToken: string; accessToken: string }
-    >(new LoginUserCommand(body));
+    >(
+      new LoginUserCommand(body, { ip: reqData.ip, deviceName: reqData.agent }),
+    );
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,

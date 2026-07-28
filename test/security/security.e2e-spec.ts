@@ -50,4 +50,8 @@ describe('Security (e2e)', () => {
 
     expect(res.body.length).toBe(0);
   });
+
+  it('should create device session on login', async () => {});
+  it('should delete all sessions on request', async () => {});
+  it('should delete session by id on request', async () => {});
 });

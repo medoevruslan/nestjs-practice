@@ -1,5 +1,6 @@
-import { IsNumber } from 'class-validator';
+import { IsMongoId, IsNumber } from 'class-validator';
 import { IsStringWithTrim } from '../../../../core/decorators/validation/is-string-with-trim';
+import { Types } from 'mongoose';
 
 export class CreateDeviceAuthSessionDomainDto {
   @IsNumber()
@@ -14,8 +15,8 @@ export class CreateDeviceAuthSessionDomainDto {
   @IsStringWithTrim(2)
   deviceName: string;
 
-  @IsStringWithTrim(1)
-  userId: string;
+  @IsMongoId()
+  userId: Types.ObjectId;
 
   @IsNumber()
   exp: number;

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DeviceAuthSessionDocument } from '../domain/device-auth-session.entity';
+import { DeviceAuthSessionDocument } from '../../security/domain/device-auth-session.entity';
 
 @Injectable()
 export class DeviceAuthSessionRepository {

@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import {
   DeviceAuthSession,
   DeviceAuthSessionModel,
-} from '../../../auth/domain/device-auth-session.entity';
+} from '../../domain/device-auth-session.entity';
 
 export class DeleteSessionByDeviceIdCommand {
   constructor(readonly deviceId: string) {}

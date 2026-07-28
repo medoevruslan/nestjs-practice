@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import {
   DeviceAuthSession,
   DeviceAuthSessionModel,
-} from '../../../auth/domain/device-auth-session.entity';
+} from '../../domain/device-auth-session.entity';
 
 export class DeleteAllSessionsExceptCurrentCommand {}
 
@@ -14,7 +14,7 @@ export class DeleteAllSessionsExceptCurrentUseCase implements ICommandHandler<De
     private readonly model: DeviceAuthSessionModel,
   ) {}
 
-  async execute(command: DeleteAllSessionsExceptCurrentCommand) {
+  async execute(_: DeleteAllSessionsExceptCurrentCommand) {
     throw Error('Not implemented');
   }
 }

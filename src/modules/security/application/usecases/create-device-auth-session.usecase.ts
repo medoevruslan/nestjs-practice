@@ -3,10 +3,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import {
   DeviceAuthSession,
   DeviceAuthSessionModel,
-} from '../../../auth/domain/device-auth-session.entity';
-import { CreateDeviceAuthSessionDomainDto } from '../../../auth/domain/dto/create-device-auth-session.domain.dto';
+} from '../../domain/device-auth-session.entity';
+import { CreateDeviceAuthSessionDomainDto } from '../../domain/dto/create-device-auth-session.domain.dto';
 import { Inject } from '@nestjs/common';
 import { DeviceAuthSessionRepository } from '../../../auth/infrastructure/device-auth-session.repository';
+import { UsersService } from '../../../user-account/application/users.service';
 
 export class CreateDeviceAuthSessionCommand {
   constructor(public readonly dto: CreateDeviceAuthSessionDomainDto) {}
@@ -19,9 +20,11 @@ export class CreateDeviceAuthSessionUseCase implements ICommandHandler<CreateDev
     private readonly model: DeviceAuthSessionModel,
     @Inject()
     private readonly deviceAuthSessionRepository: DeviceAuthSessionRepository,
+    @Inject() private readonly usersService: UsersService,
   ) {}
 
   async execute(command: CreateDeviceAuthSessionCommand) {
+    await this.usersService.getByIdOrFail(command.dto.userId.toString());
     const instance = this.model.createInstance(command.dto);
     await this.deviceAuthSessionRepository.save(instance);
   }

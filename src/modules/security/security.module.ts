@@ -6,7 +6,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import {
   DeviceAuthSession,
   DeviceAuthSessionSchema,
-} from '../auth/domain/device-auth-session.entity';
+} from './domain/device-auth-session.entity';
 
 @Module({
   imports: [

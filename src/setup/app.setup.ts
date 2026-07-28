@@ -8,4 +8,7 @@ export function appSetup(app: INestApplication) {
   globalPrefixSetup(app);
   swaggerSetup(app);
   app.enableCors();
+
+  const express = app.getHttpAdapter().getInstance();
+  express.set('trust proxy', true);
 }

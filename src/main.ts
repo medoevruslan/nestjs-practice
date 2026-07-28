@@ -6,7 +6,7 @@ import { CoreConfig } from './core/core.config';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const config = app.get<CoreConfig>(CoreConfig)
+  const config = app.get<CoreConfig>(CoreConfig);
 
   appSetup(app);
   await app.listen(config.port);

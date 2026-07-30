@@ -10,6 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import { CreateDeviceAuthSessionCommand } from '../../../security/application/usecases/create-device-auth-session.usecase';
 import { JwtPayload } from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
+import { JwtUserPayload } from '../../jwtUserPayload';
 
 export class LoginUserCommand {
   constructor(
@@ -56,10 +57,21 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
       }
     }
 
-    const payload = { email: dto.loginOrEmail, id: user.id };
+    const deviceId = randomUUID();
+
+    const payload: JwtUserPayload = {
+      email: dto.loginOrEmail,
+      id: user.id,
+      deviceId,
+    };
+
+    const jwtConfig = this.authConfig.getJwtConfig();
 
     const accessToken = this.jwtService.sign(payload);
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: jwtConfig.secret,
+      expiresIn: jwtConfig.expiresIn,
+    });
 
     const tokenData = this.jwtService.decode(accessToken, {
       json: true,
@@ -73,8 +85,6 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
         message: 'Invalid access token',
       });
     }
-
-    const deviceId = randomUUID();
 
     await this.commandBus.execute(
       new CreateDeviceAuthSessionCommand({

@@ -25,6 +25,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { RateLimitConfig } from './rate-limit.config';
 import { MailerEmailSender } from './infrastructure/mailer-email-sender';
 import { SecurityModule } from '../security/security.module';
+import { RefreshTokenUseCase } from './application/usecases/refresh-token.usecase';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { SecurityModule } from '../security/security.module';
     ConfirmRegistrationUseCase,
     ResendConfirmationEmailUseCase,
     RegisterUserUseCase,
+    RefreshTokenUseCase,
     NewPasswordUseCase,
     LoginUserUseCase,
     UserRegisteredHandler,
@@ -58,4 +60,4 @@ import { SecurityModule } from '../security/security.module';
   ],
   exports: [AuthConfig, MailerConfig, JwtModule],
 })
-export class AuthModule { }
+export class AuthModule {}

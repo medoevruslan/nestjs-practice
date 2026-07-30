@@ -10,6 +10,9 @@ import {
 import { CreateDeviceAuthSessionUseCase } from './application/usecases/create-device-auth-session.usecase';
 import { UserAccountModule } from '../user-account/user-account.module';
 import { DeviceAuthSessionRepository } from './infrastructure/device-auth-session.repository';
+import { DeleteAllSessionsExceptCurrentUseCase } from './application/usecases/delete-all-sessions-except-current.usecase';
+import { DeleteSessionByDeviceIdUseCase } from './application/usecases/delete-auth-session-by-id.usecase';
+import { DeviceAuthSessionService } from './application/device-auth-session.service';
 
 @Module({
   imports: [
@@ -24,7 +27,9 @@ import { DeviceAuthSessionRepository } from './infrastructure/device-auth-sessio
     DeviceAuthSessionQueryRepository,
     DeviceAuthSessionRepository,
     CreateDeviceAuthSessionUseCase,
+    DeleteAllSessionsExceptCurrentUseCase,
+    DeleteSessionByDeviceIdUseCase,
   ],
-  exports: [CreateDeviceAuthSessionUseCase],
+  exports: [CreateDeviceAuthSessionUseCase, DeviceAuthSessionService],
 })
-export class SecurityModule { }
+export class SecurityModule {}

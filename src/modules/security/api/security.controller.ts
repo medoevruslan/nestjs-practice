@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
+  Param,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -21,7 +22,7 @@ export class SecurityController {
     @Inject()
     private readonly deviceAuthSessionQueryRepository: DeviceAuthSessionQueryRepository,
     @Inject() private readonly commandBus: CommandBus,
-  ) { }
+  ) {}
 
   @Get('devices')
   async getAll() {
@@ -37,8 +38,8 @@ export class SecurityController {
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Delete('devices')
-  async deleteSessionById(@Query(':deviceId') deviceId: string) {
+  @Delete('devices/:deviceId')
+  async deleteSessionById(@Param('deviceId') deviceId: string) {
     await this.commandBus.execute<DeleteSessionByDeviceIdCommand>(
       new DeleteSessionByDeviceIdCommand(deviceId),
     );

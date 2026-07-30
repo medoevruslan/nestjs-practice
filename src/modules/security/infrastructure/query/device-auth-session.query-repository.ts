@@ -6,16 +6,18 @@ import {
 import { DomainException } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
 import { Injectable } from '@nestjs/common';
+import { DeviceAuthSessionViewDto } from '../../api/view-dto/device-auth-session-view.dto';
 
 @Injectable()
 export class DeviceAuthSessionQueryRepository {
   constructor(
     @InjectModel(DeviceAuthSession.name)
     private readonly Model: DeviceAuthSessionModel,
-  ) { }
+  ) {}
 
   async getAll() {
-    return this.Model.find({});
+    const res = await this.Model.find({});
+    return res.map(DeviceAuthSessionViewDto.mapToView);
   }
 
   async getByUserIdOrNotFoundFail(userId: string) {
@@ -28,6 +30,6 @@ export class DeviceAuthSessionQueryRepository {
       });
     }
 
-    return found;
+    return DeviceAuthSessionViewDto.mapToView(found);
   }
 }

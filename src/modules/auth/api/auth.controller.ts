@@ -28,9 +28,13 @@ import { ConfirmRegistrationCommand } from '../application/usecases/confirm-regi
 import { ResendConfirmationCommand } from '../application/usecases/resend-confirmation-email.usecase';
 import { NewPasswordCommand } from '../application/usecases/new-password.usecase';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { CurrentUserId } from 'src/core/decorators/auth/create-param.decorator';
+import {
+  Cookies,
+  CurrentUserId,
+} from 'src/core/decorators/auth/create-param.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
+import { RefreshTokenCommand } from '../application/usecases/refresh-token.usecase';
 
 @UseGuards(ThrottlerGuard)
 @Controller('auth')
@@ -38,7 +42,7 @@ export class AuthController {
   constructor(
     @Inject() private readonly authService: AuthService,
     @Inject() private readonly commandBus: CommandBus,
-  ) { }
+  ) {}
 
   @SkipThrottle()
   @ApiBearerAuth('bearer')
@@ -102,5 +106,19 @@ export class AuthController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async registrationEmailResending(@Body() body: EmailConfirmationInputDto) {
     await this.commandBus.execute(new ResendConfirmationCommand(body.email));
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(JwtAuthGuard)
+  async logout() {}
+
+  @Post('refresh-token')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async refreshToken(@Cookies('refreshToken') refreshToken: string) {
+    this.commandBus.execute<RefreshTokenCommand>(
+      new RefreshTokenCommand(refreshToken),
+    );
   }
 }

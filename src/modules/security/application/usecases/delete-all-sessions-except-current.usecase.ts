@@ -14,7 +14,8 @@ export class DeleteAllSessionsExceptCurrentUseCase implements ICommandHandler<De
     private readonly model: DeviceAuthSessionModel,
   ) {}
 
-  async execute(_: DeleteAllSessionsExceptCurrentCommand) {
-    throw Error('Not implemented');
+  async execute() {
+    const res = await this.model.deleteMany({});
+    return res.acknowledged;
   }
 }

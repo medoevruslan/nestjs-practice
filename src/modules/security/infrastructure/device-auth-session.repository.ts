@@ -20,12 +20,14 @@ export class DeviceAuthSessionRepository {
   }
 
   async getDeviceAuthSessionByDeviceIdOrFault(id: string) {
-    const found = await this.model.findOne({ deviceId: id });
+    const found = await this.model.findOne({ deviceId: id }).lean();
     if (!found) {
       throw new DomainException({
         code: DomainExceptionCode.NotFound,
         message: 'device auth session not found',
       });
     }
+
+    return found;
   }
 }

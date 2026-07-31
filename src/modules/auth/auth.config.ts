@@ -16,9 +16,15 @@ export class AuthConfig implements JwtOptionsFactory {
   jwtSecret: string = String(this.configService.get('JWT_SECRET'));
 
   @IsMsDuration()
-  expiresIn: ms.StringValue = this.configService.get<ms.StringValue>(
-    'JWT_EXPIRES_IN',
+  accessTokenExpiresIn: ms.StringValue = this.configService.get<ms.StringValue>(
+    'JWT_ACCESS_EXPIRES_IN',
   ) as ms.StringValue;
+
+  @IsMsDuration()
+  refreshTokenExpiresIn: ms.StringValue =
+    this.configService.get<ms.StringValue>(
+      'JWT_REFRESH_EXPIRES_IN',
+    ) as ms.StringValue;
 
   @IsStringWithTrim(1)
   adminName: string = String(this.configService.get<string>('ADMIN_NAME'));
@@ -31,7 +37,8 @@ export class AuthConfig implements JwtOptionsFactory {
   getJwtConfig() {
     return {
       secret: this.jwtSecret,
-      expiresIn: this.expiresIn,
+      accessTokenExpiresIn: this.accessTokenExpiresIn,
+      refreshTokenExpiresIn: this.refreshTokenExpiresIn,
     };
   }
 
@@ -45,7 +52,7 @@ export class AuthConfig implements JwtOptionsFactory {
   createJwtOptions(): JwtModuleOptions {
     return {
       secret: this.jwtSecret,
-      signOptions: { expiresIn: this.expiresIn },
+      signOptions: { expiresIn: this.accessTokenExpiresIn },
     };
   }
 }

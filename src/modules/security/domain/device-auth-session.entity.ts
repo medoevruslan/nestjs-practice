@@ -29,6 +29,12 @@ export class DeviceAuthSession {
   @Prop({ type: Number, required: true })
   exp: number;
 
+  @Prop({ type: Number, default: null })
+  lastActiveAt: number | null;
+
+  @Prop({ type: String, default: null })
+  refreshTokenHash: string | null;
+
   createdAt: Date;
   updatedAt: Date;
 
@@ -49,6 +55,8 @@ export class DeviceAuthSession {
     instance.userId = dto.userId;
     instance.deviceId = dto.deviceId;
     instance.deviceName = dto.deviceName;
+    instance.lastActiveAt = Date.now();
+    instance.refreshTokenHash = dto.refreshTokenHash;
     return instance as DeviceAuthSessionDocument;
   }
 

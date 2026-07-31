@@ -20,4 +20,7 @@ export class CreateDeviceAuthSessionDomainDto {
 
   @IsNumber()
   exp: number;
+
+  @IsStringWithTrim(60, 60)
+  refreshTokenHash: string;
 }

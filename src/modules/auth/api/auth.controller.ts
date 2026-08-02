@@ -117,7 +117,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async refreshToken(@Cookies('refreshToken') refreshToken: string) {
-    this.commandBus.execute<RefreshTokenCommand>(
+    await this.commandBus.execute<RefreshTokenCommand>(
       new RefreshTokenCommand(refreshToken),
     );
   }

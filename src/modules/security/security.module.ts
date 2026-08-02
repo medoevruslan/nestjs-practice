@@ -13,6 +13,7 @@ import { DeviceAuthSessionRepository } from './infrastructure/device-auth-sessio
 import { DeleteAllSessionsExceptCurrentUseCase } from './application/usecases/delete-all-sessions-except-current.usecase';
 import { DeleteSessionByDeviceIdUseCase } from './application/usecases/delete-auth-session-by-id.usecase';
 import { DeviceAuthSessionService } from './application/device-auth-session.service';
+import { UpdateDeviceAuthSessionUseCase } from './application/usecases/update-device-auth-session.usecase';
 
 @Module({
   imports: [
@@ -29,6 +30,8 @@ import { DeviceAuthSessionService } from './application/device-auth-session.serv
     CreateDeviceAuthSessionUseCase,
     DeleteAllSessionsExceptCurrentUseCase,
     DeleteSessionByDeviceIdUseCase,
+    UpdateDeviceAuthSessionUseCase,
+    DeviceAuthSessionService,
   ],
   exports: [CreateDeviceAuthSessionUseCase, DeviceAuthSessionService],
 })

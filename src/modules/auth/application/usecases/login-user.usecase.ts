@@ -11,6 +11,7 @@ import { CreateDeviceAuthSessionCommand } from '../../../security/application/us
 import { JwtPayload } from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
 import { JwtUserPayload } from '../../jwtUserPayload';
+import bcrypt from 'bcrypt';
 
 export class LoginUserCommand {
   constructor(
@@ -69,31 +70,24 @@ export class LoginUserUseCase implements ICommandHandler<LoginUserCommand> {
 
     const accessToken = this.jwtService.sign(payload);
     const refreshToken = this.jwtService.sign(payload, {
-      secret: jwtConfig.secret,
-      expiresIn: jwtConfig.expiresIn,
+      expiresIn: jwtConfig.refreshTokenExpiresIn,
     });
 
-    const tokenData = this.jwtService.decode(accessToken, {
+    const tokenData = this.jwtService.decode(refreshToken, {
       json: true,
     }) as JwtPayload;
-    const iat = tokenData.iat;
-    const exp = tokenData.exp;
 
-    if (!iat || !exp) {
-      throw new DomainException({
-        code: DomainExceptionCode.InternalServerError,
-        message: 'Invalid access token',
-      });
-    }
+    const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
 
     await this.commandBus.execute(
       new CreateDeviceAuthSessionCommand({
         userId: user.id,
-        iat,
-        exp,
+        iat: tokenData.iat!,
+        exp: tokenData.exp!,
         deviceId,
         ip: deviceSessionInfo.ip,
         deviceName: deviceSessionInfo.deviceName,
+        refreshTokenHash,
       }),
     );
 

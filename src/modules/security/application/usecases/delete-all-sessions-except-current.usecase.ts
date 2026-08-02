@@ -5,7 +5,12 @@ import {
   DeviceAuthSessionModel,
 } from '../../domain/device-auth-session.entity';
 
-export class DeleteAllSessionsExceptCurrentCommand {}
+export class DeleteAllSessionsExceptCurrentCommand {
+  constructor(
+    readonly currentSessionId: string,
+    readonly userId: string,
+  ) {}
+}
 
 @CommandHandler(DeleteAllSessionsExceptCurrentCommand)
 export class DeleteAllSessionsExceptCurrentUseCase implements ICommandHandler<DeleteAllSessionsExceptCurrentCommand> {
@@ -14,8 +19,11 @@ export class DeleteAllSessionsExceptCurrentUseCase implements ICommandHandler<De
     private readonly model: DeviceAuthSessionModel,
   ) {}
 
-  async execute() {
-    const res = await this.model.deleteMany({});
+  async execute(command: DeleteAllSessionsExceptCurrentCommand) {
+    const res = await this.model.updateMany(
+      { userId: command.userId, _id: { $ne: command.currentSessionId } },
+      { $set: { deletedAt: new Date() } },
+    );
     return res.acknowledged;
   }
 }

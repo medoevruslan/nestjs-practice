@@ -7,6 +7,9 @@ import { DomainException } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
 import { DeviceAuthSessionService } from '../../../security/application/device-auth-session.service';
 import { UpdateDeviceAuthSessionCommand } from 'src/modules/security/application/usecases/update-device-auth-session.usecase';
+import bcrypt from 'bcrypt';
+import { JwtPayload } from 'jsonwebtoken';
+import { randomUUID } from 'crypto';
 
 export class RefreshTokenCommand {
   constructor(public readonly refreshToken: string) {}
@@ -22,14 +25,17 @@ export class RefreshTokenUseCase implements ICommandHandler<RefreshTokenCommand>
     @Inject() private readonly commandBus: CommandBus,
   ) {}
   async execute(command: RefreshTokenCommand) {
-    const { refreshToken: refreshTokenOld } = command;
+    const { refreshToken: incomingRefreshToken } = command;
     const jwtConfig = this.authConfig.getJwtConfig();
     let jwtPayload: JwtUserPayload;
 
     try {
-      jwtPayload = this.jwtService.verify<JwtUserPayload>(refreshTokenOld, {
-        secret: jwtConfig.secret,
-      });
+      jwtPayload = this.jwtService.verify<JwtUserPayload>(
+        incomingRefreshToken,
+        {
+          secret: jwtConfig.secret,
+        },
+      );
     } catch (error) {
       throw new DomainException({
         code: DomainExceptionCode.ValidationError,
@@ -42,23 +48,47 @@ export class RefreshTokenUseCase implements ICommandHandler<RefreshTokenCommand>
         jwtPayload.deviceId,
       );
 
-    const accessToken = this.jwtService.sign(jwtPayload, {
-      secret: jwtConfig.secret,
-    });
+    const isTokenValid = Boolean(
+      currentDeviceSession?.refreshTokenHash &&
+      (await bcrypt.compare(
+        incomingRefreshToken,
+        currentDeviceSession.refreshTokenHash,
+      )),
+    );
+
+    if (!isTokenValid) {
+      await this.deviceAuthSessionService.revokeDeviceAuthSessionByDeviceId(
+        currentDeviceSession.deviceId,
+      );
+
+      throw new DomainException({
+        code: DomainExceptionCode.Unauthorized,
+        message: 'Invalid authorization token',
+      });
+    }
+
+    const accessToken = this.jwtService.sign(jwtPayload);
     const refreshToken = this.jwtService.sign(jwtPayload, {
-      expiresIn: jwtConfig.expiresIn,
+      expiresIn: jwtConfig.refreshTokenExpiresIn,
+      jwtid: randomUUID(),
     });
 
-    const { deviceId, userId, iat, exp, ip, deviceName } = currentDeviceSession;
+    const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
+
+    const refreshTokenData = this.jwtService.decode(refreshToken, {
+      json: true,
+    }) as JwtPayload;
 
     await this.commandBus.execute(
       new UpdateDeviceAuthSessionCommand({
-        deviceId,
-        userId,
-        exp,
-        iat,
-        deviceName,
-        ip,
+        sessionId: currentDeviceSession._id,
+        deviceId: currentDeviceSession.deviceId,
+        userId: currentDeviceSession.userId,
+        currentRefreshTokenHash: currentDeviceSession.refreshTokenHash!,
+        exp: refreshTokenData.exp!,
+        iat: refreshTokenData.iat!,
+        refreshTokenHash,
+        lastActiveAt: Date.now(),
       }),
     );
 

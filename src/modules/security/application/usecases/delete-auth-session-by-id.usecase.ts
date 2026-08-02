@@ -17,7 +17,10 @@ export class DeleteSessionByDeviceIdUseCase implements ICommandHandler<DeleteSes
   ) {}
 
   async execute(command: DeleteSessionByDeviceIdCommand) {
-    const res = await this.model.deleteOne({ deviceId: command.deviceId });
-    return res.deletedCount === 1;
+    const res = await this.model.updateOne(
+      { deviceId: command.deviceId },
+      { $set: { deletedAt: new Date() } },
+    );
+    return res.modifiedCount === 1;
   }
 }

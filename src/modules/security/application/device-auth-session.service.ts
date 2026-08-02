@@ -17,4 +17,10 @@ export class DeviceAuthSessionService {
       id,
     );
   }
+
+  async revokeDeviceAuthSessionByDeviceId(id: string) {
+    const session = await this.getDeviceAuthSessionByDeviceIdOrFault(id);
+    session.markDeleted();
+    await this.deviceAuthSessionRepository.save(session);
+  }
 }

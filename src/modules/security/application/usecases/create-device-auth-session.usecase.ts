@@ -10,7 +10,7 @@ import { UsersService } from '../../../user-account/application/users.service';
 import { DeviceAuthSessionRepository } from '../../infrastructure/device-auth-session.repository';
 
 export class CreateDeviceAuthSessionCommand {
-  constructor(public readonly dto: CreateDeviceAuthSessionDomainDto) { }
+  constructor(public readonly dto: CreateDeviceAuthSessionDomainDto) {}
 }
 
 @CommandHandler(CreateDeviceAuthSessionCommand)
@@ -21,7 +21,7 @@ export class CreateDeviceAuthSessionUseCase implements ICommandHandler<CreateDev
     @Inject()
     private readonly deviceAuthSessionRepository: DeviceAuthSessionRepository,
     @Inject() private readonly usersService: UsersService,
-  ) { }
+  ) {}
 
   async execute(command: CreateDeviceAuthSessionCommand) {
     await this.usersService.getByIdOrFail(command.dto.userId.toString());

@@ -10,6 +10,7 @@ import { createTestUser, loginTestUser } from '../create-test-user';
 describe('Security (e2e)', () => {
   let app: INestApplication;
   let accessToken: string;
+  let refreshToken: string;
 
   beforeAll(async () => {
     const builder = Test.createTestingModule({ imports: [AppModule] });
@@ -37,15 +38,22 @@ describe('Security (e2e)', () => {
   });
 
   beforeEach(async () => {
-    const loginRes = await loginTestUser(app.getHttpServer());
-    expect(loginRes.status).toBe(HttpStatus.OK);
-    expect(loginRes.body.accessToken).toBeDefined();
+    beforeEach(async () => {
+      const resetRes = await request(app.getHttpServer()).delete(
+        '/api/testing/all-data',
+      );
 
-    accessToken = loginRes.body.accessToken;
-  });
+      expect(resetRes.status).toBe(HttpStatus.NO_CONTENT);
 
-  afterEach(async () => {
-    await cleanUpSessions(app, accessToken);
+      const createdRes = await createTestUser(app.getHttpServer());
+      expect(createdRes.status).toBe(HttpStatus.CREATED);
+
+      const loginRes = await loginTestUser(app.getHttpServer());
+      expect(loginRes.status).toBe(HttpStatus.OK);
+
+      accessToken = loginRes.body.accessToken;
+      refreshToken = loginRes.headers['set-cookie'][0];
+    });
   });
 
   afterAll(async () => {
@@ -105,10 +113,3 @@ describe('Security (e2e)', () => {
     expect(deviceAuthRes2.body.length).toBe(0);
   });
 });
-
-const cleanUpSessions = async (app: INestApplication, token: string) => {
-  await request(app.getHttpServer())
-    .delete('/api/security/devices')
-    .auth(token, { type: 'bearer' })
-    .expect(HttpStatus.NO_CONTENT);
-};

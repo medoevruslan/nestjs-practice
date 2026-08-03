@@ -44,7 +44,7 @@ export class DeleteAllSessionsExceptCurrentUseCase implements ICommandHandler<De
     } catch (e) {
       // TODO: add production logger
       console.error(
-        'bad request toke on DeleteAllSessionsExceptCurrentCommand',
+        'bad refresh token on DeleteAllSessionsExceptCurrentCommand',
         e,
       );
       throw new DomainException({

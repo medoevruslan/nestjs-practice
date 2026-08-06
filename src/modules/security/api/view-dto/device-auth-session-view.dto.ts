@@ -1,17 +1,21 @@
 import { DeviceAuthSessionDocument } from '../../domain/device-auth-session.entity';
 
 export class DeviceAuthSessionViewDto {
-  readonly ip: string;
-  readonly title: string;
-  readonly lastActiveDate: string;
-  readonly deviceId: string;
+  ip: string;
+  title: string;
+  lastActiveDate: string;
+  deviceId: string;
 
-  static mapToView(dto: DeviceAuthSessionDocument): DeviceAuthSessionViewDto {
-    return {
-      ip: dto.ip,
-      title: dto.deviceName,
-      deviceId: dto.deviceId,
-      lastActiveDate: new Date(dto.iat * 1000).toISOString(),
-    };
+  static mapToView(
+    session: DeviceAuthSessionDocument,
+  ): DeviceAuthSessionViewDto {
+    const dto = new DeviceAuthSessionViewDto();
+
+    dto.deviceId = session.deviceId;
+    dto.ip = session.ip;
+    dto.lastActiveDate = new Date(session.iat * 1000).toISOString();
+    dto.title = session.deviceName;
+
+    return dto;
   }
 }

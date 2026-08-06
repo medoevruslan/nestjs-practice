@@ -13,7 +13,10 @@ import { DeviceAuthSessionQueryRepository } from '../infrastructure/query/device
 import { CommandBus } from '@nestjs/cqrs';
 import { DeleteAllSessionsExceptCurrentCommand } from '../application/usecases/delete-all-sessions-except-current.usecase';
 import { DeleteSessionByDeviceIdCommand } from '../application/usecases/delete-auth-session-by-id.usecase';
-import { Cookies } from '../../../core/decorators/auth/create-param.decorator';
+import {
+  Cookies,
+  CurrentUserId,
+} from '../../../core/decorators/auth/create-param.decorator';
 
 @UseGuards(JwtAuthGuard)
 @Controller('security')
@@ -25,8 +28,10 @@ export class SecurityController {
   ) {}
 
   @Get('devices')
-  async getAll() {
-    return this.deviceAuthSessionQueryRepository.getAll();
+  async getAllUserSessions(@CurrentUserId() userId: string) {
+    return this.deviceAuthSessionQueryRepository.getByUserIdOrNotFoundFail(
+      userId,
+    );
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)

@@ -21,7 +21,7 @@ export class DeviceAuthSessionQueryRepository {
   }
 
   async getByUserIdOrNotFoundFail(userId: string) {
-    const found = await this.Model.findOne({ userId, deletedAt: null });
+    const found = await this.Model.find({ userId, deletedAt: null });
 
     if (!found) {
       throw new DomainException({
@@ -30,6 +30,6 @@ export class DeviceAuthSessionQueryRepository {
       });
     }
 
-    return DeviceAuthSessionViewDto.mapToView(found);
+    return found.map(DeviceAuthSessionViewDto.mapToView);
   }
 }

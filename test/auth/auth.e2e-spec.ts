@@ -10,6 +10,7 @@ import { createTestUser, TEST_USER } from '../create-test-user';
 describe('auth e2e tests', () => {
   let app: INestApplication;
   let accessToken: string = '';
+  let refreshToken: string = '';
 
   beforeAll(async () => {
     const builder = Test.createTestingModule({ imports: [AppModule] });
@@ -42,6 +43,26 @@ describe('auth e2e tests', () => {
     await app?.close();
   });
 
+  describe('auth login and logout', async () => {
+    beforeAll(async () => {
+      const res = await request(app.getHttpServer()).delete(
+        '/api/testing/all-data',
+      );
+      expect(res.status).toBe(HttpStatus.NO_CONTENT);
+    });
+
+    it('should login successfully', async () => {
+      const res = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({
+          loginOrEmail: TEST_USER.email,
+          password: TEST_USER.password,
+        });
+
+      expect(res.status).toBe(HttpStatus.NO_CONTENT);
+    });
+  });
+
   describe('auth rate limiter', () => {
     const REQUESTS_OVER_LIMIT = 6;
     const REQUESTS_PASSED = 5;
@@ -59,6 +80,10 @@ describe('auth e2e tests', () => {
           accessToken = res.body.accessToken;
         }
 
+        if (refreshToken === '') {
+          refreshToken = res.headers['set-cookie'][0];
+        }
+
         if (i < REQUESTS_PASSED) {
           expect(res.status).toBe(HttpStatus.OK);
         } else {
@@ -74,6 +99,35 @@ describe('auth e2e tests', () => {
           .auth(accessToken, { type: 'bearer' });
         expect(res.status).toBe(HttpStatus.OK);
       }
+    });
+
+    it('should logout restricted if no auth', async () => {
+      await request(app.getHttpServer())
+        .post('/api/auth/logout')
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
+    it('should logout and delete auth session', async () => {
+      // remove all sessions except current
+      await request(app.getHttpServer())
+        .delete('/api/security/devices')
+        .auth(accessToken, { type: 'bearer' })
+        .set('Cookie', refreshToken)
+        .expect(HttpStatus.NO_CONTENT);
+
+      await request(app.getHttpServer())
+        .post('/api/auth/logout')
+        .auth(accessToken, { type: 'bearer' })
+        .set('Cookie', refreshToken)
+        .expect(HttpStatus.NO_CONTENT);
+
+      const securityRes = await request(app.getHttpServer())
+        .get('/api/security/devices')
+        .auth(accessToken, { type: 'bearer' })
+        .set('Cookie', refreshToken)
+        .expect(HttpStatus.OK);
+
+      expect(securityRes.body.length).toBe(0);
     });
   });
 });

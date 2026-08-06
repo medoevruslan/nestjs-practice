@@ -26,6 +26,7 @@ import { RateLimitConfig } from './rate-limit.config';
 import { MailerEmailSender } from './infrastructure/mailer-email-sender';
 import { SecurityModule } from '../security/security.module';
 import { RefreshTokenUseCase } from './application/usecases/refresh-token.usecase';
+import { LogoutUserUseCase } from './application/usecases/logout-user.usecase';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { RefreshTokenUseCase } from './application/usecases/refresh-token.usecas
     RefreshTokenUseCase,
     NewPasswordUseCase,
     LoginUserUseCase,
+    LogoutUserUseCase,
     UserRegisteredHandler,
     SentRecoveryPasswordHandler,
     ResentConfirmationEmailHandler,

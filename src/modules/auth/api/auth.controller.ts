@@ -35,6 +35,7 @@ import {
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
 import { RefreshTokenCommand } from '../application/usecases/refresh-token.usecase';
+import { LogoutUserCommand } from '../application/usecases/logout-user.usecase';
 
 @UseGuards(ThrottlerGuard)
 @Controller('auth')
@@ -111,7 +112,9 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
-  async logout() {}
+  async logout(@Cookies('refreshToken') refreshToken: string) {
+    await this.commandBus.execute(new LogoutUserCommand(refreshToken));
+  }
 
   @Post('refresh-token')
   @HttpCode(HttpStatus.OK)

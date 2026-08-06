@@ -38,7 +38,7 @@ export class DeviceAuthSession {
   createdAt: Date;
   updatedAt: Date;
 
-  @Prop({ type: Date, nullable: true })
+  @Prop({ type: Date, default: null })
   deletedAt: Date | null;
 
   get id() {
@@ -61,7 +61,7 @@ export class DeviceAuthSession {
   }
 
   markDeleted() {
-    if (this.deletedAt !== null) {
+    if (this.deletedAt != null) {
       throw new Error('Entity already deleted');
     }
     this.deletedAt = new Date();

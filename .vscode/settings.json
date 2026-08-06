@@ -7,15 +7,15 @@
     },
     {
       "name": "e2e",
-      "jestCommandLine": "pnpm test:e2e",
-      "runMode": "on-demand"
+      "jestCommandLine": "./node_modules/jest/bin/jest.js --config ./test/jest-e2e.json",
+      "runMode": "on-demand",
+      "nodeEnv": {
+        "NODE_ENV": "testing"
+      }
     }
   ],
   "eslint.enable": true,
-  "eslint.validate": [
-    "javascript",
-    "typescript",
-  ],
+  "eslint.validate": ["javascript", "typescript"],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   }

@@ -109,6 +109,7 @@ export class AuthController {
     await this.commandBus.execute(new ResendConfirmationCommand(body.email));
   }
 
+  @SkipThrottle()
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)

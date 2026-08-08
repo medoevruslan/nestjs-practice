@@ -9,8 +9,6 @@ import { createTestUser, TEST_USER } from '../create-test-user';
 
 describe('auth e2e tests', () => {
   let app: INestApplication;
-  let accessToken: string = '';
-  let refreshToken: string = '';
 
   beforeAll(async () => {
     const builder = Test.createTestingModule({ imports: [AppModule] });
@@ -30,25 +28,28 @@ describe('auth e2e tests', () => {
       '/api/testing/all-data',
     );
     expect(res.status).toBe(HttpStatus.NO_CONTENT);
-
-    const response = await createTestUser(app.getHttpServer());
-
-    expect(response.status).toBe(HttpStatus.CREATED);
-
-    expect(response.body.login).toBe(TEST_USER.login);
-    expect(response.body.email).toBe(TEST_USER.email);
   });
 
   afterAll(async () => {
     await app?.close();
   });
 
-  describe('auth login and logout', async () => {
+  describe('auth login and logout', () => {
+    let accessToken: string;
+    let refreshToken: string;
+
     beforeAll(async () => {
       const res = await request(app.getHttpServer()).delete(
         '/api/testing/all-data',
       );
       expect(res.status).toBe(HttpStatus.NO_CONTENT);
+
+      const response = await createTestUser(app.getHttpServer());
+
+      expect(response.status).toBe(HttpStatus.CREATED);
+
+      expect(response.body.login).toBe(TEST_USER.login);
+      expect(response.body.email).toBe(TEST_USER.email);
     });
 
     it('should login successfully', async () => {
@@ -59,46 +60,9 @@ describe('auth e2e tests', () => {
           password: TEST_USER.password,
         });
 
-      expect(res.status).toBe(HttpStatus.NO_CONTENT);
-    });
-  });
-
-  describe('auth rate limiter', () => {
-    const REQUESTS_OVER_LIMIT = 6;
-    const REQUESTS_PASSED = 5;
-
-    it('should restrict more than 5 requests in 10 sec', async () => {
-      for (let i = 0; i <= REQUESTS_OVER_LIMIT; i++) {
-        const res = await request(app.getHttpServer())
-          .post('/api/auth/login')
-          .send({
-            loginOrEmail: TEST_USER.email,
-            password: TEST_USER.password,
-          });
-
-        if (accessToken === '') {
-          accessToken = res.body.accessToken;
-        }
-
-        if (refreshToken === '') {
-          refreshToken = res.headers['set-cookie'][0];
-        }
-
-        if (i < REQUESTS_PASSED) {
-          expect(res.status).toBe(HttpStatus.OK);
-        } else {
-          expect(res.status).toBe(HttpStatus.TOO_MANY_REQUESTS);
-        }
-      }
-    });
-
-    it('me endpoint should not be restricted with rate limiter', async () => {
-      for (let i = 0; i <= REQUESTS_OVER_LIMIT; i++) {
-        const res = await request(app.getHttpServer())
-          .get('/api/auth/me')
-          .auth(accessToken, { type: 'bearer' });
-        expect(res.status).toBe(HttpStatus.OK);
-      }
+      expect(res.status).toBe(HttpStatus.OK);
+      accessToken = res.body.accessToken;
+      refreshToken = res.headers['set-cookie'][0];
     });
 
     it('should logout restricted if no auth', async () => {
@@ -128,6 +92,58 @@ describe('auth e2e tests', () => {
         .expect(HttpStatus.OK);
 
       expect(securityRes.body.length).toBe(0);
+    });
+  });
+
+  describe('auth rate limiter', () => {
+    const RATE_LIMIT = 5;
+    const REQUEST_COUNT = RATE_LIMIT + 1;
+    const RATE_LIMIT_TEST_IP = '198.51.100.42';
+    let accessToken: string;
+
+    beforeAll(async () => {
+      const res = await request(app.getHttpServer()).delete(
+        '/api/testing/all-data',
+      );
+      expect(res.status).toBe(HttpStatus.NO_CONTENT);
+
+      const response = await createTestUser(app.getHttpServer());
+
+      expect(response.status).toBe(HttpStatus.CREATED);
+
+      expect(response.body.login).toBe(TEST_USER.login);
+      expect(response.body.email).toBe(TEST_USER.email);
+    });
+
+    it('should restrict more than 5 requests in 10 sec', async () => {
+      for (let i = 0; i < REQUEST_COUNT; i++) {
+        const res = await request(app.getHttpServer())
+          .post('/api/auth/login')
+          .set('X-Forwarded-For', RATE_LIMIT_TEST_IP)
+          .send({
+            loginOrEmail: TEST_USER.email,
+            password: TEST_USER.password,
+          });
+
+        if (i < RATE_LIMIT) {
+          expect(res.status).toBe(HttpStatus.OK);
+        } else {
+          expect(res.status).toBe(HttpStatus.TOO_MANY_REQUESTS);
+        }
+
+        if (res.status === HttpStatus.OK && !accessToken) {
+          accessToken = res.body.accessToken;
+        }
+      }
+    });
+
+    it('me endpoint should not be restricted with rate limiter', async () => {
+      for (let i = 0; i < REQUEST_COUNT; i++) {
+        const res = await request(app.getHttpServer())
+          .get('/api/auth/me')
+          .auth(accessToken, { type: 'bearer' });
+        expect(res.status).toBe(HttpStatus.OK);
+      }
     });
   });
 });

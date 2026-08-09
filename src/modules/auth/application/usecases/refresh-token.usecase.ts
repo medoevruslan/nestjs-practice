@@ -48,11 +48,16 @@ export class RefreshTokenUseCase implements ICommandHandler<RefreshTokenCommand>
       incomingRefreshToken,
     );
 
-    const accessToken = this.jwtService.sign(jwtPayload);
-    const refreshToken = this.jwtService.sign(jwtPayload, {
-      expiresIn: jwtConfig.refreshTokenExpiresIn,
-      jwtid: randomUUID(),
-    });
+    const { deviceId, email, id } = jwtPayload;
+
+    const accessToken = this.jwtService.sign({ deviceId, email, id });
+    const refreshToken = this.jwtService.sign(
+      { deviceId, email, id },
+      {
+        expiresIn: jwtConfig.refreshTokenExpiresIn,
+        jwtid: randomUUID(),
+      },
+    );
 
     const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
 

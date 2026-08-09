@@ -13,7 +13,7 @@ export class DeviceAuthSessionViewDto {
 
     dto.deviceId = session.deviceId;
     dto.ip = session.ip;
-    dto.lastActiveDate = new Date(session.iat * 1000).toISOString();
+    dto.lastActiveDate = new Date(session.lastActiveAt!).toISOString();
     dto.title = session.deviceName;
 
     return dto;

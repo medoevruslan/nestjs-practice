@@ -39,8 +39,6 @@ export class DeviceAuthSessionService {
     );
 
     if (!isTokenValid) {
-      await this.revokeDeviceAuthSessionByDeviceId(deviceId);
-
       throw new DomainException({
         code: DomainExceptionCode.Unauthorized,
         message: 'Invalid authorization data',

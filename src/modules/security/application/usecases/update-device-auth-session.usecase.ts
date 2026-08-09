@@ -28,7 +28,7 @@ export class UpdateDeviceAuthSessionUseCase implements ICommandHandler<UpdateDev
         ...updateData
       },
     } = command;
-    const updated = await this.model.updateOne(
+    const updated = await this.model.findOneAndUpdate(
       {
         _id: sessionId,
         userId,
@@ -44,9 +44,10 @@ export class UpdateDeviceAuthSessionUseCase implements ICommandHandler<UpdateDev
           lastActiveAt: updateData.lastActiveAt,
         },
       },
+      { new: true },
     );
 
-    if (updated.modifiedCount !== 1) {
+    if (!updated) {
       await this.model.updateOne(
         { _id: sessionId },
         { $set: { deletedAt: new Date() } },

@@ -8,7 +8,6 @@ import {
   Param,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { DeviceAuthSessionQueryRepository } from '../infrastructure/query/device-auth-session.query-repository';
 import { CommandBus } from '@nestjs/cqrs';
 import { DeleteAllSessionsExceptCurrentCommand } from '../application/usecases/delete-all-sessions-except-current.usecase';
@@ -17,8 +16,9 @@ import {
   Cookies,
   CurrentUserId,
 } from '../../../core/decorators/auth/create-param.decorator';
+import { DeviceAuthGuard } from './guards/device-auth.guard';
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(DeviceAuthGuard)
 @Controller('security')
 export class SecurityController {
   constructor(
@@ -44,9 +44,12 @@ export class SecurityController {
 
   @HttpCode(HttpStatus.NO_CONTENT)
   @Delete('devices/:deviceId')
-  async deleteSessionById(@Param('deviceId') deviceId: string) {
+  async deleteSessionById(
+    @Param('deviceId') deviceId: string,
+    @CurrentUserId() userId: string,
+  ) {
     await this.commandBus.execute<DeleteSessionByDeviceIdCommand>(
-      new DeleteSessionByDeviceIdCommand(deviceId),
+      new DeleteSessionByDeviceIdCommand(deviceId, userId),
     );
   }
 }

@@ -83,6 +83,8 @@ describe('unit tests for security feature', () => {
     deviceName: 'testDeviceName',
     iat: Date.now(),
     userId: new Types.ObjectId(),
+    refreshTokenHash:
+      '$2b$10$hXuD/k6M8WL3QLTwwELkgeD3aws/0CKDOLz/7mySt.BFElC4wydze',
   };
 
   it.failing(

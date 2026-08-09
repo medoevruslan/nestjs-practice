@@ -27,6 +27,7 @@ import { MailerEmailSender } from './infrastructure/mailer-email-sender';
 import { SecurityModule } from '../security/security.module';
 import { RefreshTokenUseCase } from './application/usecases/refresh-token.usecase';
 import { LogoutUserUseCase } from './application/usecases/logout-user.usecase';
+import { RefreshTokenAuthGuard } from './guards/refresh-token-auth.guard';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { LogoutUserUseCase } from './application/usecases/logout-user.usecase';
   providers: [
     JwtStrategy,
     BasicStrategy,
+    RefreshTokenAuthGuard,
     AuthService,
     CryptoService,
     AuthConfig,

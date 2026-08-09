@@ -106,10 +106,9 @@ describe('auth e2e tests', () => {
         .set('Cookie', refreshToken);
 
       const newAccessToken = refreshRes.body.accessToken;
-      const newRefreshToken = refreshRes.body.refreshToken;
+      const newRefreshToken = refreshRes.headers['set-cookie'][0];
 
       expect(newAccessToken).toBeDefined();
-      expect(newRefreshToken).toBeDefined();
 
       expect(newAccessToken).not.toMatch(accessToken);
       expect(newRefreshToken).not.toMatch(refreshToken);

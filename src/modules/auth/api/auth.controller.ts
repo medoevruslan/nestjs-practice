@@ -120,9 +120,20 @@ export class AuthController {
   @Post('refresh-token')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  async refreshToken(@Cookies('refreshToken') refreshToken: string) {
-    return this.commandBus.execute<RefreshTokenCommand>(
+  async refreshToken(
+    @Cookies('refreshToken') refreshToken: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const tokens = await this.commandBus.execute<RefreshTokenCommand>(
       new RefreshTokenCommand(refreshToken),
     );
+
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+    });
+
+    return { accessToken: tokens.accessToken };
   }
 }

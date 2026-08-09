@@ -5,7 +5,7 @@ import { appSetup } from '../../src/setup/app.setup';
 import request from 'supertest';
 import { Connection } from 'mongoose';
 import { getConnectionToken } from '@nestjs/mongoose';
-import { createTestUser, TEST_USER } from '../create-test-user';
+import { createTestUser, loginTestUser, TEST_USER } from '../create-test-user';
 
 describe('auth e2e tests', () => {
   let app: INestApplication;
@@ -92,6 +92,27 @@ describe('auth e2e tests', () => {
         .expect(HttpStatus.OK);
 
       expect(securityRes.body.length).toBe(0);
+    });
+
+    it('should return new access/refresh token', async () => {
+      const res = await loginTestUser(app.getHttpServer());
+      expect(res.status).toBe(HttpStatus.OK);
+      const accessToken = res.body.accessToken;
+      const refreshToken = res.headers['set-cookie'][0];
+
+      const refreshRes = await request(app.getHttpServer())
+        .post('/api/auth/refresh-token')
+        .auth(accessToken, { type: 'bearer' })
+        .set('Cookie', refreshToken);
+
+      const newAccessToken = refreshRes.body.accessToken;
+      const newRefreshToken = refreshRes.body.refreshToken;
+
+      expect(newAccessToken).toBeDefined();
+      expect(newRefreshToken).toBeDefined();
+
+      expect(newAccessToken).not.toMatch(accessToken);
+      expect(newRefreshToken).not.toMatch(refreshToken);
     });
   });
 

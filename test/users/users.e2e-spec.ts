@@ -16,6 +16,7 @@ import {
 import bcrypt from 'bcrypt';
 import { DomainException } from '../../src/core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../src/core/exceptions/domain-exception-codes';
+import { createTestUser, loginTestUser, TEST_USER } from '../create-test-user';
 
 const emailSenderMock = {
   sendEmailConfirmation: jest.fn().mockResolvedValue(undefined),
@@ -26,12 +27,6 @@ describe('users test', () => {
   let app: INestApplication;
   let testUserId: string;
   let userModel: UserModelType;
-
-  const testUser = {
-    login: 'test-user',
-    email: 'test-user@email.com',
-    password: '123456',
-  };
 
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
@@ -56,14 +51,11 @@ describe('users test', () => {
 
     await request(app.getHttpServer()).delete('/api/testing/all-data');
 
-    const response = await request(app.getHttpServer())
-      .post('/api/users')
-      .auth('admin', 'qwerty')
-      .send(testUser)
-      .expect(HttpStatus.CREATED);
+    const response = await createTestUser(app.getHttpServer());
+    expect(response.status).toBe(HttpStatus.CREATED);
 
-    expect(response.body.login).toBe(testUser.login);
-    expect(response.body.email).toBe(testUser.email);
+    expect(response.body.login).toBe(TEST_USER.login);
+    expect(response.body.email).toBe(TEST_USER.email);
 
     testUserId = response.body.id;
   });
@@ -77,7 +69,7 @@ describe('users test', () => {
       .post('/api/users')
       .auth('admin', 'qwerty')
       .send({
-        ...testUser,
+        ...TEST_USER,
         password: '12345',
       })
       .expect(HttpStatus.BAD_REQUEST);
@@ -104,9 +96,7 @@ describe('users test', () => {
   });
 
   it('should login successfully', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({ loginOrEmail: testUser.email, password: testUser.password });
+    const response = await loginTestUser(app.getHttpServer());
 
     expect(response.status).toBe(HttpStatus.OK);
 
@@ -115,7 +105,7 @@ describe('users test', () => {
 
   // order of tests is important, because of emailSenderMock
   it('should not register user because email already exists, throw 400', async () => {
-    const newUser: RegisterUserInputDto = testUser;
+    const newUser: RegisterUserInputDto = TEST_USER;
 
     const response = await request(app.getHttpServer())
       .post('/api/auth/registration')
@@ -158,10 +148,8 @@ describe('users test', () => {
       password: 'unknown',
     };
 
-    const res = await request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({ loginOrEmail: newUser.email, password: newUser.password })
-      .expect(HttpStatus.UNAUTHORIZED);
+    const res = await loginTestUser(app.getHttpServer(), newUser);
+    expect(res.status).toBe(HttpStatus.UNAUTHORIZED);
 
     expect(res.body.errorsMessages.length).toBeGreaterThan(0);
     expect(res.body.errorsMessages[0].message).toBe('Invalid credentials');
@@ -179,7 +167,7 @@ describe('users test', () => {
   });
 
   it('should recover password', async () => {
-    const user: PasswordRecoveryInputDto = { email: testUser.email };
+    const user: PasswordRecoveryInputDto = { email: TEST_USER.email };
     await request(app.getHttpServer())
       .post('/api/auth/password-recovery')
       .send(user)
@@ -206,7 +194,7 @@ describe('users test', () => {
   });
 
   it('should not set new password, because of expiration date', async () => {
-    const user: PasswordRecoveryInputDto = { email: testUser.email };
+    const user: PasswordRecoveryInputDto = { email: TEST_USER.email };
     await request(app.getHttpServer())
       .post('/api/auth/password-recovery')
       .send(user)
@@ -237,7 +225,7 @@ describe('users test', () => {
   });
 
   it('should set new password', async () => {
-    const user: PasswordRecoveryInputDto = { email: testUser.email };
+    const user: PasswordRecoveryInputDto = { email: TEST_USER.email };
     await request(app.getHttpServer())
       .post('/api/auth/password-recovery')
       .send(user)
@@ -262,11 +250,9 @@ describe('users test', () => {
   });
 
   it('should get me if user is authorized', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({ loginOrEmail: testUser.email, password: testUser.password })
-      .expect(HttpStatus.OK);
+    const response = await loginTestUser(app.getHttpServer());
 
+    expect(response.status).toBe(HttpStatus.OK);
     expect(response.body.accessToken).toBeDefined();
 
     const res = await request(app.getHttpServer())
@@ -275,15 +261,12 @@ describe('users test', () => {
       .expect(HttpStatus.OK);
 
     expect(res.body.userId).toBe(testUserId);
-    expect(res.body.login).toBe(testUser.login);
-    expect(res.body.email).toBe(testUser.email);
+    expect(res.body.login).toBe(TEST_USER.login);
+    expect(res.body.email).toBe(TEST_USER.email);
   });
 
   it('should not get me if user is not authorized', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({ loginOrEmail: testUser.email, password: testUser.password })
-      .expect(HttpStatus.OK);
+    const response = await loginTestUser(app.getHttpServer());
 
     expect(response.body.accessToken).toBeDefined();
 
@@ -295,7 +278,7 @@ describe('users test', () => {
   it('should not confirm user because of bad code', async () => {
     const res = await request(app.getHttpServer())
       .post('/api/auth/registration-confirmation')
-      .send({ email: testUser.email, code: 'fake-code' })
+      .send({ email: TEST_USER.email, code: 'fake-code' })
       .expect(HttpStatus.BAD_REQUEST);
 
     expect(res.body.errorsMessages.length).toBeGreaterThan(0);
@@ -319,7 +302,7 @@ describe('users test', () => {
 
     const res = await request(app.getHttpServer())
       .post('/api/auth/registration-confirmation')
-      .send({ email: testUser.email, code: confirmationCode })
+      .send({ email: TEST_USER.email, code: confirmationCode })
       .expect(HttpStatus.BAD_REQUEST);
 
     expect(res.body.errorsMessages.length).toBeGreaterThan(0);
@@ -342,7 +325,7 @@ describe('users test', () => {
 
     await request(app.getHttpServer())
       .post('/api/auth/registration-confirmation')
-      .send({ email: testUser.email, code: confirmationCode })
+      .send({ email: TEST_USER.email, code: confirmationCode })
       .expect(HttpStatus.NO_CONTENT);
 
     const confirmedUser = await userModel.findOne({ _id: testUserId });

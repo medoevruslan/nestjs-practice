@@ -12,21 +12,23 @@ import { APP_FILTER } from '@nestjs/core';
 import { DomainExceptionFilter } from './core/exceptions/domain-exception.filter';
 import { AllHttpExceptionsFilter } from './core/exceptions/base-exception.filter';
 import { CoreConfig } from './core/core.config';
+import { SecurityModule } from './modules/security/security.module';
 
 @Module({
   imports: [
     configModule,
     MongooseModule.forRootAsync({
       useFactory: (coreConfig: CoreConfig) => {
-        return { uri: coreConfig.mongoUri }
-      }
-      , inject: [CoreConfig]
+        return { uri: coreConfig.mongoUri };
+      },
+      inject: [CoreConfig],
     }),
     BloggerPlatformModule,
     UserAccountModule,
     TestingModule,
     CoreModule,
     AuthModule,
+    SecurityModule,
   ],
   controllers: [AppController],
   providers: [
@@ -35,4 +37,4 @@ import { CoreConfig } from './core/core.config';
     { provide: APP_FILTER, useClass: DomainExceptionFilter },
   ],
 })
-export class AppModule { }
+export class AppModule {}

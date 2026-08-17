@@ -8,7 +8,6 @@ import { UserAccountModule } from '../user-account/user-account.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { MailerConfig } from './mailer.config';
 import { AbstractEmailSender } from './application/port/abstract-email-sender';
-import { MailerEmailSender } from './infrastructure/mailer-email-sender';
 import { CqrsModule } from '@nestjs/cqrs';
 import { RegisterUserUseCase } from './application/usecases/register-user.usecase';
 import { UserRegisteredHandler } from './application/events/user-registered.handler';
@@ -22,19 +21,29 @@ import { NewPasswordUseCase } from './application/usecases/new-password.usecase'
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { BasicStrategy } from './strategies/basic.strategy';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { RateLimitConfig } from './rate-limit.config';
+import { MailerEmailSender } from './infrastructure/mailer-email-sender';
+import { SecurityModule } from '../security/security.module';
+import { RefreshTokenUseCase } from './application/usecases/refresh-token.usecase';
+import { LogoutUserUseCase } from './application/usecases/logout-user.usecase';
+import { RefreshTokenAuthGuard } from './guards/refresh-token-auth.guard';
 
 @Module({
   imports: [
+    ThrottlerModule.forRootAsync({ useClass: RateLimitConfig }),
     JwtModule.registerAsync({ global: true, useClass: AuthConfig }),
     MailerModule.forRootAsync({ useClass: MailerConfig }),
     CqrsModule,
     UserAccountModule,
+    SecurityModule,
     PassportModule,
   ],
   controllers: [AuthController],
   providers: [
     JwtStrategy,
     BasicStrategy,
+    RefreshTokenAuthGuard,
     AuthService,
     CryptoService,
     AuthConfig,
@@ -44,8 +53,10 @@ import { BasicStrategy } from './strategies/basic.strategy';
     ConfirmRegistrationUseCase,
     ResendConfirmationEmailUseCase,
     RegisterUserUseCase,
+    RefreshTokenUseCase,
     NewPasswordUseCase,
     LoginUserUseCase,
+    LogoutUserUseCase,
     UserRegisteredHandler,
     SentRecoveryPasswordHandler,
     ResentConfirmationEmailHandler,
@@ -53,4 +64,4 @@ import { BasicStrategy } from './strategies/basic.strategy';
   ],
   exports: [AuthConfig, MailerConfig, JwtModule],
 })
-export class AuthModule { }
+export class AuthModule {}

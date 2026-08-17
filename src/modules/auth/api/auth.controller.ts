@@ -6,12 +6,12 @@ import {
   HttpStatus,
   Inject,
   Post,
-  Req,
   Res,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from '../application/auth.service';
-import { Request, Response } from 'express';
+import { Response, Request } from 'express';
 import { RegisterUserInputDto } from './input-dto/register-user.input-dto';
 import { NewPasswordInputDto } from './input-dto/new-password.input-dto';
 import { LoginInputDto } from './input-dto/login.input-dto';
@@ -28,9 +28,17 @@ import { ConfirmRegistrationCommand } from '../application/usecases/confirm-regi
 import { ResendConfirmationCommand } from '../application/usecases/resend-confirmation-email.usecase';
 import { NewPasswordCommand } from '../application/usecases/new-password.usecase';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { CurrentUserId } from 'src/core/decorators/auth/create-param.decorator';
+import {
+  Cookies,
+  CurrentUserId,
+} from 'src/core/decorators/auth/create-param.decorator';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { SkipThrottle, ThrottlerGuard } from '@nestjs/throttler';
+import { RefreshTokenCommand } from '../application/usecases/refresh-token.usecase';
+import { LogoutUserCommand } from '../application/usecases/logout-user.usecase';
+import { RefreshTokenAuthGuard } from '../guards/refresh-token-auth.guard';
 
+@UseGuards(ThrottlerGuard)
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -38,6 +46,7 @@ export class AuthController {
     @Inject() private readonly commandBus: CommandBus,
   ) {}
 
+  @SkipThrottle()
   @ApiBearerAuth('bearer')
   @Get('me')
   @UseGuards(JwtAuthGuard)
@@ -50,11 +59,15 @@ export class AuthController {
   async login(
     @Body() body: LoginInputDto,
     @Res({ passthrough: true }) res: Response,
+    @Req() req: Request,
   ) {
+    const reqData = this.authService.getLoginInfo(req);
     const { refreshToken, accessToken } = await this.commandBus.execute<
       LoginUserCommand,
       { refreshToken: string; accessToken: string }
-    >(new LoginUserCommand(body));
+    >(
+      new LoginUserCommand(body, { ip: reqData.ip, deviceName: reqData.agent }),
+    );
 
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
@@ -95,5 +108,33 @@ export class AuthController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async registrationEmailResending(@Body() body: EmailConfirmationInputDto) {
     await this.commandBus.execute(new ResendConfirmationCommand(body.email));
+  }
+
+  @SkipThrottle()
+  @Post('logout')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(RefreshTokenAuthGuard)
+  async logout(@Cookies('refreshToken') refreshToken: string) {
+    await this.commandBus.execute(new LogoutUserCommand(refreshToken));
+  }
+
+  @Post('refresh-token')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(RefreshTokenAuthGuard)
+  async refreshToken(
+    @Cookies('refreshToken') refreshToken: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const tokens = await this.commandBus.execute<RefreshTokenCommand>(
+      new RefreshTokenCommand(refreshToken),
+    );
+
+    res.cookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+    });
+
+    return { accessToken: tokens.accessToken };
   }
 }

@@ -2,24 +2,24 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Inject, Injectable } from '@nestjs/common';
 import { AuthConfig } from '../auth.config';
-import { JwtPayload } from '../jwt.payload';
+import { JwtUserPayload } from '../jwtUserPayload';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(@Inject() private readonly authConfig: AuthConfig) {
-    const jwtOptions = authConfig.createJwtOptions();
+    const jwtConfig = authConfig.getJwtConfig();
 
-    if (typeof jwtOptions?.secret !== 'string')
+    if (typeof jwtConfig.secret !== 'string')
       throw new Error('Invalid JWT secret');
 
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: jwtOptions.secret,
+      secretOrKey: jwtConfig.secret,
     });
   }
 
-  async validate(payload: JwtPayload) {
+  async validate(payload: JwtUserPayload) {
     return { id: payload.id, email: payload.email };
   }
 }

@@ -1,14 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UsersRepository } from '../infrastructure/users.repository';
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument, UserModelType } from '../domain/user.entity';
-import { CryptoService } from './crypto-service';
+import { UserDocument } from '../domain/user.entity';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @Inject() private usersRepository: UsersRepository,
-  ) { }
+  constructor(@Inject() private usersRepository: UsersRepository) {}
 
   async save(user: UserDocument) {
     await this.usersRepository.save(user);

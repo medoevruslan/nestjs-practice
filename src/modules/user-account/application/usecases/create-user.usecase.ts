@@ -10,6 +10,8 @@ import { UsersRepository } from '../../infrastructure/users.repository';
 import { CryptoService } from '../crypto-service';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserModelType } from '../../domain/user.entity';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 export class CreateUserCommand {
   constructor(public readonly dto: CreateUserDto) {}
@@ -24,6 +26,7 @@ export class CreateUserUseCase implements ICommandHandler<
     @InjectModel(User.name) private UserModel: UserModelType,
     @Inject() private usersRepository: UsersRepository,
     @Inject() private cryptoService: CryptoService,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   public async execute({ dto }: CreateUserCommand) {
@@ -37,7 +40,12 @@ export class CreateUserUseCase implements ICommandHandler<
       password: hashedPassword,
     });
 
-    await this.usersRepository.save(user);
+    await this.dataSource.query(
+      'INSERT INTO users (login, email, password) VALUES ($1, $2, $3)',
+      [user.login, user.email, user.password],
+    );
+
+    // await this.usersRepository.save(user);
     return user.id;
   }
 

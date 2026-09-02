@@ -6,6 +6,8 @@ import { appSetup } from '../../src/setup/app.setup';
 import { Connection } from 'mongoose';
 import { getConnectionToken } from '@nestjs/mongoose';
 import { createTestUser, loginTestUser } from '../create-test-user';
+import { getDataSourceToken } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 describe('Security (e2e)', () => {
   let app: INestApplication;
@@ -21,8 +23,9 @@ describe('Security (e2e)', () => {
     await app.init();
 
     const connection = app.get<Connection>(getConnectionToken());
+    const typeOrmConnection = app.get<DataSource>(getDataSourceToken());
 
-    if (!connection.db) {
+    if (!connection.db || !typeOrmConnection.isInitialized) {
       throw Error('Testing db is not available');
     }
   });

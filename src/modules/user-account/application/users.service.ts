@@ -14,6 +14,10 @@ export class UsersService {
     return this.usersRepository.findByIdOrFail(id);
   }
 
+  async getByIdOrFailRaw(id: string) {
+    return this.usersRepository.findByIdOrFailRaw(id);
+  }
+
   async getByEmail(email: string) {
     return this.usersRepository.findByEmailOrFail(email);
   }

@@ -13,10 +13,21 @@ import { DomainExceptionFilter } from './core/exceptions/domain-exception.filter
 import { AllHttpExceptionsFilter } from './core/exceptions/base-exception.filter';
 import { CoreConfig } from './core/core.config';
 import { SecurityModule } from './modules/security/security.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
     configModule,
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: 'localhost',
+      port: 5432,
+      username: 'postgres',
+      password: 'postgres',
+      database: 'postgres',
+      autoLoadEntities: false,
+      synchronize: false,
+    }),
     MongooseModule.forRootAsync({
       useFactory: (coreConfig: CoreConfig) => {
         return { uri: coreConfig.mongoUri };

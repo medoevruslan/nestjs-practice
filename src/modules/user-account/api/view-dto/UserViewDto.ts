@@ -1,4 +1,4 @@
-import { UserDocument } from '../../domain/user.entity';
+import { User } from '../../domain/user.entity';
 
 export class UserViewDto {
   id: string;
@@ -6,7 +6,7 @@ export class UserViewDto {
   email: string;
   createdAt: string;
 
-  static mapToView(dto: UserDocument): UserViewDto {
+  static mapToView(dto: User): UserViewDto {
     return {
       id: dto.id ?? dto._id.toString(),
       login: dto.login,

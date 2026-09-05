@@ -1,12 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UsersRepository } from '../infrastructure/users.repository';
-import { UserDocument } from '../domain/user.entity';
+import { User } from '../domain/user.entity';
 
 @Injectable()
 export class UsersService {
   constructor(@Inject() private usersRepository: UsersRepository) {}
 
-  async save(user: UserDocument) {
+  async save(user: User) {
     await this.usersRepository.save(user);
   }
 
@@ -26,7 +26,7 @@ export class UsersService {
     return this.usersRepository.findByEmailOrEmailOrNull(loginOrEmail);
   }
 
-  async getByEmailNullable(email: string) {
+  async getByEmailOrNull(email: string) {
     return this.usersRepository.findByEmailOrNull(email);
   }
 
@@ -38,11 +38,11 @@ export class UsersService {
     return this.usersRepository.findByPasswordRecoveryCodeOrFail(code);
   }
 
-  async getByPasswordRecoveryCodeNullable(code: string) {
+  async getByPasswordRecoveryCodeOrNull(code: string) {
     return this.usersRepository.findByPasswordRecoveryCodeOrNull(code);
   }
 
-  async getByEmailConfirmationCodeNullable(code: string) {
+  async getByEmailConfirmationCodeOrNull(code: string) {
     return this.usersRepository.findByEmailConfirmationCodeOrNull(code);
   }
 

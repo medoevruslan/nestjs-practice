@@ -12,7 +12,7 @@ export class DeviceAuthSession {
   _id: Types.ObjectId;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
-  userId: Types.ObjectId;
+  userId: Types.ObjectId | string;
 
   @Prop({ type: String, required: true })
   ip: string;

@@ -8,7 +8,7 @@ export class AuthService {
   constructor(@Inject() private readonly usersService: UsersService) {}
 
   async me(userId: string) {
-    const user = await this.usersService.getByIdOrFail(userId);
+    const user = await this.usersService.getByIdOrFailRaw(userId);
     return UserViewDto.mapToView(user);
   }
 

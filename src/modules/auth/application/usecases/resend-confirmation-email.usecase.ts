@@ -17,7 +17,7 @@ export class ResendConfirmationEmailUseCase implements ICommandHandler<ResendCon
   ) {}
 
   async execute(command: ResendConfirmationCommand) {
-    const found = await this.usersService.getByEmailNullable(command.email);
+    const found = await this.usersService.getByEmailOrNull(command.email);
 
     if (!found || found.isEmailConfirmed) {
       throw new DomainException({
@@ -43,7 +43,7 @@ export class ResendConfirmationEmailUseCase implements ICommandHandler<ResendCon
   private async createRegistrationConfirmationCode(
     email: string,
   ): Promise<string | null> {
-    const found = await this.usersService.getByEmailNullable(email);
+    const found = await this.usersService.getByEmailOrNull(email);
     if (found) {
       const code = crypto.randomUUID();
       found.emailConfirmationCode = code;

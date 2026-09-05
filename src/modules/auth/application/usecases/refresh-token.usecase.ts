@@ -67,7 +67,7 @@ export class RefreshTokenUseCase implements ICommandHandler<RefreshTokenCommand>
 
     await this.commandBus.execute(
       new UpdateDeviceAuthSessionCommand({
-        sessionId: currentDeviceSession._id,
+        sessionId: currentDeviceSession.id,
         deviceId: currentDeviceSession.deviceId,
         userId: currentDeviceSession.userId,
         currentRefreshTokenHash: currentDeviceSession.refreshTokenHash!,

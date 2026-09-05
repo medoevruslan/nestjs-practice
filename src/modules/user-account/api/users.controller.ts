@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Inject,
   Param,
+  ParseIntPipe,
   Post,
   Query,
   UseGuards,
@@ -21,16 +22,16 @@ import { CommandBus } from '@nestjs/cqrs';
 import { CreateUserCommand } from '../application/usecases/create-user.usecase';
 import { DeleteUserCommand } from '../application/usecases/delete-user.usecase';
 
-@Controller('users')
+@Controller('sa/users')
 export class UsersController {
   constructor(
     @Inject() private usersQueryRepository: UsersQueryRepository,
     @Inject() private commandBus: CommandBus,
-  ) { }
+  ) {}
 
   @Get()
   async getAll(@Query() query: GetUsersQueryParams) {
-    return this.usersQueryRepository.getAll(query);
+    return this.usersQueryRepository.getAllRaw(query);
   }
 
   @ApiBasicAuth('basic')
@@ -40,7 +41,7 @@ export class UsersController {
     const userId = await this.commandBus.execute<CreateUserCommand, string>(
       new CreateUserCommand(dto),
     );
-    return this.usersQueryRepository.getByIdOrFail(userId);
+    return this.usersQueryRepository.getByIdOrFailRaw(userId);
   }
 
   @ApiBasicAuth('basic')
@@ -48,7 +49,7 @@ export class UsersController {
   @Delete(':id')
   @UseGuards(BasicAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteUser(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
+  async deleteUser(@Param('id') id: string) {
     return this.commandBus.execute<DeleteUserCommand, string>(
       new DeleteUserCommand(id),
     );

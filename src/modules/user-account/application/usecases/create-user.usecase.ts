@@ -8,8 +8,6 @@ import { DomainExceptionCode } from '../../../../core/exceptions/domain-exceptio
 import { Inject } from '@nestjs/common';
 import { UsersRepository } from '../../infrastructure/users.repository';
 import { CryptoService } from '../crypto-service';
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserModelType } from '../../domain/user.entity';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
@@ -23,7 +21,6 @@ export class CreateUserUseCase implements ICommandHandler<
   string
 > {
   constructor(
-    @InjectModel(User.name) private UserModel: UserModelType,
     @Inject() private usersRepository: UsersRepository,
     @Inject() private cryptoService: CryptoService,
     @InjectDataSource() private readonly dataSource: DataSource,
@@ -34,19 +31,16 @@ export class CreateUserUseCase implements ICommandHandler<
 
     const hashedPassword = await this.cryptoService.hashPassword(dto.password);
 
-    const user = this.UserModel.createInstance({
-      login: dto.login,
-      email: dto.email,
-      password: hashedPassword,
-    });
-
-    await this.dataSource.query(
-      'INSERT INTO users (login, email, password) VALUES ($1, $2, $3)',
-      [user.login, user.email, user.password],
+    const [created] = await this.dataSource.query(
+      `
+        INSERT INTO users (login, email, password)
+        VALUES ($1, $2, $3)
+        RETURNING id::text AS id
+      `,
+      [dto.login, dto.email, hashedPassword],
     );
 
-    // await this.usersRepository.save(user);
-    return user.id;
+    return created.id;
   }
 
   private async ensureLoginAndEmailAreUnique(login: string, email: string) {

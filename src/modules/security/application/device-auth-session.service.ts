@@ -22,9 +22,8 @@ export class DeviceAuthSessionService {
   }
 
   async revokeDeviceAuthSessionByDeviceId(id: string) {
-    const session = await this.getDeviceAuthSessionByDeviceIdOrFault(id);
-    session.markDeleted();
-    await this.deviceAuthSessionRepository.save(session);
+    await this.getDeviceAuthSessionByDeviceIdOrFault(id);
+    await this.deviceAuthSessionRepository.revokeByDeviceId(id);
   }
 
   async validateRefreshTokenForSession(deviceId: string, refreshToken: string) {

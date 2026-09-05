@@ -14,6 +14,7 @@ import { AllHttpExceptionsFilter } from './core/exceptions/base-exception.filter
 import { CoreConfig } from './core/core.config';
 import { SecurityModule } from './modules/security/security.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CreateAuthTables1757000000000 } from './database/migrations/1757000000000-create-auth-tables';
 
 @Module({
   imports: [
@@ -27,6 +28,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       database: 'postgres',
       autoLoadEntities: false,
       synchronize: false,
+      migrations: [CreateAuthTables1757000000000],
+      migrationsRun: true,
     }),
     MongooseModule.forRootAsync({
       useFactory: (coreConfig: CoreConfig) => {

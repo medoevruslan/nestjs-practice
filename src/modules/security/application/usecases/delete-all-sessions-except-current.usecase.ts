@@ -1,15 +1,11 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { InjectModel } from '@nestjs/mongoose';
-import {
-  DeviceAuthSession,
-  DeviceAuthSessionModel,
-} from '../../domain/device-auth-session.entity';
 import { Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { JwtUserPayload } from '../../../auth/jwtUserPayload';
 import { DomainException } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
 import { DeviceAuthSessionService } from '../device-auth-session.service';
+import { DeviceAuthSessionRepository } from '../../infrastructure/device-auth-session.repository';
 
 export class DeleteAllSessionsExceptCurrentCommand {
   constructor(readonly refreshToken: string) {}
@@ -18,11 +14,11 @@ export class DeleteAllSessionsExceptCurrentCommand {
 @CommandHandler(DeleteAllSessionsExceptCurrentCommand)
 export class DeleteAllSessionsExceptCurrentUseCase implements ICommandHandler<DeleteAllSessionsExceptCurrentCommand> {
   constructor(
-    @InjectModel(DeviceAuthSession.name)
-    private readonly model: DeviceAuthSessionModel,
     @Inject() private readonly jwtService: JwtService,
     @Inject()
     private readonly deviceAuthSessionService: DeviceAuthSessionService,
+    @Inject()
+    private readonly deviceAuthSessionRepository: DeviceAuthSessionRepository,
   ) {}
 
   async execute(command: DeleteAllSessionsExceptCurrentCommand) {
@@ -36,11 +32,10 @@ export class DeleteAllSessionsExceptCurrentUseCase implements ICommandHandler<De
         command.refreshToken,
       );
 
-      const res = await this.model.updateMany(
-        { userId, deviceId: { $ne: deviceId }, deletedAt: null },
-        { $set: { deletedAt: new Date() } },
+      await this.deviceAuthSessionRepository.revokeAllExceptCurrent(
+        userId,
+        deviceId,
       );
-      return res.acknowledged;
     } catch (e) {
       // TODO: add production logger
       console.error(

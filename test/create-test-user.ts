@@ -12,7 +12,7 @@ export const createTestUser = async (
   app: Server,
 ): Promise<request.Response> => {
   return request(app)
-    .post('/api/users')
+    .post('/api/sa/users')
     .auth('admin', 'qwerty')
     .send(TEST_USER);
 };

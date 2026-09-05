@@ -10,9 +10,10 @@ import { UpdateUserEmailDto } from '../dto/update-user-email.dto';
 })
 export class User {
   _id: Types.ObjectId;
+  relationalId?: string;
 
   get id() {
-    return this._id.toString();
+    return this.relationalId ?? this._id.toString();
   }
 
   @Prop({ type: String, required: true, unique: true })

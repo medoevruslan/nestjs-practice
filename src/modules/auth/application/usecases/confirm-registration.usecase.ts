@@ -13,7 +13,7 @@ export class ConfirmRegistrationUseCase implements ICommandHandler<ConfirmRegist
   constructor(@Inject() private readonly usersService: UsersService) {}
 
   async execute(command: ConfirmRegistrationCommand) {
-    const found = await this.usersService.getByEmailConfirmationCodeNullable(
+    const found = await this.usersService.getByEmailConfirmationCodeOrNull(
       command.code,
     );
 

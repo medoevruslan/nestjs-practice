@@ -27,7 +27,7 @@ export class RecoveryPasswordUseCase implements ICommandHandler<RecoveryPassword
   private async createPasswordRecoveryCode(
     email: string,
   ): Promise<string | null> {
-    const found = await this.usersService.getByEmailNullable(email);
+    const found = await this.usersService.getByEmailOrNull(email);
     if (found) {
       const code = crypto.randomUUID();
       found.passwordRecoveryCode = code;

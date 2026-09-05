@@ -17,6 +17,9 @@ import bcrypt from 'bcrypt';
 import { DomainException } from '../../src/core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../src/core/exceptions/domain-exception-codes';
 import { createTestUser, loginTestUser, TEST_USER } from '../create-test-user';
+import { DataSource } from 'typeorm';
+import { getDataSourceToken } from '@nestjs/typeorm';
+import { UserSqlRow } from 'src/modules/user-account/infrastructure/mappers/user.mapper';
 
 const emailSenderMock = {
   sendEmailConfirmation: jest.fn().mockResolvedValue(undefined),
@@ -27,6 +30,7 @@ describe('users test', () => {
   let app: INestApplication;
   let testUserId: string;
   let userModel: UserModelType;
+  let dataSource: DataSource;
 
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
@@ -42,6 +46,7 @@ describe('users test', () => {
 
     const connection = moduleFixture.get<Connection>(getConnectionToken());
     userModel = moduleFixture.get<UserModelType>(getModelToken(User.name));
+    dataSource = moduleFixture.get<DataSource>(getDataSourceToken());
 
     if (!connection.db)
       throw new DomainException({
@@ -66,7 +71,7 @@ describe('users test', () => {
 
   it('should not create user because password too short, throw 400', async () => {
     const response = await request(app.getHttpServer())
-      .post('/api/users')
+      .post('/api/sa/users')
       .auth('admin', 'qwerty')
       .send({
         ...TEST_USER,
@@ -84,7 +89,7 @@ describe('users test', () => {
 
   it('should get user', async () => {
     const response = await request(app.getHttpServer())
-      .get('/api/users')
+      .get('/api/sa/users')
       .expect(HttpStatus.OK);
 
     expect(response.body.totalCount).toBe(1);
@@ -131,7 +136,9 @@ describe('users test', () => {
 
     const emailSender = app.get(AbstractEmailSender);
 
-    const usersResponse = await request(app.getHttpServer()).get('/api/users');
+    const usersResponse = await request(app.getHttpServer()).get(
+      '/api/sa/users/',
+    );
     expect(usersResponse.body.totalCount).toBe(2);
     expect(usersResponse.body.page).toBe(1);
     expect(usersResponse.body.pagesCount).toBe(1);
@@ -208,9 +215,11 @@ describe('users test', () => {
       code,
     };
 
-    await userModel.updateOne(
-      { _id: testUserId },
-      { $set: { confirmationCodeExpiration: new Date(Date.now() - 1000) } },
+    const pastDate = new Date(Date.now() - 1000);
+
+    await dataSource.query(
+      'UPDATE users SET confirmation_code_expiration = $1 WHERE id = $2 AND deleted_at IS NULL',
+      [pastDate, testUserId],
     );
 
     const res = await request(app.getHttpServer())
@@ -244,7 +253,10 @@ describe('users test', () => {
       .send(body)
       .expect(HttpStatus.NO_CONTENT);
 
-    const storedUser = await userModel.findOne({ _id: testUserId });
+    const [storedUser] = await dataSource.query<UserSqlRow[]>(
+      'SELECT * FROM users WHERE id=$1 AND deleted_at IS NULL',
+      [testUserId],
+    );
     const res = await bcrypt.compare(newPass, storedUser!.password);
     expect(res).toBe(true);
   });
@@ -290,14 +302,9 @@ describe('users test', () => {
   it('should not confirm user because of expiration date', async () => {
     const confirmationCode = 'code';
 
-    await userModel.updateOne(
-      { _id: testUserId },
-      {
-        $set: {
-          emailConfirmationCode: confirmationCode,
-          confirmationCodeExpiration: new Date(Date.now() - 1000),
-        },
-      },
+    await dataSource.query(
+      'UPDATE users SET email_confirmation_code=$1, confirmation_code_expiration=$2 WHERE id=$3 AND deleted_at IS NULL',
+      [confirmationCode, new Date(Date.now() - 1000), testUserId],
     );
 
     const res = await request(app.getHttpServer())
@@ -313,14 +320,10 @@ describe('users test', () => {
 
   it('should confirm user', async () => {
     const confirmationCode = 'code';
-    await userModel.updateOne(
-      { _id: testUserId },
-      {
-        $set: {
-          emailConfirmationCode: confirmationCode,
-          confirmationCodeExpiration: new Date(Date.now() + 10000),
-        },
-      },
+
+    await dataSource.query(
+      'UPDATE users SET email_confirmation_code=$1, confirmation_code_expiration=$2 WHERE id=$3 AND deleted_at IS NULL',
+      [confirmationCode, new Date(Date.now() + 10000), testUserId],
     );
 
     await request(app.getHttpServer())
@@ -328,29 +331,32 @@ describe('users test', () => {
       .send({ email: TEST_USER.email, code: confirmationCode })
       .expect(HttpStatus.NO_CONTENT);
 
-    const confirmedUser = await userModel.findOne({ _id: testUserId });
+    const [confirmedUser] = await dataSource.query<UserSqlRow[]>(
+      'SELECT * FROM users WHERE id = $1 AND deleted_at IS NULL',
+      [testUserId],
+    );
 
-    expect(confirmedUser!.isEmailConfirmed).toBe(true);
-    expect(confirmedUser!.confirmationCodeExpiration).toBe(null);
+    expect(confirmedUser!.is_email_confirmed).toBe(true);
+    expect(confirmedUser!.confirmation_code_expiration).toBe(null);
   });
 
   it('should not delete user, because not authorized', async () => {
     await request(app.getHttpServer())
-      .delete(`/api/users/${testUserId}`)
+      .delete(`/api/sa/users/${testUserId}`)
       .set('Authorization', `Basic ${testUserId}`)
       .expect(HttpStatus.UNAUTHORIZED);
 
-    const res = await request(app.getHttpServer()).get('/api/users');
+    const res = await request(app.getHttpServer()).get('/api/sa/users');
     expect(res.body.totalCount).toBe(2);
   });
 
   it('should not delete user', async () => {
     await request(app.getHttpServer())
-      .delete(`/api/users/${testUserId}`)
+      .delete(`/api/sa/users/${testUserId}`)
       .auth('admin', `qwerty`)
       .expect(HttpStatus.NO_CONTENT);
 
-    const res = await request(app.getHttpServer()).get('/api/users');
+    const res = await request(app.getHttpServer()).get('/api/sa/users');
     expect(res.body.totalCount).toBe(1);
   });
 });

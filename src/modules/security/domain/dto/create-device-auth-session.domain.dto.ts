@@ -16,7 +16,7 @@ export class CreateDeviceAuthSessionDomainDto {
   deviceName: string;
 
   @IsMongoId()
-  userId: Types.ObjectId;
+  userId: Types.ObjectId | string;
 
   @IsNumber()
   exp: number;

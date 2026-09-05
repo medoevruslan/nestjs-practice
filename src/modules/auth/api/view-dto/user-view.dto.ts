@@ -1,11 +1,11 @@
-import { UserDocument } from '../../../user-account/domain/user.entity';
+import { User } from '../../../user-account/domain/user.entity';
 
 export class UserViewDto {
   email: string;
   login: string;
   userId: string;
 
-  public static mapToView(user: UserDocument): UserViewDto {
+  public static mapToView(user: User): UserViewDto {
     const dto = new UserViewDto();
 
     dto.userId = user.id;

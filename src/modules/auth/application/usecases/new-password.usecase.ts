@@ -20,7 +20,7 @@ export class NewPasswordUseCase implements ICommandHandler<NewPasswordCommand> {
   async execute(command: NewPasswordCommand) {
     const { dto } = command;
 
-    const found = await this.usersService.getByPasswordRecoveryCodeNullable(
+    const found = await this.usersService.getByPasswordRecoveryCodeOrNull(
       dto.code,
     );
 

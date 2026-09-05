@@ -28,6 +28,7 @@ export class TestingController {
         FROM information_schema.tables
         WHERE table_schema = 'public'
         AND table_type = 'BASE TABLE'
+        AND table_name <> 'migrations'
 `);
 
     for (const { table_name } of tables) {

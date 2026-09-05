@@ -30,7 +30,7 @@ export class RegisterUserUseCase implements ICommandHandler<RegisterUserCommand>
     );
 
     try {
-      const found = await this.usersService.getByIdOrFail(userId);
+      const found = await this.usersService.getByIdOrFailRaw(userId);
       const code = crypto.randomUUID();
       found.emailConfirmationCode = code;
       found.confirmationCodeExpiration = new Date(Date.now() + 1000 * 60 * 5);

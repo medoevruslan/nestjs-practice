@@ -24,7 +24,9 @@ export class UsersRepository {
   }
 
   async update(user: User) {
-    const updated = await this.dataSource.query<{ id: string }[]>(
+    const [, affectedCount] = await this.dataSource.query<
+      [{ id: string }[], number]
+    >(
       `
           UPDATE users
           SET
@@ -57,16 +59,18 @@ export class UsersRepository {
       ],
     );
 
-    return updated.length === 1;
+    return affectedCount === 1;
   }
 
   async delete(userId: string) {
-    const deleted = await this.dataSource.query<{ id: string }[]>(
+    const [, affectedCount] = await this.dataSource.query<
+      [{ id: string }[], number]
+    >(
       'UPDATE users set deleted_at = NOW(), updated_at = NOW() WHERE id=$1 AND deleted_at IS NULL RETURNING id::text AS id',
       [userId],
     );
 
-    return deleted.length === 1;
+    return affectedCount === 1;
   }
 
   async findByIdOrFail(id: string): Promise<UserDocument> {
@@ -121,7 +125,6 @@ export class UsersRepository {
         SELECT *
         FROM users
         WHERE (email = $1 OR login = $1) AND deleted_at IS NULL
-        LIMIT 1
       `,
       [loginOrEmail],
     );

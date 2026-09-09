@@ -83,7 +83,7 @@ export class DeviceAuthSessionRepository {
   }
 
   async revokeByDeviceId(deviceId: string): Promise<boolean> {
-    const result = await this.dataSource.query(
+    const [_, affectedCount] = await this.dataSource.query(
       `
         UPDATE device_auth_session
         SET deleted_at = NOW(), updated_at = NOW()
@@ -93,7 +93,7 @@ export class DeviceAuthSessionRepository {
       [deviceId],
     );
 
-    return result.length === 1;
+    return affectedCount === 1;
   }
 
   async revokeAllExceptCurrent(
@@ -111,7 +111,9 @@ export class DeviceAuthSessionRepository {
   }
 
   async update(dto: UpdateDeviceAuthSessionDto): Promise<boolean> {
-    const result = await this.dataSource.query(
+    const [, affectedCount] = await this.dataSource.query<
+      [{ id: string }[], number]
+    >(
       `
         UPDATE device_auth_session
         SET
@@ -140,6 +142,6 @@ export class DeviceAuthSessionRepository {
       ],
     );
 
-    return result.length === 1;
+    return affectedCount === 1;
   }
 }

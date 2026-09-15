@@ -21,9 +21,9 @@ import { SortDirection } from 'src/core/dto/base.query-params.input-dto';
 @Injectable()
 export class UsersQueryRepository {
   private readonly sortColumns = new Map<string, string>([
-    [UsersSortBy.CreatedAt, 'created_at'],
-    [UsersSortBy.Email, 'email'],
-    [UsersSortBy.Login, 'login'],
+    [UsersSortBy.CreatedAt, '"created_at"'],
+    [UsersSortBy.Email, '"email" COLLATE "C"'],
+    [UsersSortBy.Login, '"login" COLLATE "C"'],
   ]);
 
   constructor(
@@ -85,28 +85,52 @@ export class UsersQueryRepository {
       searchLoginTerm,
     } = query;
 
-    const sortColumn = this.sortColumns.get(sortBy);
+    const sortColumn =
+      this.sortColumns.get(sortBy) ??
+      this.sortColumns.get(UsersSortBy.CreatedAt)!;
     const direction = sortDirection === SortDirection.Asc ? 'ASC' : 'DESC';
 
-    const filter: FilterQuery<User> = { deletedAt: null };
+    const searchConditions: string[] = [];
+    const filterParams: string[] = [];
 
     if (searchLoginTerm) {
-      filter.$or = filter.$or ?? [];
-      filter.$or.push({ login: { $regex: searchLoginTerm, $options: 'i' } });
+      filterParams.push(searchLoginTerm);
+      searchConditions.push(
+        `POSITION(LOWER($${filterParams.length}) IN LOWER(login)) > 0`,
+      );
     }
 
     if (searchEmailTerm) {
-      filter.$or = filter.$or ?? [];
-      filter.$or.push({ email: { $regex: searchEmailTerm, $options: 'i' } });
+      filterParams.push(searchEmailTerm);
+      searchConditions.push(
+        `POSITION(LOWER($${filterParams.length}) IN LOWER(email)) > 0`,
+      );
     }
+
+    const whereClause = [
+      'deleted_at IS NULL',
+      searchConditions.length ? `(${searchConditions.join(' OR ')})` : null,
+    ]
+      .filter(Boolean)
+      .join(' AND ');
+
+    const pageSizeParam = filterParams.length + 1;
+    const offsetParam = filterParams.length + 2;
 
     const [[totalCount], users] = await Promise.all([
       this.dataSource.query(
-        'SELECT COUNT(*)::int from users WHERE deleted_at IS NULL',
+        `SELECT COUNT(*)::int AS count FROM users WHERE ${whereClause}`,
+        filterParams,
       ),
       this.dataSource.query<UserSqlRow[]>(
-        `SELECT * FROM users WHERE deleted_at IS NULL ORDER BY ${sortColumn} ${direction} LIMIT $1 OFFSET $2`,
-        [pageSize, query.calculateSkip()],
+        `
+          SELECT *
+          FROM users
+          WHERE ${whereClause}
+          ORDER BY ${sortColumn} ${direction}, id ${direction}
+          LIMIT $${pageSizeParam} OFFSET $${offsetParam}
+        `,
+        [...filterParams, pageSize, query.calculateSkip()],
       ),
     ]);
 

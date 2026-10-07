@@ -1,21 +1,20 @@
+import { Nullable, SqlDate } from 'src/shared/common.types';
 import { User } from '../../domain/user.entity';
-
-type SqlDate = Date | string;
 
 export type UserSqlRow = {
   id: string | number | bigint;
   email: string;
   login: string;
-  first_name: string | null;
-  last_name: string | null;
+  first_name: Nullable<string>;
+  last_name: Nullable<string>;
   password: string;
   is_email_confirmed: boolean;
-  email_confirmation_code: string | null;
-  password_recovery_code: string | null;
-  confirmation_code_expiration: SqlDate | null;
+  email_confirmation_code: Nullable<string>;
+  password_recovery_code: Nullable<string>;
+  confirmation_code_expiration: Nullable<SqlDate>;
   created_at: SqlDate;
   updated_at: SqlDate;
-  deleted_at: SqlDate | null;
+  deleted_at: Nullable<SqlDate>;
 };
 
 export class UserMapper {
@@ -45,7 +44,7 @@ export class UserMapper {
     return value instanceof Date ? value : new Date(value);
   }
 
-  private static toNullableDate(value: SqlDate | null): Date | null {
+  private static toNullableDate(value: Nullable<SqlDate>): Nullable<Date> {
     return value === null ? null : this.toDate(value);
   }
 }

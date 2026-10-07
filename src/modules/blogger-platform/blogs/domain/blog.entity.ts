@@ -6,6 +6,7 @@ import { UpdateBlogDto } from '../dto/update-blog.dto';
 @Schema({ timestamps: true })
 export class Blog {
   _id: Types.ObjectId;
+  relationalId?: string;
 
   @Prop({ type: String, required: true, maxLength: 15 })
   name: string;

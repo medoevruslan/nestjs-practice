@@ -15,6 +15,7 @@ import { CoreConfig } from './core/core.config';
 import { SecurityModule } from './modules/security/security.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CreateAuthTables1757000000000 } from './database/migrations/1757000000000-create-auth-tables';
+import { CreateBlogsTable1791292568321 } from './database/migrations/1791292568321-CreateBlogsTable';
 
 @Module({
   imports: [
@@ -28,7 +29,10 @@ import { CreateAuthTables1757000000000 } from './database/migrations/17570000000
       database: 'postgres',
       autoLoadEntities: false,
       synchronize: false,
-      migrations: [CreateAuthTables1757000000000],
+      migrations: [
+        CreateAuthTables1757000000000,
+        CreateBlogsTable1791292568321,
+      ],
       migrationsRun: true,
     }),
     MongooseModule.forRootAsync({

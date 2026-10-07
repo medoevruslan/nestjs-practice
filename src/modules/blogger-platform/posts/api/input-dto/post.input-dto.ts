@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsMongoId, IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsNumberString } from 'class-validator';
 import { IsStringWithTrim } from '../../../../../core/decorators/validation/is-string-with-trim';
 
 export class CreatePostInputDto {
@@ -27,9 +27,9 @@ export class CreatePostInputDto {
   @IsStringWithTrim(1, 1000)
   content: string;
 
-  @ApiProperty({ example: '507f1f77bcf86cd799439011' })
+  @ApiProperty({ example: '1' })
   @IsNotEmpty()
-  @IsMongoId()
+  @IsNumberString({ no_symbols: true })
   blogId: string;
 }
 
@@ -58,8 +58,8 @@ export class UpdatePostInputDto {
   @IsStringWithTrim(1, 1000)
   content: string;
 
-  @ApiProperty({ example: '507f1f77bcf86cd799439011' })
+  @ApiProperty({ example: '1' })
   @IsNotEmpty()
-  @IsMongoId()
+  @IsNumberString({ no_symbols: true })
   blogId: string;
 }

@@ -1,7 +1,7 @@
 import { Nullable, SqlDate } from 'src/shared/common.types';
 import { Blog } from '../../domain/blog.entity';
 
-export type BlogRawSql = {
+export type BlogSqlRaw = {
   id: string | number | bigint;
   name: string;
   description: string;
@@ -13,7 +13,7 @@ export type BlogRawSql = {
 };
 
 export class BlogMapper {
-  fromRawSql(raw: BlogRawSql): Blog {
+  static fromRawSql(raw: BlogSqlRaw): Blog {
     const blog = new Blog();
 
     blog.relationalId = String(raw.id);
@@ -28,11 +28,11 @@ export class BlogMapper {
     return blog;
   }
 
-  private toDate(dateLike: SqlDate) {
+  private static toDate(dateLike: SqlDate) {
     return dateLike instanceof Date ? dateLike : new Date(dateLike);
   }
 
-  private toNullableDate(dateLike: Nullable<SqlDate>) {
+  private static toNullableDate(dateLike: Nullable<SqlDate>) {
     return dateLike === null ? null : this.toDate(dateLike);
   }
 }

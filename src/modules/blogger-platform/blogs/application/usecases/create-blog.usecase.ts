@@ -1,9 +1,7 @@
 import { CreateBlogDto } from '../../dto/create-blog.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { BlogsRepository } from '../../infrastructure/blogs.repository';
-import { InjectModel } from '@nestjs/mongoose';
-import { Blog, BlogModelType } from '../../domain/blog.entity';
-import { Inject } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 export class CreateBlogCommand {
   constructor(public readonly dto: CreateBlogDto) {}
@@ -14,20 +12,16 @@ export class CreateBlogUseCase implements ICommandHandler<
   CreateBlogCommand,
   string
 > {
-  constructor(
-    @Inject() private readonly blogsRepository: BlogsRepository,
-    @InjectModel(Blog.name) private BlogModel: BlogModelType,
-  ) {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
 
   async execute(command: CreateBlogCommand) {
     const { dto } = command;
-    const blog = this.BlogModel.createInstance({
-      name: dto.name,
-      websiteUrl: dto.websiteUrl,
-      description: dto.description,
-    });
 
-    await this.blogsRepository.save(blog);
-    return blog.id;
+    const [created] = await this.dataSource.query(
+      `INSERT INTO blogs (name, website_url, description) values($1, $2, $3) RETURNING id::text as id `,
+      [dto.name, dto.websiteUrl, dto.description],
+    );
+
+    return created.id;
   }
 }

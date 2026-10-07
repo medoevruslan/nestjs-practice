@@ -8,10 +8,14 @@ import {
   PaginatedViewDto,
 } from '../../../../../core/dto/base.paginated.view-dto';
 import { PostViewDto } from '../../api/view-dto/PostViewDto';
+import { BlogsRepository } from '../../../blogs/infrastructure/blogs.repository';
 
 @Injectable()
 export class PostsQueryRepository {
-  constructor(@InjectModel(Post.name) private PostModel: PostModelType) {}
+  constructor(
+    @InjectModel(Post.name) private PostModel: PostModelType,
+    private readonly blogsRepository: BlogsRepository,
+  ) {}
 
   async getAll(
     query: GetPostsQueryParams,
@@ -73,9 +77,11 @@ export class PostsQueryRepository {
   ) {
     const { sortBy, sortDirection, pageNumber, pageSize } = query;
 
+    await this.blogsRepository.getByIdOrNotFoundFail(blogId);
+
     const filter: FilterQuery<Post> = {
       deletedAt: null,
-      blogId: new Types.ObjectId(blogId),
+      blogId,
     };
 
     const [totalCount, posts] = await Promise.all([
@@ -92,10 +98,6 @@ export class PostsQueryRepository {
         ])
         .exec(),
     ]);
-
-    if (!posts.length) {
-      throw new NotFoundException();
-    }
 
     const data = {
       size: pageSize,

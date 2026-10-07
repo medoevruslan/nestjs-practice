@@ -1,26 +1,33 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Blog, BlogDocument, BlogModelType } from '../domain/blog.entity';
-import { InjectModel } from '@nestjs/mongoose';
+import { Injectable } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { Blog } from '../domain/blog.entity';
 import { DomainException } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
+import { BlogMapper, BlogSqlRaw } from './mapper/blog.mapper';
 
 @Injectable()
 export class BlogsRepository {
-  constructor(@InjectModel(Blog.name) private BlogModel: BlogModelType) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
-  async getAll() {
-    return 'all blogs';
-  }
-
-  async save(model: BlogDocument) {
-    await model.save();
+  async save(blog: Blog) {
+    await this.dataSource.query(
+      `UPDATE blogs
+       SET name = $1,
+           description = $2,
+           website_url = $3,
+           deleted_at = $4,
+           updated_at = NOW()
+       WHERE id = $5`,
+      [blog.name, blog.description, blog.websiteUrl, blog.deletedAt, blog.id],
+    );
   }
 
   async getByIdOrNotFoundFail(id: string) {
-    const found = await this.BlogModel.findOne({
-      _id: id,
-      deletedAt: null,
-    });
+    const [found] = await this.dataSource.query<BlogSqlRaw[]>(
+      `SELECT * FROM blogs WHERE id = $1 AND deleted_at IS NULL`,
+      [id],
+    );
 
     if (!found) {
       throw new DomainException({
@@ -29,6 +36,6 @@ export class BlogsRepository {
       });
     }
 
-    return found;
+    return BlogMapper.fromRawSql(found);
   }
 }

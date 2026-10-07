@@ -22,9 +22,7 @@ import {
   UpdateBlogInputDto,
 } from './input-dto/blog.input-dto';
 import { GetBlogsQueryParams } from './input-dto/get-blogs-query-params-input.dto';
-import { ParseObjectIdOrBadRequestPipe } from '../../../../core/pipes/ParseObjectIdOrBadRequestPipe';
 import { PostsQueryRepository } from '../../posts/infrastructure/query/posts.query-repository';
-import { PostsService } from '../../posts/application/posts.service';
 import { GetPostsQueryParams } from '../../posts/api/input-dto/get-posts.query-params.input-dto';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreateBlogCommand } from '../application/usecases/create-blog.usecase';
@@ -32,6 +30,7 @@ import { CreatePostByBlogIdCommand } from '../application/usecases/create-post-b
 import { BasicAuthGuard } from '../../../auth/guards/basic-auth.guard';
 import { OptionalAuthGuard } from '../../../auth/guards/optional-auth.guard';
 import { CurrentUserId } from 'src/core/decorators/auth/create-param.decorator';
+import { ParseRelationalIdOrBadRequestPipe } from '../../../../core/pipes/parse-relational-id-or-bad-request.pipe';
 
 @Controller('blogs')
 export class BlogsController {
@@ -42,7 +41,7 @@ export class BlogsController {
     private readonly postsQueryRepository: PostsQueryRepository,
     @Inject() private readonly blogsService: BlogsService,
     @Inject() private readonly commandBus: CommandBus,
-  ) { }
+  ) {}
 
   @Get()
   async getAll(@Query() query: GetBlogsQueryParams) {
@@ -61,7 +60,9 @@ export class BlogsController {
 
   @ApiParam({ name: 'id' }) // for swagger
   @Get(':id')
-  async getBlogById(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
+  async getBlogById(
+    @Param('id', ParseRelationalIdOrBadRequestPipe) id: string,
+  ) {
     return this.blogsQueryRepository.getByIdOrNotFoundFail(id);
   }
 
@@ -69,7 +70,7 @@ export class BlogsController {
   @Get(':blogId/posts')
   @UseGuards(OptionalAuthGuard)
   async getPostByBlogId(
-    @Param('blogId', ParseObjectIdOrBadRequestPipe) blogId: string,
+    @Param('blogId', ParseRelationalIdOrBadRequestPipe) blogId: string,
     @Query() query: GetPostsQueryParams,
     @CurrentUserId() userId: string,
   ) {
@@ -85,7 +86,7 @@ export class BlogsController {
   @UseGuards(BasicAuthGuard)
   @Post(':blogId/posts')
   async createPostByBlogId(
-    @Param('blogId', ParseObjectIdOrBadRequestPipe) blogId: string,
+    @Param('blogId', ParseRelationalIdOrBadRequestPipe) blogId: string,
     @Body() dto: CreatePostByBlogIdInputDto,
   ) {
     const postId = await this.commandBus.execute(
@@ -100,7 +101,7 @@ export class BlogsController {
   @Put(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateBlog(
-    @Param('id', ParseObjectIdOrBadRequestPipe) id: string,
+    @Param('id', ParseRelationalIdOrBadRequestPipe) id: string,
     @Body() dto: UpdateBlogInputDto,
   ) {
     const blogId = await this.blogsService.updateBlog(id, dto);
@@ -112,7 +113,7 @@ export class BlogsController {
   @UseGuards(BasicAuthGuard)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteBlog(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
+  async deleteBlog(@Param('id', ParseRelationalIdOrBadRequestPipe) id: string) {
     return this.blogsService.deleteById(id);
   }
 }

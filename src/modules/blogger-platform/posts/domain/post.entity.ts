@@ -19,8 +19,8 @@ export class Post {
   @Prop({ type: String, max: 1000 })
   content: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Blog' })
-  blogId: Types.ObjectId;
+  @Prop({ type: String, required: true })
+  blogId: string;
 
   @Prop({ type: String })
   blogName: string;
@@ -46,12 +46,12 @@ export class Post {
     this.title = dto.title;
     this.content = dto.content;
     this.shortDescription = dto.shortDescription;
-    this.blogId = new Types.ObjectId(dto.blogId);
+    this.blogId = dto.blogId;
   }
 
   static createInstance(dto: CreatePostDomainDto) {
     const post = new this();
-    post.blogId = new Types.ObjectId(dto.blogId);
+    post.blogId = dto.blogId;
     post.blogName = dto.blogName;
     post.content = dto.content;
     post.title = dto.title;
@@ -67,13 +67,6 @@ PostSchema.index({ blogId: 1, deletedAt: 1 });
 PostSchema.index({ blogId: 1, createdAt: -1 });
 
 PostSchema.loadClass(Post);
-
-PostSchema.virtual('blogInfo', {
-  ref: 'Blog',
-  justOne: true,
-  localField: 'blogId',
-  foreignField: '_id',
-});
 
 PostSchema.virtual('likesCount', {
   ref: 'Like',

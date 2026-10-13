@@ -1,7 +1,6 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
 import { Like, LikeModel, LikeStatus } from '../../domain/like.entity';
 import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
 import { CommentsRepository } from '../../../comments/infrastructure/comments.repository';
@@ -30,8 +29,7 @@ export class UpdateLikeStatusUseCase implements ICommandHandler<UpdateLikeStatus
   async execute(command: UpdateLikeStatusCommand): Promise<void> {
     await this.ensureParentExists(command.parentId, command.parentType);
 
-    const parentId = new Types.ObjectId(command.parentId);
-    const userId = new Types.ObjectId(command.userId);
+    const { parentId, userId } = command;
 
     const existingLike = await this.likeModel.findOne({
       parentId,
@@ -52,7 +50,7 @@ export class UpdateLikeStatusUseCase implements ICommandHandler<UpdateLikeStatus
       return;
     }
 
-    const user = await this.usersService.getByIdOrFail(command.userId);
+    const user = await this.usersService.getByIdOrFailRaw(command.userId);
     await this.likeModel.create({
       parentId,
       parentType: command.parentType,

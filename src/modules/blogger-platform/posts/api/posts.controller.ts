@@ -19,7 +19,6 @@ import {
 import { GetPostsQueryParams } from './input-dto/get-posts.query-params.input-dto';
 import { PostsQueryRepository } from '../infrastructure/query/posts.query-repository';
 import { ApiBasicAuth, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
-import { ParseObjectIdOrBadRequestPipe } from '../../../../core/pipes/ParseObjectIdOrBadRequestPipe';
 import { CommentsQueryRepository } from '../../comments/infrastructure/query/comments-query.repository';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreatePostCommand } from '../application/usecases/create-post.usecase';
@@ -35,6 +34,7 @@ import { OptionalAuthGuard } from '../../../auth/guards/optional-auth.guard';
 import { GetCommentsQueryParams } from '../../comments/api/input-dto/get-comments.query-params.input-dto';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 import { CurrentUserId } from 'src/core/decorators/auth/create-param.decorator';
+import { ParseRelationalIdOrBadRequestPipe } from 'src/core/pipes/parse-relational-id-or-bad-request.pipe';
 
 @Controller('posts')
 export class PostsController {
@@ -44,13 +44,13 @@ export class PostsController {
     @Inject(CommentsQueryRepository)
     private commentsQueryRepository: CommentsQueryRepository,
     @Inject() private readonly commandBus: CommandBus,
-  ) { }
+  ) {}
 
   @Get()
   @UseGuards(OptionalAuthGuard)
   async getAll(
     @Query() query: GetPostsQueryParams,
-    @CurrentUserId() userId: string
+    @CurrentUserId() userId: string,
   ) {
     return this.postsQueryRepository.getAll(query, userId);
   }
@@ -59,8 +59,8 @@ export class PostsController {
   @Get(':id')
   @UseGuards(OptionalAuthGuard)
   async getPostById(
-    @Param('id', ParseObjectIdOrBadRequestPipe) id: string,
-    @CurrentUserId() userId: string
+    @Param('id', ParseRelationalIdOrBadRequestPipe) id: string,
+    @CurrentUserId() userId: string,
   ) {
     return this.postsQueryRepository.getPostByIdOrFail(id, userId);
   }
@@ -71,9 +71,9 @@ export class PostsController {
   @Put(':postId/like-status')
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateLikeStatus(
-    @Param('postId', ParseObjectIdOrBadRequestPipe) postId: string,
+    @Param('postId', ParseRelationalIdOrBadRequestPipe) postId: string,
     @Body() dto: LikeStatusInputDto,
-    @CurrentUserId() userId: string
+    @CurrentUserId() userId: string,
   ) {
     await this.commandBus.execute(
       new UpdateLikeStatusCommand(postId, 'Post', userId, dto.likeStatus),
@@ -84,9 +84,9 @@ export class PostsController {
   @Get(':postId/comments')
   @UseGuards(OptionalAuthGuard)
   async getPostComments(
-    @Param('postId', ParseObjectIdOrBadRequestPipe) postId: string,
+    @Param('postId', ParseRelationalIdOrBadRequestPipe) postId: string,
     @Query() query: GetCommentsQueryParams,
-    @CurrentUserId() userId: string
+    @CurrentUserId() userId: string,
   ) {
     return this.commentsQueryRepository.getCommentsByPostIdOrFail(
       postId,
@@ -101,7 +101,7 @@ export class PostsController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.CREATED)
   async createPostComment(
-    @Param('postId', ParseObjectIdOrBadRequestPipe) postId: string,
+    @Param('postId', ParseRelationalIdOrBadRequestPipe) postId: string,
     @Body() dto: CommentInputDto,
     @CurrentUserId() userId: string,
   ) {
@@ -131,7 +131,7 @@ export class PostsController {
   @Put(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async updatePost(
-    @Param('id', ParseObjectIdOrBadRequestPipe) id: string,
+    @Param('id', ParseRelationalIdOrBadRequestPipe) id: string,
     @Body() dto: UpdatePostInputDto,
   ) {
     return this.commandBus.execute<UpdatePostCommand>(
@@ -143,7 +143,7 @@ export class PostsController {
   @UseGuards(BasicAuthGuard)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deletePost(@Param('id', ParseObjectIdOrBadRequestPipe) id: string) {
+  async deletePost(@Param('id', ParseRelationalIdOrBadRequestPipe) id: string) {
     return this.commandBus.execute<DeletePostCommand>(
       new DeletePostCommand(id),
     );

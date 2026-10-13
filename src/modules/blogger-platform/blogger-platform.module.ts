@@ -6,7 +6,6 @@ import { BlogsQueryRepository } from './blogs/infrastructure/query/blogs.query-r
 import { MongooseModule } from '@nestjs/mongoose';
 import { PostsController } from './posts/api/posts.controller';
 import { PostsQueryRepository } from './posts/infrastructure/query/posts.query-repository';
-import { Post, PostSchema } from './posts/domain/post.entity';
 import { PostsRepository } from './posts/infrastructure/posts.repository';
 import { PostsService } from './posts/application/posts.service';
 import { Like, LikeSchema } from './likes/domain/like.entity';
@@ -31,7 +30,6 @@ import { OptionalAuthGuard } from '../auth/guards/optional-auth.guard';
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: Post.name, schema: PostSchema },
       { name: Like.name, schema: LikeSchema },
       { name: Comment.name, schema: CommentSchema },
     ]),

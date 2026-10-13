@@ -23,7 +23,7 @@ export class CreateCommentUseCase implements ICommandHandler<CreateCommentComman
   async execute(command: CreateCommentCommand) {
     const { dto } = command;
     await this.postsRepository.getByIdOrFail(dto.postId);
-    const user = await this.usersService.getByIdOrFail(dto.userId);
+    const user = await this.usersService.getByIdOrFailRaw(dto.userId);
     const commentDto: CreateCommentDomainDto = Object.assign(
       { userLogin: user.login },
       dto,

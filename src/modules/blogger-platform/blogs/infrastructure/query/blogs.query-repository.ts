@@ -12,7 +12,6 @@ import { DomainException } from '../../../../../core/exceptions/domain-exception
 import { DomainExceptionCode } from '../../../../../core/exceptions/domain-exception-codes';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { SortDirection } from 'src/core/dto/base.query-params.input-dto';
 import { BlogMapper, BlogSqlRaw } from '../mapper/blog.mapper';
 
 @Injectable()
@@ -33,8 +32,6 @@ export class BlogsQueryRepository {
     const sortColumn =
       this.sortColumns.get(sortBy) ??
       this.sortColumns.get(BlogsSortBy.CreatedAt)!;
-
-    const direction = sortDirection === SortDirection.Asc ? 'ASC' : 'DESC';
 
     const skip = query.calculateSkip();
 
@@ -64,7 +61,7 @@ export class BlogsQueryRepository {
         filterParams,
       ),
       this.dataSource.query<BlogSqlRaw[]>(
-        `SELECT * FROM blogs WHERE ${whereClause} ORDER BY ${sortColumn} ${direction}, id ${direction} LIMIT $${pageSizeParamOrder} OFFSET $${offsetParamOrder}`,
+        `SELECT * FROM blogs WHERE ${whereClause} ORDER BY ${sortColumn} ${sortDirection}, id ${sortDirection} LIMIT $${pageSizeParamOrder} OFFSET $${offsetParamOrder}`,
         [...filterParams, pageSize, skip],
       ),
     ]);

@@ -58,7 +58,9 @@ export class UsersQueryRepository {
     const [totalCount, users] = await Promise.all([
       this.UserModel.countDocuments(filter),
       this.UserModel.find(filter)
-        .sort({ [sortBy]: sortDirection })
+        .sort({
+          [sortBy]: sortDirection === SortDirection.Asc ? 'asc' : 'desc',
+        })
         .skip(query.calculateSkip())
         .limit(pageSize),
     ]);

@@ -7,7 +7,6 @@ import {
   HttpStatus,
   Inject,
   Param,
-  ParseIntPipe,
   Post,
   Query,
   UseGuards,
@@ -16,7 +15,6 @@ import { GetUsersQueryParams } from './input-dto/get-users.query-params.input-dt
 import { CreateUserInputDto } from './input-dto/create-user-input.dto';
 import { ApiBasicAuth, ApiParam } from '@nestjs/swagger';
 import { UsersQueryRepository } from '../infrastructure/query/users.query-repository';
-import { ParseObjectIdOrBadRequestPipe } from '../../../core/pipes/ParseObjectIdOrBadRequestPipe';
 import { BasicAuthGuard } from '../../auth/guards/basic-auth.guard';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreateUserCommand } from '../application/usecases/create-user.usecase';

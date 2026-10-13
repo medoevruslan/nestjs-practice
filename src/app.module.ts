@@ -16,6 +16,7 @@ import { SecurityModule } from './modules/security/security.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CreateAuthTables1757000000000 } from './database/migrations/1757000000000-create-auth-tables';
 import { CreateBlogsTable1791292568321 } from './database/migrations/1791292568321-CreateBlogsTable';
+import { CreatePostsTable1791465379156 } from './database/migrations/1791465379156-CreatePostsTable';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { CreateBlogsTable1791292568321 } from './database/migrations/17912925683
       migrations: [
         CreateAuthTables1757000000000,
         CreateBlogsTable1791292568321,
+        CreatePostsTable1791465379156,
       ],
       migrationsRun: true,
     }),

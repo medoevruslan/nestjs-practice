@@ -1,6 +1,7 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UpdatePostDto } from '../../dto/update-post.dto';
-import { PostsRepository } from '../../infrastructure/posts.repository';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 export class UpdatePostCommand {
   constructor(
@@ -11,13 +12,16 @@ export class UpdatePostCommand {
 
 @CommandHandler(UpdatePostCommand)
 export class UpdatePostUseCase implements ICommandHandler<UpdatePostCommand> {
-  constructor(private readonly postsRepository: PostsRepository) {}
+  constructor(@InjectDataSource() private readonly dataSrc: DataSource) {}
 
   public async execute(command: UpdatePostCommand) {
     const { id, dto } = command;
-    const post = await this.postsRepository.getByIdOrFail(id);
-    post.update(dto);
-    await this.postsRepository.save(post);
-    return post.id;
+    const [, affectedCount] = await this.dataSrc.query<
+      [{ id: string }[], number]
+    >(
+      `UPDATE posts SET title = $1, short_description = $2, content = $3, blog_id = $4, updated_at = NOW() WHERE id=$5 RETURNING id::TEXT AS id`,
+      [dto.title, dto.shortDescription, dto.content, dto.blogId, id],
+    );
+    return affectedCount === 1;
   }
 }

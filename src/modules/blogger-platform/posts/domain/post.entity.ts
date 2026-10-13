@@ -1,35 +1,25 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Model, Types } from 'mongoose';
-import { CreatePostDomainDto } from './dto/create-post.domain-dto';
 import { UpdatePostDto } from '../dto/update-post.dto';
-import { LikeDocument, LikeStatus } from '../../likes/domain/like.entity';
-
-@Schema({
-  timestamps: true,
-})
 export class Post {
-  _id: Types.ObjectId;
+  realtionalId: string;
 
-  @Prop({ type: String, max: 30 })
   title: string;
 
-  @Prop({ type: String, max: 100 })
   shortDescription: string;
 
-  @Prop({ type: String, max: 1000 })
   content: string;
 
-  @Prop({ type: String, required: true })
   blogId: string;
 
-  @Prop({ type: String })
   blogName: string;
 
-  @Prop({ type: Date, nullable: true })
   deletedAt: Date | null;
 
+  set id(id: string) {
+    this.realtionalId = id;
+  }
+
   get id() {
-    return this._id.toString();
+    return this.realtionalId;
   }
 
   createdAt: Date;
@@ -48,66 +38,4 @@ export class Post {
     this.shortDescription = dto.shortDescription;
     this.blogId = dto.blogId;
   }
-
-  static createInstance(dto: CreatePostDomainDto) {
-    const post = new this();
-    post.blogId = dto.blogId;
-    post.blogName = dto.blogName;
-    post.content = dto.content;
-    post.title = dto.title;
-    post.shortDescription = dto.shortDescription;
-    post.deletedAt = null;
-    return post as PostDocument;
-  }
 }
-
-export const PostSchema = SchemaFactory.createForClass(Post);
-
-PostSchema.index({ blogId: 1, deletedAt: 1 });
-PostSchema.index({ blogId: 1, createdAt: -1 });
-
-PostSchema.loadClass(Post);
-
-PostSchema.virtual('likesCount', {
-  ref: 'Like',
-  count: true,
-  localField: '_id',
-  foreignField: 'parentId',
-  match: { parentType: 'Post', status: LikeStatus.Like },
-});
-
-PostSchema.virtual('dislikesCount', {
-  ref: 'Like',
-  count: true,
-  localField: '_id',
-  foreignField: 'parentId',
-  match: { parentType: 'Post', status: LikeStatus.Dislike },
-});
-
-PostSchema.virtual('newestLikes', {
-  ref: 'Like',
-  localField: '_id',
-  foreignField: 'parentId',
-  justOne: false,
-  match: { parentType: 'Post', status: LikeStatus.Like },
-  options: { sort: { createdAt: -1 }, limit: 3 },
-});
-
-PostSchema.virtual('userLikeStatus', {
-  ref: 'Like',
-  localField: '_id',
-  foreignField: 'parentId',
-  justOne: true,
-  match: { parentType: 'Post' },
-});
-
-export type PostDocument = HydratedDocument<Post>;
-
-export type PostWithLikesInfoDocument = PostDocument & {
-  likesCount?: number;
-  dislikesCount?: number;
-  userLikeStatus?: { status: LikeStatus } | null;
-  newestLikes?: LikeDocument[];
-};
-
-export type PostModelType = Model<PostDocument> & typeof Post;

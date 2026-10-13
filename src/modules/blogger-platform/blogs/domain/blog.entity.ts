@@ -1,3 +1,4 @@
+import { Nullable } from 'src/shared/common.types';
 import { UpdateBlogDto } from '../dto/update-blog.dto';
 
 export class Blog {
@@ -22,7 +23,7 @@ export class Blog {
    * Deletion timestamp, nullable, if date exist, means entity soft deleted
    * @type {Date | null}
    */
-  deletedAt: Date | null;
+  deletedAt: Nullable<Date>;
 
   isMembership: boolean;
 

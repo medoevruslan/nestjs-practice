@@ -1,10 +1,9 @@
 import { CreatePostDto } from '../../dto/create-post.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Post, PostModelType } from '../../domain/post.entity';
 import { BlogsRepository } from '../../../blogs/infrastructure/blogs.repository';
-import { PostsRepository } from '../../infrastructure/posts.repository';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 export class CreatePostCommand {
   constructor(public readonly dto: CreatePostDto) {}
@@ -13,9 +12,8 @@ export class CreatePostCommand {
 @CommandHandler(CreatePostCommand)
 export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
   constructor(
-    @Inject() private readonly postsRepository: PostsRepository,
     @Inject() private readonly blogsRepository: BlogsRepository,
-    @InjectModel(Post.name) private readonly PostModel: PostModelType,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async execute(command: CreatePostCommand) {
@@ -23,15 +21,11 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
 
     const blog = await this.blogsRepository.getByIdOrNotFoundFail(dto.blogId);
 
-    const post = this.PostModel.createInstance({
-      title: dto.title,
-      blogId: dto.blogId,
-      content: dto.content,
-      shortDescription: dto.shortDescription,
-      blogName: blog.name,
-    });
+    const [created] = await this.dataSource.query(
+      `INSERT INTO posts (blog_id, content, short_description, title) VALUES ($1, $2, $3, $4) RETURNING id::TEXT AS id`,
+      [blog.id, dto.content, dto.shortDescription, dto.title],
+    );
 
-    await this.postsRepository.save(post);
-    return post.id;
+    return created.id;
   }
 }

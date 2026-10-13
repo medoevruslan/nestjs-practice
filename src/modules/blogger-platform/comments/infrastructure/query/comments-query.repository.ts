@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
 import { Comment, CommentModelType } from '../../domain/comment.entity';
 import { CommentViewDto } from '../../api/view-dto/comment-view-dto';
 import { DomainException } from '../../../../../core/exceptions/domain-exceptions';
@@ -11,6 +10,7 @@ import {
   PaginatedViewDto,
 } from '../../../../../core/dto/base.paginated.view-dto';
 import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
+import { SortDirection } from 'src/core/dto/base.query-params.input-dto';
 
 @Injectable()
 export class CommentsQueryRepository {
@@ -56,7 +56,10 @@ export class CommentsQueryRepository {
     const [totalCount, comments] = await Promise.all([
       this.CommentModel.countDocuments(filter),
       this.CommentModel.find(filter)
-        .sort({ [query.sortBy]: query.sortDirection })
+        .sort({
+          [query.sortBy]:
+            query.sortDirection === SortDirection.Asc ? 'asc' : 'desc',
+        })
         .skip(query.calculateSkip())
         .limit(query.pageSize)
         .populate([
@@ -80,11 +83,7 @@ export class CommentsQueryRepository {
   private userLikeStatusPopulate(userId: string) {
     return {
       path: 'userLikeStatus',
-      match: {
-        userId: Types.ObjectId.isValid(userId)
-          ? new Types.ObjectId(userId)
-          : new Types.ObjectId(),
-      },
+      match: { userId },
     };
   }
 }

@@ -59,7 +59,7 @@ describe('posts e2e tests', () => {
     testBlogId = res.body.id;
 
     const response = await request(app.getHttpServer())
-      .post('/api/users')
+      .post('/api/sa/users')
       .auth('admin', 'qwerty')
       .send(testUser)
       .expect(HttpStatus.CREATED);
@@ -195,7 +195,7 @@ describe('posts e2e tests', () => {
 
   it('should not create a comment for a nonexistent post', async () => {
     await request(app.getHttpServer())
-      .post('/api/posts/507f1f77bcf86cd799439011/comments')
+      .post('/api/posts/99/comments')
       .auth(accessToken, { type: 'bearer' })
       .send({ content: 'comment for missing post' })
       .expect(HttpStatus.NOT_FOUND);
@@ -288,7 +288,7 @@ describe('posts e2e tests', () => {
     expect(unlikedPost.body.extendedLikesInfo.myStatus).toBe('None');
 
     await request(app.getHttpServer())
-      .put('/api/posts/507f1f77bcf86cd799439011/like-status')
+      .put('/api/posts/99/like-status')
       .auth(accessToken, { type: 'bearer' })
       .send({ likeStatus: 'Like' })
       .expect(HttpStatus.NOT_FOUND);
@@ -307,7 +307,7 @@ describe('posts e2e tests', () => {
     };
 
     await request(app.getHttpServer())
-      .post('/api/users')
+      .post('/api/sa/users')
       .auth('admin', 'qwerty')
       .send(anotherUser)
       .expect(HttpStatus.CREATED);

@@ -1,51 +1,39 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Post, PostDocument, PostModelType } from '../domain/post.entity';
-import { GetPostsQueryParams } from '../api/input-dto/get-posts.query-params.input-dto';
-import { FilterQuery } from 'mongoose';
-import {
-  MappedPaginatedViewType,
-  PaginatedViewDto,
-} from '../../../../core/dto/base.paginated.view-dto';
-import { PostViewDto } from '../api/view-dto/PostViewDto';
+import { Post } from '../domain/post.entity';
 import { DomainException } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { PostMapper, PostSqlRaw } from './mapper/post.mapper';
 
 @Injectable()
 export class PostsRepository {
-  constructor(@InjectModel(Post.name) private PostModel: PostModelType) {}
+  constructor(@InjectDataSource() private readonly dataSrc: DataSource) {}
 
-  async getAll(
-    query: GetPostsQueryParams,
-  ): Promise<PaginatedViewDto<PostViewDto[]>> {
-    const { pageSize, pageNumber, sortBy, sortDirection } = query;
+  async update(post: Post) {
+    const [, affectedCount] = await this.dataSrc.query<
+      [{ id: string }[], number]
+    >(
+      `UPDATE posts SET title = $1, short_description = $2, content = $3, blog_id = $4, blog_name = $5, updated_at = NOW(), deleted_at = $6 WHERE id=$7 RETURNING id::text AS id`,
+      [
+        post.title,
+        post.shortDescription,
+        post.content,
+        post.blogId,
+        post.blogName,
+        post.deletedAt,
+        post.id,
+      ],
+    );
 
-    const filter: FilterQuery<Post> = { deletedAt: null };
-
-    const [totalCount, posts] = await Promise.all([
-      this.PostModel.countDocuments(filter),
-      this.PostModel.find(filter)
-        .sort({ [sortBy]: sortDirection })
-        .skip(query.calculateSkip())
-        .limit(pageSize),
-    ]);
-
-    const data = {
-      totalCount,
-      items: posts.map(PostViewDto.mapToView),
-      page: pageNumber,
-      size: pageSize,
-    } satisfies MappedPaginatedViewType<PostViewDto[]>;
-
-    return PaginatedViewDto.mapToView(data);
+    return affectedCount === 1;
   }
 
-  async save(post: PostDocument) {
-    await post.save();
-  }
-
-  async getByIdOrFail(id: string) {
-    const found = await this.PostModel.findOne({ _id: id, deletedAt: null });
+  async getByIdOrFail(id: string): Promise<Post> {
+    const [found] = await this.dataSrc.query<PostSqlRaw[]>(
+      `SELECT * FROM posts WHERE id=$1 AND deleted_at IS NULL`,
+      [id],
+    );
 
     if (!found) {
       throw new DomainException({
@@ -54,6 +42,6 @@ export class PostsRepository {
       });
     }
 
-    return found;
+    return PostMapper.fromSqlRaw(found);
   }
 }

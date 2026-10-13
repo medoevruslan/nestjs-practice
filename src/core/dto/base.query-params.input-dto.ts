@@ -14,6 +14,6 @@ export class BaseQueryParams {
 }
 
 export enum SortDirection {
-  Asc = 'asc',
-  Desc = 'desc',
+  Asc = 'ASC',
+  Desc = 'DESC',
 }

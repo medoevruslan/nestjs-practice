@@ -10,7 +10,7 @@ export class CreateBlogsTable1791292568321 implements MigrationInterface {
       is_membership BOOLEAN NOT NULL DEFAULT FALSE,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      deleted_at TIMESTAMPTZ
+      deleted_at TIMESTAMPTZ,
       )`);
   }
 

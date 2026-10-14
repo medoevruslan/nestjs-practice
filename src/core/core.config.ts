@@ -22,17 +22,20 @@ export class CoreConfig {
   env: string = String(this.configService.get('NODE_ENV'));
 
   constructor(private readonly configService: ConfigService) {
-    const valid = validateSync(this);
-    if (valid.length) {
-      const errors = valid.reduce<Record<string, string[]>>((err, val, idx) => {
-        if (val.constraints) {
-          err[val.property] = Object.entries(val.constraints).map(
-            ([key, message]) => `${idx}) ${key}:: ${message}`,
-          );
-        }
+    const validationErrors = validateSync(this);
+    if (validationErrors.length) {
+      const errors = validationErrors.reduce<Record<string, string[]>>(
+        (err, val, idx) => {
+          if (val.constraints) {
+            err[val.property] = Object.entries(val.constraints).map(
+              ([key, message]) => `${idx}) ${key}:: ${message}`,
+            );
+          }
 
-        return err;
-      }, {});
+          return err;
+        },
+        {},
+      );
       throw new Error(
         `Invalid environment configuration:\n${JSON.stringify(errors, null, 2)}`,
       );

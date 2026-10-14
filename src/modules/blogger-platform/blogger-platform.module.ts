@@ -26,6 +26,7 @@ import { DeleteCommentUseCase } from './comments/application/usecases/delete-com
 import { UpdateLikeStatusUseCase } from './likes/application/usecases/update-like-status.usecase';
 import { BasicAuthGuard } from '../auth/guards/basic-auth.guard';
 import { OptionalAuthGuard } from '../auth/guards/optional-auth.guard';
+import { SaBlogsController } from './blogs/api/sa-blogs.controller';
 
 @Module({
   imports: [
@@ -36,7 +37,12 @@ import { OptionalAuthGuard } from '../auth/guards/optional-auth.guard';
     CqrsModule,
     UserAccountModule,
   ],
-  controllers: [BlogsController, PostsController, CommentsController],
+  controllers: [
+    BlogsController,
+    SaBlogsController,
+    PostsController,
+    CommentsController,
+  ],
   providers: [
     BlogsService,
     BlogsRepository,

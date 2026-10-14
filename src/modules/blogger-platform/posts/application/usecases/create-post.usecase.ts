@@ -22,8 +22,8 @@ export class CreatePostUseCase implements ICommandHandler<CreatePostCommand> {
     const blog = await this.blogsRepository.getByIdOrNotFoundFail(dto.blogId);
 
     const [created] = await this.dataSource.query(
-      `INSERT INTO posts (blog_id, content, short_description, title) VALUES ($1, $2, $3, $4) RETURNING id::TEXT AS id`,
-      [blog.id, dto.content, dto.shortDescription, dto.title],
+      `INSERT INTO posts (blog_id, blog_name, content, short_description, title) VALUES ($1, $2, $3, $4, $5) RETURNING id::TEXT AS id`,
+      [blog.id, blog.name, dto.content, dto.shortDescription, dto.title],
     );
 
     return created.id;

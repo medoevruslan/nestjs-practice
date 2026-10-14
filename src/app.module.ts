@@ -14,28 +14,13 @@ import { AllHttpExceptionsFilter } from './core/exceptions/base-exception.filter
 import { CoreConfig } from './core/core.config';
 import { SecurityModule } from './modules/security/security.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { CreateAuthTables1757000000000 } from './database/migrations/1757000000000-create-auth-tables';
-import { CreateBlogsTable1791292568321 } from './database/migrations/1791292568321-CreateBlogsTable';
-import { CreatePostsTable1791465379156 } from './database/migrations/1791465379156-CreatePostsTable';
+import { DatabaseConfig } from './database/database.config';
 
 @Module({
   imports: [
     configModule,
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'postgres',
-      database: 'postgres',
-      autoLoadEntities: false,
-      synchronize: false,
-      migrations: [
-        CreateAuthTables1757000000000,
-        CreateBlogsTable1791292568321,
-        CreatePostsTable1791465379156,
-      ],
-      migrationsRun: true,
+    TypeOrmModule.forRootAsync({
+      useClass: DatabaseConfig,
     }),
     MongooseModule.forRootAsync({
       useFactory: (coreConfig: CoreConfig) => {
@@ -53,6 +38,7 @@ import { CreatePostsTable1791465379156 } from './database/migrations/17914653791
   controllers: [AppController],
   providers: [
     AppService,
+    DatabaseConfig,
     { provide: APP_FILTER, useClass: AllHttpExceptionsFilter },
     { provide: APP_FILTER, useClass: DomainExceptionFilter },
   ],

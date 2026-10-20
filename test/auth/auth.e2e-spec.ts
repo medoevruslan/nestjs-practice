@@ -3,9 +3,9 @@ import { Test } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
 import { appSetup } from '../../src/setup/app.setup';
 import request from 'supertest';
-import { Connection } from 'mongoose';
-import { getConnectionToken } from '@nestjs/mongoose';
 import { createTestUser, loginTestUser, TEST_USER } from '../create-test-user';
+import { DataSource } from 'typeorm';
+import { getDataSourceToken } from '@nestjs/typeorm';
 
 describe('auth e2e tests', () => {
   let app: INestApplication;
@@ -18,9 +18,15 @@ describe('auth e2e tests', () => {
     appSetup(app);
     await app.init();
 
-    const connection = app.get<Connection>(getConnectionToken());
+    const dataSource = app.get<DataSource>(getDataSourceToken());
 
-    if (!connection.db) {
+    if (!dataSource.isInitialized) {
+      throw Error('Testing db is not initialized');
+    }
+
+    try {
+      await dataSource.query(`SELECT 1`);
+    } catch (e) {
       throw Error('Testing db is not available');
     }
 

@@ -3,8 +3,6 @@ import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
 import { appSetup } from '../../src/setup/app.setup';
-import { Connection } from 'mongoose';
-import { getConnectionToken } from '@nestjs/mongoose';
 import { createTestUser, loginTestUser } from '../create-test-user';
 import { getDataSourceToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -22,10 +20,9 @@ describe('Security (e2e)', () => {
     appSetup(app);
     await app.init();
 
-    const connection = app.get<Connection>(getConnectionToken());
     const typeOrmConnection = app.get<DataSource>(getDataSourceToken());
 
-    if (!connection.db || !typeOrmConnection.isInitialized) {
+    if (!typeOrmConnection.isInitialized) {
       throw Error('Testing db is not available');
     }
   });

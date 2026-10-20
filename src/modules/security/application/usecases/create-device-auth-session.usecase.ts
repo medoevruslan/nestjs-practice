@@ -17,7 +17,7 @@ export class CreateDeviceAuthSessionUseCase implements ICommandHandler<CreateDev
   ) {}
 
   async execute(command: CreateDeviceAuthSessionCommand) {
-    await this.usersService.getByIdOrFailRaw(command.dto.userId.toString());
+    await this.usersService.getByIdOrFail(command.dto.userId.toString());
     await this.deviceAuthSessionRepository.create(command.dto);
   }
 }

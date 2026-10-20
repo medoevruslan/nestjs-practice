@@ -7,6 +7,9 @@ import { Nullable } from 'src/shared/common.types';
 import { CreateAuthTables1757000000000 } from './migrations/1757000000000-create-auth-tables';
 import { CreateBlogsTable1791292568321 } from './migrations/1791292568321-CreateBlogsTable';
 import { CreatePostsTable1791465379156 } from './migrations/1791465379156-CreatePostsTable';
+import { CreateCommentsTable1792052413053 } from './migrations/1792052413053-CreateCommentsTable';
+import { CreateLikesTable1792052421958 } from './migrations/1792052421958-CreateLikesTable';
+import { AddUserLoginToComments1792130000000 } from './migrations/1792130000000-AddUserLoginToComments';
 
 enum Environment {
   PRODUCTION = 'production',
@@ -49,6 +52,9 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
       CreateAuthTables1757000000000,
       CreateBlogsTable1791292568321,
       CreatePostsTable1791465379156,
+      CreateCommentsTable1792052413053,
+      CreateLikesTable1792052421958,
+      AddUserLoginToComments1792130000000,
     ],
     migrationsRun: true,
   };

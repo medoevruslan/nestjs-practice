@@ -9,14 +9,13 @@ export class CreateCommentsTable1792052413053 implements MigrationInterface {
             post_id BIGINT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
             created_at TIMESTAMPTZ DEFAULT NOW(),
             updated_at TIMESTAMPTZ DEFAULT NOW(),
-            deleted_at TIMESTAMPTZ,
+            deleted_at TIMESTAMPTZ
             )`);
 
     await queryRunner.query(`
                 CREATE INDEX IF NOT EXISTS idx_comments_user_id ON comments(user_id);
                 CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id);
-                CREATE INDEX idx_comments_active_post
-                ON comments(post_id, created_at DESC) WHERE deleted_at IS NULL;               
+                CREATE INDEX idx_comments_active_post ON comments(post_id, created_at DESC) WHERE deleted_at IS NULL;
                 `);
   }
 

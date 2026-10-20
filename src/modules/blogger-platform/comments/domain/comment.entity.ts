@@ -24,5 +24,5 @@ export class Comment {
 export type CommentWithLikesInfo = Comment & {
   likesCount: number;
   dislikesCount: number;
-  userLikeStatus: Nullable<{ status: LikeStatus }>;
+  userLikeStatus: { status: LikeStatus };
 };

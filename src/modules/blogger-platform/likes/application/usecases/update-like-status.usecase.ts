@@ -1,10 +1,11 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Inject } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Like, LikeModel, LikeStatus } from '../../domain/like.entity';
+import { LikeStatus } from '../../domain/like.entity';
 import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
 import { CommentsRepository } from '../../../comments/infrastructure/comments.repository';
 import { UsersService } from '../../../../user-account/application/users.service';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 export type LikeParentType = 'Post' | 'Comment';
 
@@ -20,44 +21,44 @@ export class UpdateLikeStatusCommand {
 @CommandHandler(UpdateLikeStatusCommand)
 export class UpdateLikeStatusUseCase implements ICommandHandler<UpdateLikeStatusCommand> {
   constructor(
-    @InjectModel(Like.name) private readonly likeModel: LikeModel,
     @Inject() private readonly postsRepository: PostsRepository,
     @Inject() private readonly commentsRepository: CommentsRepository,
     @Inject() private readonly usersService: UsersService,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   async execute(command: UpdateLikeStatusCommand): Promise<void> {
     await this.ensureParentExists(command.parentId, command.parentType);
 
-    const { parentId, userId } = command;
-
-    const existingLike = await this.likeModel.findOne({
-      parentId,
-      parentType: command.parentType,
-      userId,
-    });
-
     if (command.status === LikeStatus.None) {
-      if (existingLike) {
-        await existingLike.deleteOne();
-      }
+      await this.dataSource.query(
+        `DELETE FROM likes
+         WHERE parent_id = $1
+           AND parent_type = $2
+           AND user_id = $3`,
+        [command.parentId, command.parentType, command.userId],
+      );
       return;
     }
 
-    if (existingLike) {
-      existingLike.status = command.status;
-      await existingLike.save();
-      return;
-    }
+    const user = await this.usersService.getByIdOrFail(command.userId);
 
-    const user = await this.usersService.getByIdOrFailRaw(command.userId);
-    await this.likeModel.create({
-      parentId,
-      parentType: command.parentType,
-      userId,
-      login: user.login,
-      status: command.status,
-    });
+    await this.dataSource.query(
+      `INSERT INTO likes (parent_id, parent_type, user_id, login, status)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (parent_id, parent_type, user_id)
+       DO UPDATE SET
+         status = EXCLUDED.status,
+         login = EXCLUDED.login,
+         updated_at = NOW()`,
+      [
+        command.parentId,
+        command.parentType,
+        command.userId,
+        user.login,
+        command.status,
+      ],
+    );
   }
 
   private async ensureParentExists(

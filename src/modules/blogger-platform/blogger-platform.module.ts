@@ -3,15 +3,12 @@ import { BlogsController } from './blogs/api/blogs.controller';
 import { BlogsService } from './blogs/application/blogs.service';
 import { BlogsRepository } from './blogs/infrastructure/blogs.repository';
 import { BlogsQueryRepository } from './blogs/infrastructure/query/blogs.query-repository';
-import { MongooseModule } from '@nestjs/mongoose';
 import { PostsController } from './posts/api/posts.controller';
 import { PostsQueryRepository } from './posts/infrastructure/query/posts.query-repository';
 import { PostsRepository } from './posts/infrastructure/posts.repository';
 import { PostsService } from './posts/application/posts.service';
-import { Like, LikeSchema } from './likes/domain/like.entity';
 import { CommentsController } from './comments/api/comments.controller';
 import { CommentsQueryRepository } from './comments/infrastructure/query/comments-query.repository';
-import { Comment, CommentSchema } from './comments/domain/comment.entity';
 import { CreateBlogUseCase } from './blogs/application/usecases/create-blog.usecase';
 import { CreatePostByBlogIdUseCase } from './blogs/application/usecases/create-post-by-blog-id.usecase';
 import { CreatePostUseCase } from './posts/application/usecases/create-post.usecase';
@@ -29,14 +26,7 @@ import { OptionalAuthGuard } from '../auth/guards/optional-auth.guard';
 import { SaBlogsController } from './blogs/api/sa-blogs.controller';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: Like.name, schema: LikeSchema },
-      { name: Comment.name, schema: CommentSchema },
-    ]),
-    CqrsModule,
-    UserAccountModule,
-  ],
+  imports: [CqrsModule, UserAccountModule],
   controllers: [
     BlogsController,
     SaBlogsController,

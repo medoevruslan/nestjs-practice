@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CommentsQueryRepository } from '../infrastructure/query/comments-query.repository';
-import { ParseObjectIdOrBadRequestPipe } from '../../../../core/pipes/ParseObjectIdOrBadRequestPipe';
+import { ParseRelationalIdOrBadRequestPipe } from '../../../../core/pipes/parse-relational-id-or-bad-request.pipe';
 import { CommandBus } from '@nestjs/cqrs';
 import { CommentInputDto } from '../../shared/api/input-dto/comment.input-dto';
 import { UpdateCommentCommand } from '../application/usecases/update-comment.usecase';
@@ -27,18 +27,15 @@ export class CommentsController {
   constructor(
     private readonly commentsQueryRepository: CommentsQueryRepository,
     private readonly commandBus: CommandBus,
-  ) { }
+  ) {}
 
   @Get(':id')
   @UseGuards(OptionalAuthGuard)
   getCommentById(
-    @Param('id', ParseObjectIdOrBadRequestPipe) id: string,
-    @CurrentUserId() userId: string
+    @Param('id', ParseRelationalIdOrBadRequestPipe) id: string,
+    @CurrentUserId() userId: string,
   ) {
-    return this.commentsQueryRepository.getCommentByIdOrFail(
-      id,
-      userId,
-    );
+    return this.commentsQueryRepository.getCommentByIdOrFail(id, userId);
   }
 
   @ApiBearerAuth('bearer')
@@ -46,17 +43,12 @@ export class CommentsController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateLikeStatus(
-    @Param('commentId', ParseObjectIdOrBadRequestPipe) commentId: string,
+    @Param('commentId', ParseRelationalIdOrBadRequestPipe) commentId: string,
     @Body() dto: LikeStatusInputDto,
-    @CurrentUserId() userId: string
+    @CurrentUserId() userId: string,
   ) {
     await this.commandBus.execute(
-      new UpdateLikeStatusCommand(
-        commentId,
-        'Comment',
-        userId,
-        dto.likeStatus,
-      ),
+      new UpdateLikeStatusCommand(commentId, 'Comment', userId, dto.likeStatus),
     );
   }
 
@@ -65,9 +57,9 @@ export class CommentsController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async updateComment(
-    @Param('commentId', ParseObjectIdOrBadRequestPipe) commentId: string,
+    @Param('commentId', ParseRelationalIdOrBadRequestPipe) commentId: string,
     @Body() dto: CommentInputDto,
-    @CurrentUserId() userId: string
+    @CurrentUserId() userId: string,
   ) {
     await this.commandBus.execute(
       new UpdateCommentCommand(commentId, userId, dto.content),
@@ -79,11 +71,9 @@ export class CommentsController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteComment(
-    @Param('commentId', ParseObjectIdOrBadRequestPipe) commentId: string,
-    @CurrentUserId() userId: string
+    @Param('commentId', ParseRelationalIdOrBadRequestPipe) commentId: string,
+    @CurrentUserId() userId: string,
   ) {
-    await this.commandBus.execute(
-      new DeleteCommentCommand(commentId, userId),
-    );
+    await this.commandBus.execute(new DeleteCommentCommand(commentId, userId));
   }
 }

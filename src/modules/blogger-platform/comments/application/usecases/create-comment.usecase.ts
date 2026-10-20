@@ -1,12 +1,12 @@
 import { CreateCommentDto } from '../../dto/create-comment.dto';
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { InjectModel } from '@nestjs/mongoose';
-import { Comment, CommentModelType } from '../../domain/comment.entity';
-import { CommentsRepository } from '../../infrastructure/comments.repository';
 import { Inject } from '@nestjs/common';
 import { CreateCommentDomainDto } from '../../domain/dto/create-comment.domain-dto';
 import { UsersService } from 'src/modules/user-account/application/users.service';
 import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { CommentSqlRaw } from '../../infrastructure/mapper/comment.mapper';
 
 export class CreateCommentCommand {
   constructor(readonly dto: CreateCommentDto) {}
@@ -15,21 +15,28 @@ export class CreateCommentCommand {
 @CommandHandler(CreateCommentCommand)
 export class CreateCommentUseCase implements ICommandHandler<CreateCommentCommand> {
   constructor(
-    @InjectModel(Comment.name) private readonly CommentModel: CommentModelType,
-    @Inject() private readonly commentsRepository: CommentsRepository,
     @Inject() private readonly usersService: UsersService,
     @Inject() private readonly postsRepository: PostsRepository,
+    @InjectDataSource() private readonly dataSrc: DataSource,
   ) {}
   async execute(command: CreateCommentCommand) {
     const { dto } = command;
     await this.postsRepository.getByIdOrFail(dto.postId);
-    const user = await this.usersService.getByIdOrFailRaw(dto.userId);
+    const user = await this.usersService.getByIdOrFail(dto.userId);
     const commentDto: CreateCommentDomainDto = Object.assign(
       { userLogin: user.login },
       dto,
     );
-    const comment = this.CommentModel.createInstance(commentDto);
-    await this.commentsRepository.save(comment);
-    return comment.id;
+
+    const [created] = await this.dataSrc.query<CommentSqlRaw[]>(
+      `INSERT INTO comments (content, user_id, post_id, user_login) VALUES ($1, $2, $3, $4) RETURNING id::TEXT as id`,
+      [
+        commentDto.content,
+        commentDto.userId,
+        commentDto.postId,
+        commentDto.userLogin,
+      ],
+    );
+    return created.id;
   }
 }

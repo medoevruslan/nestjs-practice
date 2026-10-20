@@ -1,6 +1,5 @@
 import { LikesViewDto } from '../../../likes/api/view-dto/likes-view.dto';
 import { CommentWithLikesInfo } from '../../domain/comment.entity';
-import { LikeStatus } from '../../../likes/domain/like.entity';
 
 export class CommentViewDto {
   id: string;
@@ -15,9 +14,9 @@ export class CommentViewDto {
       content: dto.content,
       createdAt: dto.createdAt.toISOString(),
       likesInfo: {
-        likesCount: dto.likesCount ?? 0,
-        dislikesCount: dto.dislikesCount ?? 0,
-        myStatus: dto.userLikeStatus?.status ?? LikeStatus.None,
+        likesCount: dto.likesCount,
+        dislikesCount: dto.dislikesCount,
+        myStatus: dto.userLikeStatus.status,
       },
       commentatorInfo: {
         userId: dto.userId.toString(),

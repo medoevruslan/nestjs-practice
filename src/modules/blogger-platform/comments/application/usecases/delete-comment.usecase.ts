@@ -19,14 +19,13 @@ export class DeleteCommentUseCase implements ICommandHandler<DeleteCommentComman
       command.commentId,
     );
 
-    if (comment.userId.toString() !== command.userId) {
+    if (comment.userId !== command.userId) {
       throw new DomainException({
         code: DomainExceptionCode.Forbidden,
         message: 'You can delete only your own comment',
       });
     }
 
-    comment.markDeleted();
-    await this.commentsRepository.save(comment);
+    await this.commentsRepository.delete(comment.id);
   }
 }

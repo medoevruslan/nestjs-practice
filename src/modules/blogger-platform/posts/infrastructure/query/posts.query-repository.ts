@@ -3,7 +3,6 @@ import {
   GetPostsQueryParams,
   PostsSortBy,
 } from '../../api/input-dto/get-posts.query-params.input-dto';
-import { InjectModel } from '@nestjs/mongoose';
 import {
   MappedPaginatedViewType,
   PaginatedViewDto,
@@ -13,8 +12,16 @@ import { BlogsRepository } from '../../../blogs/infrastructure/blogs.repository'
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { PostMapper, PostSqlRaw } from '../mapper/post.mapper';
-import { Like, LikeModel, LikeStatus } from '../../../likes/domain/like.entity';
 import { ExtendedLikesViewDto } from '../../../likes/api/view-dto/likes-view.dto';
+import { LikeStatus } from '../../../likes/domain/like.entity';
+
+type PostLikeSqlRaw = {
+  parent_id: string;
+  user_id: string;
+  login: string;
+  status: LikeStatus;
+  created_at: Date | string;
+};
 
 @Injectable()
 export class PostsQueryRepository {
@@ -27,7 +34,6 @@ export class PostsQueryRepository {
   constructor(
     @Inject() private readonly blogsRepository: BlogsRepository,
     @InjectDataSource() private readonly dataSource: DataSource,
-    @InjectModel(Like.name) private readonly likeModel: LikeModel,
   ) {}
 
   async getAll(
@@ -139,29 +145,37 @@ export class PostsQueryRepository {
     postIds: string[],
     userId: string,
   ): Promise<Map<string, ExtendedLikesViewDto>> {
-    const result = new Map<string, ExtendedLikesViewDto>(
-      postIds.map((postId) => [
-        postId,
-        {
-          likesCount: 0,
-          dislikesCount: 0,
-          myStatus: LikeStatus.None,
-          newestLikes: [],
-        },
-      ]),
-    );
+    const result = new Map<string, ExtendedLikesViewDto>();
 
-    if (!postIds.length) {
+    for (const postId of postIds) {
+      result.set(postId, {
+        likesCount: 0,
+        dislikesCount: 0,
+        myStatus: LikeStatus.None,
+        newestLikes: [],
+      });
+    }
+
+    if (postIds.length === 0) {
       return result;
     }
 
-    const likes = await this.likeModel
-      .find({ parentId: { $in: postIds }, parentType: 'Post' })
-      .sort({ createdAt: -1 })
-      .exec();
+    const likes = await this.dataSource.query<PostLikeSqlRaw[]>(
+      `SELECT
+         parent_id::text AS parent_id,
+         user_id::text AS user_id,
+         login,
+         status,
+         created_at
+       FROM likes
+       WHERE parent_type = 'Post'
+         AND parent_id = ANY($1::bigint[])
+       ORDER BY created_at DESC, id DESC`,
+      [postIds],
+    );
 
     for (const like of likes) {
-      const info = result.get(like.parentId);
+      const info = result.get(like.parent_id);
 
       if (!info) {
         continue;
@@ -172,8 +186,8 @@ export class PostsQueryRepository {
 
         if (info.newestLikes.length < 3) {
           info.newestLikes.push({
-            addedAt: like.createdAt.toISOString(),
-            userId: like.userId,
+            addedAt: new Date(like.created_at).toISOString(),
+            userId: like.user_id,
             login: like.login,
           });
         }
@@ -181,7 +195,7 @@ export class PostsQueryRepository {
         info.dislikesCount += 1;
       }
 
-      if (like.userId === userId) {
+      if (like.user_id === userId) {
         info.myStatus = like.status;
       }
     }

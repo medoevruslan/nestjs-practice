@@ -1,36 +1,50 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import {
-  Comment,
-  CommentDocument,
-  CommentModelType,
-} from '../domain/comment.entity';
+import { Comment } from '../domain/comment.entity';
 import { DomainException } from '../../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
+import { CommentsMapper, CommentSqlRaw } from './mapper/comment.mapper';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class CommentsRepository {
-  constructor(
-    @InjectModel(Comment.name) private CommentModel: CommentModelType,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSrc: DataSource) {}
 
-  async save(comment: CommentDocument) {
-    await comment.save();
+  async update(updateData: Comment) {
+    const [, affectedCount] = await this.dataSrc.query<
+      [{ id: string }[], number]
+    >(`UPDATE comments SET updated_at = NOW(), content = $1 WHERE id = $2`, [
+      updateData.content,
+      updateData.id,
+    ]);
+
+    return affectedCount === 1;
   }
 
-  async getByIdOrFail(id: string): Promise<CommentDocument> {
-    const comment = await this.CommentModel.findOne({
-      _id: id,
-      deletedAt: null,
-    });
+  async delete(id: string) {
+    const [, affectedCount] = await this.dataSrc.query<
+      [{ id: string }[], number]
+    >(
+      `UPDATE comments SET updated_at = NOW(), deleted_at = NOW() WHERE id = $1`,
+      [id],
+    );
 
-    if (!comment) {
+    return affectedCount === 1;
+  }
+
+  async getByIdOrFail(id: string): Promise<Comment> {
+    const [found] = await this.dataSrc.query<CommentSqlRaw[]>(
+      `SELECT * FROM comments WHERE id = $1 AND deleted_at IS NULL;`,
+      [id],
+    );
+
+    if (!found) {
       throw new DomainException({
         code: DomainExceptionCode.NotFound,
         message: 'Comment not found',
       });
     }
 
-    return comment;
+    return CommentsMapper.fromSqlRaw(found);
   }
 }

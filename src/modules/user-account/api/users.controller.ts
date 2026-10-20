@@ -29,7 +29,7 @@ export class UsersController {
 
   @Get()
   async getAll(@Query() query: GetUsersQueryParams) {
-    return this.usersQueryRepository.getAllRaw(query);
+    return this.usersQueryRepository.getAll(query);
   }
 
   @ApiBasicAuth('basic')
@@ -39,7 +39,7 @@ export class UsersController {
     const userId = await this.commandBus.execute<CreateUserCommand, string>(
       new CreateUserCommand(dto),
     );
-    return this.usersQueryRepository.getByIdOrFailRaw(userId);
+    return this.usersQueryRepository.getByIdOrFail(userId);
   }
 
   @ApiBasicAuth('basic')

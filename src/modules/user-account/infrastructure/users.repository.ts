@@ -1,27 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument, UserModelType } from '../domain/user.entity';
+import { User } from '../domain/user.entity';
 import { DomainException } from '../../../core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../../core/exceptions/domain-exception-codes';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { UserMapper, UserSqlRow } from './mappers/user.mapper';
+import { Nullable } from 'src/shared/common.types';
 
 @Injectable()
 export class UsersRepository {
-  constructor(
-    @InjectModel(User.name) private UserModel: UserModelType,
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
-
-  async save(user: User): Promise<boolean> {
-    if (user.relationalId) {
-      return this.update(user);
-    }
-
-    await (user as UserDocument).save();
-    return true;
-  }
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async update(user: User) {
     const [, affectedCount] = await this.dataSource.query<
@@ -73,20 +61,7 @@ export class UsersRepository {
     return affectedCount === 1;
   }
 
-  async findByIdOrFail(id: string): Promise<UserDocument> {
-    const found = await this.UserModel.findOne({ _id: id, deletedAt: null });
-
-    if (!found) {
-      throw new DomainException({
-        code: DomainExceptionCode.NotFound,
-        message: 'User not found',
-      });
-    }
-
-    return found;
-  }
-
-  async findByIdOrFailRaw(id: string): Promise<User> {
+  async findByIdOrFail(id: string): Promise<User> {
     const [found] = await this.dataSource.query<UserSqlRow[]>(
       'SELECT * FROM users WHERE id = $1 AND deleted_at IS NULL',
       [id],
@@ -102,24 +77,9 @@ export class UsersRepository {
     return UserMapper.fromSqlRow(found);
   }
 
-  async findByIdOrNull(id: string): Promise<UserDocument | null> {
-    return this.UserModel.findOne({ _id: id, deletedAt: null });
-  }
-
-  async findByEmailOrFail(email: string): Promise<UserDocument> {
-    const found = await this.UserModel.findOne({ email, deletedAt: null });
-
-    if (!found) {
-      throw new DomainException({
-        code: DomainExceptionCode.NotFound,
-        message: 'User not found',
-      });
-    }
-
-    return found;
-  }
-
-  async findByEmailOrEmailOrNull(loginOrEmail: string): Promise<User | null> {
+  async findByEmailOrEmailOrNull(
+    loginOrEmail: string,
+  ): Promise<Nullable<User>> {
     const [found] = await this.dataSource.query<UserSqlRow[]>(
       `
         SELECT *
@@ -132,7 +92,7 @@ export class UsersRepository {
     return found ? UserMapper.fromSqlRow(found) : null;
   }
 
-  async findByEmailOrNull(email: string): Promise<User | null> {
+  async findByEmailOrNull(email: string): Promise<Nullable<User>> {
     const [found] = await this.dataSource.query<UserSqlRow[]>(
       'SELECT * FROM users WHERE email=$1 AND deleted_at IS NULL',
       [email],
@@ -141,7 +101,7 @@ export class UsersRepository {
     return found ? UserMapper.fromSqlRow(found) : null;
   }
 
-  async findByLoginOrNull(login: string): Promise<User | null> {
+  async findByLoginOrNull(login: string): Promise<Nullable<User>> {
     const [found] = await this.dataSource.query<UserSqlRow[]>(
       'SELECT * FROM users WHERE login=$1 AND deleted_at IS NULL',
       [login],
@@ -150,39 +110,9 @@ export class UsersRepository {
     return found ? UserMapper.fromSqlRow(found) : null;
   }
 
-  async findByEmailConfirmationCodeOrFail(code: string): Promise<UserDocument> {
-    const found = await this.UserModel.findOne({
-      emailConfirmationCode: code,
-      deletedAt: null,
-    });
-
-    if (!found) {
-      throw new DomainException({
-        code: DomainExceptionCode.NotFound,
-        message: 'User not found',
-      });
-    }
-
-    return found;
-  }
-
-  async findByPasswordRecoveryCodeOrFail(code: string): Promise<UserDocument> {
-    const found = await this.UserModel.findOne({
-      passwordRecoveryCode: code,
-      deletedAt: null,
-    });
-
-    if (!found) {
-      throw new DomainException({
-        code: DomainExceptionCode.NotFound,
-        message: 'User not found',
-      });
-    }
-
-    return found;
-  }
-
-  async findByEmailConfirmationCodeOrNull(code: string): Promise<User | null> {
+  async findByEmailConfirmationCodeOrNull(
+    code: string,
+  ): Promise<Nullable<User>> {
     const [res] = await this.dataSource.query<UserSqlRow[]>(
       'SELECT * FROM users WHERE email_confirmation_code = $1 AND deleted_at IS NULL',
       [code],
@@ -190,7 +120,9 @@ export class UsersRepository {
     return res ? UserMapper.fromSqlRow(res) : null;
   }
 
-  async findByPasswordRecoveryCodeOrNull(code: string): Promise<User | null> {
+  async findByPasswordRecoveryCodeOrNull(
+    code: string,
+  ): Promise<Nullable<User>> {
     const [res] = await this.dataSource.query<UserSqlRow[]>(
       'SELECT * FROM users WHERE password_recovery_code = $1 AND deleted_at IS NULL',
       [code],

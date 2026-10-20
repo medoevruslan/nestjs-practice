@@ -1,8 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserModelType } from '../../domain/user.entity';
 import { UserViewDto } from '../../api/view-dto/UserViewDto';
-import { FilterQuery } from 'mongoose';
 import {
   MappedPaginatedViewType,
   PaginatedViewDto,
@@ -26,56 +23,9 @@ export class UsersQueryRepository {
     [UsersSortBy.Login, '"login" COLLATE "C"'],
   ]);
 
-  constructor(
-    @InjectModel(User.name) private UserModel: UserModelType,
-    @InjectDataSource() private readonly dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async getAll(
-    query: GetUsersQueryParams,
-  ): Promise<PaginatedViewDto<UserViewDto[]>> {
-    const {
-      sortBy,
-      sortDirection,
-      pageSize,
-      pageNumber,
-      searchEmailTerm,
-      searchLoginTerm,
-    } = query;
-
-    const filter: FilterQuery<User> = { deletedAt: null };
-
-    if (searchLoginTerm) {
-      filter.$or = filter.$or ?? [];
-      filter.$or.push({ login: { $regex: searchLoginTerm, $options: 'i' } });
-    }
-
-    if (searchEmailTerm) {
-      filter.$or = filter.$or ?? [];
-      filter.$or.push({ email: { $regex: searchEmailTerm, $options: 'i' } });
-    }
-
-    const [totalCount, users] = await Promise.all([
-      this.UserModel.countDocuments(filter),
-      this.UserModel.find(filter)
-        .sort({
-          [sortBy]: sortDirection === SortDirection.Asc ? 'asc' : 'desc',
-        })
-        .skip(query.calculateSkip())
-        .limit(pageSize),
-    ]);
-
-    const data = {
-      totalCount,
-      page: pageNumber,
-      size: pageSize,
-      items: users.map(UserViewDto.mapToView.bind),
-    } satisfies MappedPaginatedViewType<UserViewDto[]>;
-
-    return PaginatedViewDto.mapToView<UserViewDto[]>(data);
-  }
-
-  async getAllRaw(
     query: GetUsersQueryParams,
   ): Promise<PaginatedViewDto<UserViewDto[]>> {
     const {
@@ -151,19 +101,6 @@ export class UsersQueryRepository {
   }
 
   async getByIdOrFail(id: string): Promise<UserViewDto> {
-    const found = await this.UserModel.findOne({ _id: id, deletedAt: null });
-
-    if (!found) {
-      throw new DomainException({
-        code: DomainExceptionCode.NotFound,
-        message: 'User not found',
-      });
-    }
-
-    return UserViewDto.mapToView(found);
-  }
-
-  async getByIdOrFailRaw(id: string): Promise<UserViewDto> {
     const [found] = await this.dataSource.query<UserSqlRow[]>(
       `
         SELECT *
@@ -181,18 +118,5 @@ export class UsersQueryRepository {
     }
 
     return UserViewDto.mapToView(UserMapper.fromSqlRow(found));
-  }
-
-  async getByLoginOrFail(login: string): Promise<UserViewDto> {
-    const found = await this.UserModel.findOne({ login, deletedAt: null });
-
-    if (!found) {
-      throw new DomainException({
-        code: DomainExceptionCode.NotFound,
-        message: 'User not found',
-      });
-    }
-
-    return UserViewDto.mapToView(found);
   }
 }

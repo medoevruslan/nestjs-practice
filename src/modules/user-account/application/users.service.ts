@@ -7,19 +7,11 @@ export class UsersService {
   constructor(@Inject() private usersRepository: UsersRepository) {}
 
   async save(user: User) {
-    await this.usersRepository.save(user);
+    await this.usersRepository.update(user);
   }
 
   async getByIdOrFail(id: string) {
     return this.usersRepository.findByIdOrFail(id);
-  }
-
-  async getByIdOrFailRaw(id: string) {
-    return this.usersRepository.findByIdOrFailRaw(id);
-  }
-
-  async getByEmail(email: string) {
-    return this.usersRepository.findByEmailOrFail(email);
   }
 
   async getByLoginOrEmailNullable(loginOrEmail: string) {
@@ -32,10 +24,6 @@ export class UsersService {
 
   async getByLoginNullable(login: string) {
     return this.usersRepository.findByLoginOrNull(login);
-  }
-
-  async getByPasswordRecoveryCode(code: string) {
-    return this.usersRepository.findByPasswordRecoveryCodeOrFail(code);
   }
 
   async getByPasswordRecoveryCodeOrNull(code: string) {
@@ -51,7 +39,7 @@ export class UsersService {
       await this.usersRepository.findByEmailConfirmationCodeOrNull(code);
     if (found) {
       found.isEmailConfirmed = true;
-      await this.usersRepository.save(found);
+      await this.usersRepository.update(found);
     }
   }
 }

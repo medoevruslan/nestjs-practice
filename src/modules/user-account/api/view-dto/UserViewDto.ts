@@ -8,7 +8,7 @@ export class UserViewDto {
 
   static mapToView(dto: User): UserViewDto {
     return {
-      id: dto.id ?? dto._id.toString(),
+      id: dto.id,
       login: dto.login,
       email: dto.email,
       createdAt: dto.createdAt.toISOString(),

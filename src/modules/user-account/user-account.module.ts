@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from './domain/user.entity';
 import { UsersController } from './api/users.controller';
 import { UsersQueryRepository } from './infrastructure/query/users.query-repository';
 import { UsersRepository } from './infrastructure/users.repository';
@@ -12,10 +10,7 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { DeleteUserUseCase } from './application/usecases/delete-user.usecase';
 
 @Module({
-  imports: [
-    CqrsModule,
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-  ],
+  imports: [CqrsModule],
   controllers: [UsersController],
   providers: [
     UsersQueryRepository,
@@ -28,4 +23,4 @@ import { DeleteUserUseCase } from './application/usecases/delete-user.usecase';
   ],
   exports: [UsersService],
 })
-export class UserAccountModule { }
+export class UserAccountModule {}

@@ -1,19 +1,12 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Model, Types } from 'mongoose';
-import { CreateUserDto } from '../dto/create-user.dto';
+import { Prop } from '@nestjs/mongoose';
 import { UpdateUserEmailDto } from '../dto/update-user-email.dto';
 
-@Schema({
-  timestamps: true,
-  // toObject: { virtuals: true },
-  // toJSON: { virtuals: true },
-})
+// TODO: add migration with CHECK login and other fields
 export class User {
-  _id: Types.ObjectId;
-  relationalId?: string;
+  relationalId: string;
 
   get id() {
-    return this.relationalId ?? this._id.toString();
+    return this.relationalId;
   }
 
   @Prop({ type: String, required: true, unique: true })
@@ -76,21 +69,4 @@ export class User {
     this.email = dto.email;
     this.isEmailConfirmed = false;
   }
-
-  static createInstance(dto: CreateUserDto) {
-    const user = new this();
-    user.password = dto.password;
-    user.login = dto.login;
-    user.email = dto.email;
-    user.isEmailConfirmed = false;
-    user.deletedAt = null;
-    return user as UserDocument;
-  }
 }
-
-export const UserSchema = SchemaFactory.createForClass(User);
-
-UserSchema.loadClass(User);
-
-export type UserDocument = HydratedDocument<User>;
-export type UserModelType = Model<UserDocument> & typeof User;

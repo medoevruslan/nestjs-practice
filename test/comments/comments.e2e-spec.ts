@@ -88,8 +88,50 @@ describe('test comments', () => {
   it('should return comments list', async () => {
     const res = await request(app.getHttpServer())
       .get(`/api/posts/${testPostId}/comments`)
-      .auth(accessToken, { type: 'bearer' });
+      .auth(accessToken, { type: 'bearer' })
+      .expect(HttpStatus.OK);
 
     expect(res.body.totalCount).toBe(0);
+  });
+
+  it('should return comments in the requested sort direction', async () => {
+    const comments = [
+      'first comment content',
+      'second comment content',
+      'third comment content',
+    ];
+    const createdCommentIds: string[] = [];
+
+    for (const content of comments) {
+      const createCommentRes = await request(app.getHttpServer())
+        .post(`/api/posts/${testPostId}/comments`)
+        .auth(accessToken, { type: 'bearer' })
+        .send({ content })
+        .expect(HttpStatus.CREATED);
+
+      createdCommentIds.push(createCommentRes.body.id);
+    }
+
+    const ascendingRes = await request(app.getHttpServer())
+      .get(`/api/posts/${testPostId}/comments`)
+      .query({ sortDirection: 'ASC' })
+      .auth(accessToken, { type: 'bearer' })
+      .expect(HttpStatus.OK);
+
+    expect(ascendingRes.body.totalCount).toBe(comments.length);
+    expect(ascendingRes.body.items.map(({ id }: { id: string }) => id)).toEqual(
+      createdCommentIds,
+    );
+
+    const descendingRes = await request(app.getHttpServer())
+      .get(`/api/posts/${testPostId}/comments`)
+      .query({ sortDirection: 'DESC' })
+      .auth(accessToken, { type: 'bearer' })
+      .expect(HttpStatus.OK);
+
+    expect(descendingRes.body.totalCount).toBe(comments.length);
+    expect(
+      descendingRes.body.items.map(({ id }: { id: string }) => id),
+    ).toEqual([...createdCommentIds].reverse());
   });
 });

@@ -58,8 +58,7 @@ export class CommentsQueryRepository {
   ): Promise<PaginatedViewDto<CommentViewDto[]>> {
     await this.postsRepository.getByIdOrFail(postId);
 
-    const sortDirection =
-      query.sortDirection === SortDirection.Asc ? 'ASC' : 'DESC';
+    const sortDirection = query.sortDirection;
 
     const [[countResult], comments] = await Promise.all([
       this.dataSrc.query<{ count: string }[]>(

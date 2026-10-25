@@ -10,7 +10,6 @@ import {
 import { PostsRepository } from '../../../posts/infrastructure/posts.repository';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { SortDirection } from '../../../../../core/dto/base.query-params.input-dto';
 import {
   CommentsMapper,
   CommentWithLikesInfoSqlRaw,

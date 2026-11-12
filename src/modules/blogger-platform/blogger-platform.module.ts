@@ -27,12 +27,13 @@ import { SaBlogsController } from './blogs/api/sa-blogs.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Blog } from './blogs/domain/blog.entity';
 import { Post } from './posts/domain/post.entity';
+import { Comment } from './comments/domain/comment.entity';
 
 @Module({
   imports: [
     CqrsModule,
     UserAccountModule,
-    TypeOrmModule.forFeature([Blog, Post]),
+    TypeOrmModule.forFeature([Blog, Post, Comment]),
   ],
   controllers: [
     BlogsController,

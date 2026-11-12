@@ -10,7 +10,6 @@ import {
   Post,
   Put,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { BlogsService } from '../application/blogs.service';

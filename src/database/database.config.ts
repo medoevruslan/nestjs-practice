@@ -4,7 +4,6 @@ import { TypeOrmOptionsFactory } from '@nestjs/typeorm';
 import { IsBoolean, IsEnum, IsNumber, validateSync } from 'class-validator';
 import { IsStringWithTrim } from 'src/core/decorators/validation/is-string-with-trim';
 import { Nullable } from 'src/shared/common.types';
-import { CreateAuthTables1757000000000 } from './migrations/1757000000000-create-auth-tables';
 import { CreateBlogsTable1791292568321 } from './migrations/1791292568321-CreateBlogsTable';
 import { CreatePostsTable1791465379156 } from './migrations/1791465379156-CreatePostsTable';
 import { CreateCommentsTable1792052413053 } from './migrations/1792052413053-CreateCommentsTable';
@@ -46,17 +45,16 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
 
   private defaultOptions = {
     type: 'postgres' as const,
-    autoLoadEntities: false,
-    synchronize: false,
+    database: 'blogger_platform',
+    autoLoadEntities: true,
+    synchronize: true,
     migrations: [
-      CreateAuthTables1757000000000,
       CreateBlogsTable1791292568321,
       CreatePostsTable1791465379156,
       CreateCommentsTable1792052413053,
       CreateLikesTable1792052421958,
       AddUserLoginToComments1792130000000,
     ],
-    migrationsRun: true,
   };
 
   constructor(@Inject() private readonly configService: ConfigService) {
@@ -94,7 +92,6 @@ export class DatabaseConfig implements TypeOrmOptionsFactory {
       port: this.port,
       username: this.username,
       password: this.password,
-      database: this.database,
       ...this.defaultOptions,
     };
   }

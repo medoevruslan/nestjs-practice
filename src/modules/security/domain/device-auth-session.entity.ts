@@ -1,53 +1,74 @@
-import {
-  HydratedDocument,
-  Model,
-  Types,
-  Schema as MongooseSchema,
-} from 'mongoose';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { CreateDeviceAuthSessionDomainDto } from './dto/create-device-auth-session.domain.dto';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { User } from 'src/modules/user-account/domain/user.entity';
+import { Nullable } from 'src/shared/common.types';
+import { CURRENT_TIMESTAMP } from 'src/database/constants';
 
-@Schema()
+@Entity('device_auth_session')
 export class DeviceAuthSession {
-  _id: Types.ObjectId;
+  @PrimaryGeneratedColumn({ name: 'id', type: 'bigint' })
+  id: string;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
-  userId: Types.ObjectId | string;
+  @Column({ name: 'user_id', type: 'bigint' })
+  userId: string;
 
-  @Prop({ type: String, required: true })
+  @Column({ name: 'ip', nullable: false, type: 'varchar' })
   ip: string;
 
-  @Prop({ type: Types.UUID, required: true })
+  @Column({ name: 'device_id', nullable: false, type: 'uuid' })
   deviceId: string;
 
-  @Prop({ type: String, required: true })
+  @Column({ name: 'device_name', nullable: false, type: 'varchar' })
   deviceName: string;
 
-  @Prop({ type: Number, required: true })
+  @Column({ name: 'iat', nullable: false, type: 'bigint' })
   iat: number;
 
-  @Prop({ type: Number, required: true })
+  @Column({ name: 'exp', nullable: false, type: 'bigint' })
   exp: number;
 
-  @Prop({ type: Number, default: null })
-  lastActiveAt: number | null;
+  @Column({ name: 'last_active_at', nullable: false, type: 'bigint' })
+  lastActiveAt: Nullable<number>;
 
-  @Prop({ type: String, default: null })
-  refreshTokenHash: string | null;
+  @Column({ name: 'refresh_token_hash', default: null, type: 'varchar' })
+  refreshTokenHash: Nullable<string>;
 
+  @CreateDateColumn({
+    name: 'created_at',
+    default: () => CURRENT_TIMESTAMP,
+    type: 'timestamp with time zone',
+  })
   createdAt: Date;
+
+  @UpdateDateColumn({
+    name: 'updated_at',
+    default: () => CURRENT_TIMESTAMP,
+    type: 'timestamp with time zone',
+  })
   updatedAt: Date;
 
-  @Prop({ type: Date, default: null })
-  deletedAt: Date | null;
+  @Column({
+    name: 'deleted_at',
+    default: null,
+    type: 'timestamp with time zone',
+  })
+  deletedAt: Nullable<Date>;
 
-  get id() {
-    return this._id.toString();
-  }
+  @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
+  @ManyToOne(() => User)
+  user: User;
 
   public static createInstance(
     dto: CreateDeviceAuthSessionDomainDto,
-  ): DeviceAuthSessionDocument {
+  ): DeviceAuthSession {
     const instance = new this();
     instance.ip = dto.ip;
     instance.exp = dto.exp;
@@ -57,7 +78,7 @@ export class DeviceAuthSession {
     instance.deviceName = dto.deviceName;
     instance.lastActiveAt = Date.now();
     instance.refreshTokenHash = dto.refreshTokenHash;
-    return instance as DeviceAuthSessionDocument;
+    return instance;
   }
 
   markDeleted() {
@@ -67,13 +88,3 @@ export class DeviceAuthSession {
     this.deletedAt = new Date();
   }
 }
-
-export const DeviceAuthSessionSchema =
-  SchemaFactory.createForClass(DeviceAuthSession);
-
-DeviceAuthSessionSchema.loadClass(DeviceAuthSession);
-
-export type DeviceAuthSessionDocument = HydratedDocument<DeviceAuthSession>;
-
-export type DeviceAuthSessionModel = Model<DeviceAuthSessionDocument> &
-  typeof DeviceAuthSession;

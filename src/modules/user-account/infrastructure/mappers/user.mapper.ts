@@ -21,7 +21,7 @@ export class UserMapper {
   static fromSqlRow(row: UserSqlRow): User {
     const user = new User();
 
-    user.relationalId = String(row.id);
+    user.id = String(row.id);
     user.email = row.email;
     user.login = row.login;
     user.firstName = row.first_name;

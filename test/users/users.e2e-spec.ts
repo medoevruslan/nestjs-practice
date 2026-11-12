@@ -2,17 +2,13 @@ import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Connection } from 'mongoose';
 import { Test } from '@nestjs/testing';
 import { AppModule } from '../../src/app.module';
-import { getConnectionToken, getModelToken } from '@nestjs/mongoose';
+import { getConnectionToken } from '@nestjs/mongoose';
 import request from 'supertest';
 import { appSetup } from '../../src/setup/app.setup';
 import { RegisterUserInputDto } from '../../src/modules/auth/api/input-dto/register-user.input-dto';
 import { AbstractEmailSender } from '../../src/modules/auth/application/port/abstract-email-sender';
 import { PasswordRecoveryInputDto } from '../../src/modules/auth/api/input-dto/password-recovery-input.dto';
 import { NewPasswordDto } from '../../src/modules/auth/dto/new-password.dto';
-import {
-  User,
-  UserModelType,
-} from '../../src/modules/user-account/domain/user.entity';
 import bcrypt from 'bcrypt';
 import { DomainException } from '../../src/core/exceptions/domain-exceptions';
 import { DomainExceptionCode } from '../../src/core/exceptions/domain-exception-codes';
@@ -29,7 +25,6 @@ const emailSenderMock = {
 describe('users test', () => {
   let app: INestApplication;
   let testUserId: string;
-  let userModel: UserModelType;
   let dataSource: DataSource;
 
   beforeAll(async () => {
@@ -45,7 +40,6 @@ describe('users test', () => {
     await app.init();
 
     const connection = moduleFixture.get<Connection>(getConnectionToken());
-    userModel = moduleFixture.get<UserModelType>(getModelToken(User.name));
     dataSource = moduleFixture.get<DataSource>(getDataSourceToken());
 
     if (!connection.db)

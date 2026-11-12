@@ -43,7 +43,7 @@ export class UsersRepository {
         user.passwordRecoveryCode,
         user.confirmationCodeExpiration,
         user.deletedAt,
-        user.relationalId,
+        user.id,
       ],
     );
 

@@ -1,59 +1,82 @@
-import { Prop } from '@nestjs/mongoose';
 import { UpdateUserEmailDto } from '../dto/update-user-email.dto';
+import {
+  Check,
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Nullable } from 'src/shared/common.types';
+import { CURRENT_TIMESTAMP } from 'src/database/constants';
 
-// TODO: add migration with CHECK login and other fields
+@Entity('users')
 export class User {
-  relationalId: string;
+  @PrimaryGeneratedColumn({ name: 'id', type: 'bigint' })
+  id: string;
 
-  get id() {
-    return this.relationalId;
-  }
-
-  @Prop({ type: String, required: true, unique: true })
+  @Column({ name: 'email', type: 'varchar', unique: true, nullable: false })
   email: string;
 
-  @Prop({
-    type: String,
-    required: true,
+  @Check(`char_length("login") BETWEEN 3 AND 10`)
+  @Column({
+    name: 'login',
+    type: 'varchar',
     unique: true,
-    minlength: 3,
-    maxlength: 10,
+    nullable: false,
+    length: 10,
   })
   login: string;
 
-  @Prop({ type: String, default: null })
-  firstName: string | null;
+  @Column({ name: 'first_name', type: 'varchar', default: null })
+  firstName: Nullable<string>;
 
-  @Prop({
-    type: String,
-    default: null,
-  })
-  lastName: string | null;
+  @Column({ name: 'last_name', type: 'varchar', default: null })
+  lastName: Nullable<string>;
 
   get fullName() {
     return `${this.firstName ?? ''} ${this.lastName ?? ''}`;
   }
 
-  @Prop({ type: String, required: true })
+  @Column({ name: 'password', type: 'varchar', nullable: false })
   password: string;
 
-  @Prop({ type: Boolean, default: false })
+  @Column({ name: 'is_email_confirmed', type: 'boolean', default: false })
   isEmailConfirmed: boolean;
 
-  @Prop({ type: String, default: null })
-  emailConfirmationCode: string | null;
+  @Column({ name: 'email_confirmation_code', type: 'varchar', default: null })
+  emailConfirmationCode: Nullable<string>;
 
-  @Prop({ type: String, default: null })
-  passwordRecoveryCode: string | null;
+  @Column({ name: 'password_recovery_code', type: 'varchar', default: null })
+  passwordRecoveryCode: Nullable<string>;
 
-  @Prop({ type: Date, default: null })
-  confirmationCodeExpiration: Date | null;
+  @Column({
+    name: 'confirmation_code_expiration',
+    type: 'timestamp with time zone',
+    default: null,
+  })
+  confirmationCodeExpiration: Nullable<Date>;
 
+  @CreateDateColumn({
+    name: 'created_at',
+    type: 'timestamp with time zone',
+    default: () => CURRENT_TIMESTAMP,
+  })
   createdAt: Date;
+
+  @UpdateDateColumn({
+    name: 'updated_at',
+    type: 'timestamp with time zone',
+    default: () => CURRENT_TIMESTAMP,
+  })
   updatedAt: Date;
 
-  @Prop({ type: Date, default: null })
-  deletedAt: Date | null;
+  @Column({
+    name: 'deleted_at',
+    type: 'timestamp with time zone',
+    default: null,
+  })
+  deletedAt: Nullable<Date>;
 
   markDeleted() {
     if (this.deletedAt !== null) {

@@ -24,9 +24,15 @@ import { UpdateLikeStatusUseCase } from './likes/application/usecases/update-lik
 import { BasicAuthGuard } from '../auth/guards/basic-auth.guard';
 import { OptionalAuthGuard } from '../auth/guards/optional-auth.guard';
 import { SaBlogsController } from './blogs/api/sa-blogs.controller';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Blog } from './blogs/domain/blog.entity';
 
 @Module({
-  imports: [CqrsModule, UserAccountModule],
+  imports: [
+    CqrsModule,
+    UserAccountModule,
+    TypeOrmModule.forFeature([Blog]),
+  ],
   controllers: [
     BlogsController,
     SaBlogsController,

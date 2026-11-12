@@ -17,6 +17,7 @@ export class LikesMapper {
   static fromSqlRaw(raw: LikeSqlRaw): Like {
     const like = new Like();
 
+    like.id = String(raw.id);
     like.login = raw.login;
     like.createdAt = this.toDate(raw.created_at);
     like.updatedAt = this.toDate(raw.updated_at);

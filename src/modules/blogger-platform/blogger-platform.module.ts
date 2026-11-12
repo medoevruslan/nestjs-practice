@@ -28,12 +28,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Blog } from './blogs/domain/blog.entity';
 import { Post } from './posts/domain/post.entity';
 import { Comment } from './comments/domain/comment.entity';
+import { Like } from './likes/domain/like.entity';
 
 @Module({
   imports: [
     CqrsModule,
     UserAccountModule,
-    TypeOrmModule.forFeature([Blog, Post, Comment]),
+    TypeOrmModule.forFeature([Blog, Post, Comment, Like]),
   ],
   controllers: [
     BlogsController,

@@ -26,12 +26,13 @@ import { OptionalAuthGuard } from '../auth/guards/optional-auth.guard';
 import { SaBlogsController } from './blogs/api/sa-blogs.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Blog } from './blogs/domain/blog.entity';
+import { Post } from './posts/domain/post.entity';
 
 @Module({
   imports: [
     CqrsModule,
     UserAccountModule,
-    TypeOrmModule.forFeature([Blog]),
+    TypeOrmModule.forFeature([Blog, Post]),
   ],
   controllers: [
     BlogsController,

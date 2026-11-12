@@ -1,6 +1,4 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MongooseModule } from '@nestjs/mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 import { DataSource } from 'typeorm';
 import { getDataSourceToken, TypeOrmModule } from '@nestjs/typeorm';
 import {
@@ -10,28 +8,25 @@ import {
 import { DeviceAuthSessionRepository } from '../../src/modules/security/infrastructure/device-auth-session.repository';
 import { UsersService } from '../../src/modules/user-account/application/users.service';
 import { UsersRepository } from '../../src/modules/user-account/infrastructure/users.repository';
-import {
-  User,
-  UserSchema,
-} from '../../src/modules/user-account/domain/user.entity';
+import { User } from '../../src/modules/user-account/domain/user.entity';
 import { CreateDeviceAuthSessionDomainDto } from '../../src/modules/security/domain/dto/create-device-auth-session.domain.dto';
 import { DomainExceptionCode } from '../../src/core/exceptions/domain-exception-codes';
 import { configModule } from '../../src/dynamic-config-module';
 import { DatabaseConfig } from '../../src/database/database.config';
+import { DeviceAuthSession } from '../../src/modules/security/domain/device-auth-session.entity';
 
 describe('CreateDeviceAuthSessionUseCase integration', () => {
   let testingModule: TestingModule | undefined;
-  let mongoServer: MongoMemoryServer | undefined;
   let dataSource: DataSource;
   let useCase: CreateDeviceAuthSessionUseCase;
   let deviceAuthSessionRepository: DeviceAuthSessionRepository;
 
   const testUser = {
     email: 'security-integration@example.com',
-    login: 'security-integration-user',
+    login: 'sec-user',
     password: 'password-hash',
   };
-  const testDeviceId = 'security-integration-device';
+  const testDeviceId = '00000000-0000-4000-8000-000000000001';
   const missingUserId = '9223372036854775807';
 
   const createSession = (userId: string): CreateDeviceAuthSessionDomainDto => ({
@@ -46,14 +41,11 @@ describe('CreateDeviceAuthSessionUseCase integration', () => {
   });
 
   beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-
     testingModule = await Test.createTestingModule({
       imports: [
         configModule,
         TypeOrmModule.forRootAsync({ useClass: DatabaseConfig }),
-        MongooseModule.forRoot(mongoServer.getUri()),
-        MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+        TypeOrmModule.forFeature([User, DeviceAuthSession]),
       ],
       providers: [
         UsersRepository,
@@ -77,7 +69,6 @@ describe('CreateDeviceAuthSessionUseCase integration', () => {
       await removeTestData();
     }
     await testingModule?.close();
-    await mongoServer?.stop();
   });
 
   it('should not create a device session when the user does not exist', async () => {

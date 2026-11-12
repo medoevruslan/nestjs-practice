@@ -63,7 +63,7 @@ export class DeviceAuthSession {
   deletedAt: Nullable<Date>;
 
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
   user: User;
 
   public static createInstance(

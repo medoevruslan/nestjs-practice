@@ -142,6 +142,17 @@ describe('users test', () => {
     expect(emailSender.sendEmailConfirmation).toHaveBeenCalledTimes(1);
   });
 
+  it('should return users sorted ascending by creation date', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/api/sa/users?sortDirection=asc')
+      .expect(HttpStatus.OK);
+
+    expect(response.body.items.map((user: { id: string }) => user.id)).toEqual([
+      testUserId,
+      expect.any(String),
+    ]);
+  });
+
   it('should not login user because is not registered, throw 400', async () => {
     const newUser: RegisterUserInputDto = {
       login: 'unknown',

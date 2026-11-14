@@ -5,6 +5,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { CreateDeviceAuthSessionDomainDto } from '../domain/dto/create-device-auth-session.domain.dto';
 import { UpdateDeviceAuthSessionDto } from '../domain/dto/update-device-auth-session.dto';
+import { isUUID } from 'class-validator';
 
 export type DeviceAuthSessionRecord = {
   id: string;
@@ -53,6 +54,13 @@ export class DeviceAuthSessionRepository {
   async getDeviceAuthSessionByDeviceIdOrFault(
     id: string,
   ): Promise<DeviceAuthSessionRecord> {
+    if (!isUUID(id)) {
+      throw new DomainException({
+        code: DomainExceptionCode.NotFound,
+        message: 'device auth session not found',
+      });
+    }
+
     const [found] = await this.dataSource.query<DeviceAuthSessionRecord[]>(
       `
         SELECT

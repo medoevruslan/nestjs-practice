@@ -10,20 +10,15 @@ import {
 } from '../../api/input-dto/get-users.query-params.input-dto';
 import { DomainExceptionCode } from '../../../../core/exceptions/domain-exception-codes';
 import { DomainException } from '../../../../core/exceptions/domain-exceptions';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
-import { UserMapper, UserSqlRow } from '../mappers/user.mapper';
-import { SortDirection } from 'src/core/dto/base.query-params.input-dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ILike, ObjectLiteral, Repository } from 'typeorm';
+import { User } from '../../domain/user.entity';
 
 @Injectable()
 export class UsersQueryRepository {
-  private readonly sortColumns = new Map<string, string>([
-    [UsersSortBy.CreatedAt, '"created_at"'],
-    [UsersSortBy.Email, '"email" COLLATE "C"'],
-    [UsersSortBy.Login, '"login" COLLATE "C"'],
-  ]);
-
-  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
+  constructor(
+    @InjectRepository(User) private readonly usersRepoOrm: Repository<User>,
+  ) {}
 
   async getAll(
     query: GetUsersQueryParams,
@@ -37,78 +32,41 @@ export class UsersQueryRepository {
       searchLoginTerm,
     } = query;
 
-    const sortColumn =
-      this.sortColumns.get(sortBy) ??
-      this.sortColumns.get(UsersSortBy.CreatedAt)!;
-    const direction = sortDirection === SortDirection.Asc ? 'ASC' : 'DESC';
+    const searchTerms: ObjectLiteral[] = [];
 
-    const searchConditions: string[] = [];
-    const filterParams: string[] = [];
-
-    if (searchLoginTerm) {
-      filterParams.push(searchLoginTerm);
-      searchConditions.push(
-        `POSITION(LOWER($${filterParams.length}) IN LOWER(login)) > 0`,
-      );
+    if (searchLoginTerm?.trim()) {
+      searchTerms.push({ login: ILike(`%${searchLoginTerm}%`) });
     }
 
-    if (searchEmailTerm) {
-      filterParams.push(searchEmailTerm);
-      searchConditions.push(
-        `POSITION(LOWER($${filterParams.length}) IN LOWER(email)) > 0`,
-      );
+    if (searchEmailTerm?.trim()) {
+      searchTerms.push({ email: ILike(`%${searchEmailTerm}%`) });
     }
 
-    const whereClause = [
-      'deleted_at IS NULL',
-      searchConditions.length ? `(${searchConditions.join(' OR ')})` : null,
-    ]
-      .filter(Boolean)
-      .join(' AND ');
+    const usersQueryBuilder = this.usersRepoOrm.createQueryBuilder('u');
 
-    const pageSizeParam = filterParams.length + 1;
-    const offsetParam = filterParams.length + 2;
+    usersQueryBuilder
+      .where(searchTerms)
+      .orderBy(`u.${sortBy ?? UsersSortBy.CreatedAt}`, sortDirection)
+      .addSelect('COUNT(*) OVER()', 'total_count')
+      .limit(pageSize)
+      .offset(query.calculateSkip());
 
-    const [[totalCount], users] = await Promise.all([
-      this.dataSource.query(
-        `SELECT COUNT(*)::int AS count FROM users WHERE ${whereClause}`,
-        filterParams,
-      ),
-      this.dataSource.query<UserSqlRow[]>(
-        `
-          SELECT *
-          FROM users
-          WHERE ${whereClause}
-          ORDER BY ${sortColumn} ${direction}, id ${direction}
-          LIMIT $${pageSizeParam} OFFSET $${offsetParam}
-        `,
-        [...filterParams, pageSize, query.calculateSkip()],
-      ),
-    ]);
+    const { entities: usrs, raw } = await usersQueryBuilder.getRawAndEntities();
 
-    const items = users
-      .map(UserMapper.fromSqlRow, UserMapper)
-      .map(UserViewDto.mapToView);
+    const totalCount = Number(raw[0]?.total_count ?? 0);
 
     const data = {
-      totalCount: totalCount.count,
+      totalCount,
       page: pageNumber,
       size: pageSize,
-      items,
+      items: usrs.map(UserViewDto.mapToView),
     } satisfies MappedPaginatedViewType<UserViewDto[]>;
 
     return PaginatedViewDto.mapToView<UserViewDto[]>(data);
   }
 
   async getByIdOrFail(id: string): Promise<UserViewDto> {
-    const [found] = await this.dataSource.query<UserSqlRow[]>(
-      `
-        SELECT *
-        FROM users
-        WHERE id = $1 AND deleted_at IS NULL
-      `,
-      [id],
-    );
+    const found = await this.usersRepoOrm.findOneBy({ id });
 
     if (!found) {
       throw new DomainException({
@@ -117,6 +75,6 @@ export class UsersQueryRepository {
       });
     }
 
-    return UserViewDto.mapToView(UserMapper.fromSqlRow(found));
+    return UserViewDto.mapToView(found);
   }
 }
